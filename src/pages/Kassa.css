@@ -1,0 +1,113 @@
+.container {
+  position: relative;
+  max-width: 425px;
+  height: 100vh;
+  margin: 0 auto;
+  background-color: #1e1e1e;
+}
+
+h1 {
+  color: #eeeeee;
+  text-align: center;
+  margin: 0;
+}
+
+.flex {
+  background-color: #1e1e1e;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 4px;
+  margin: 0;
+  background-color: #4f4f4f;
+}
+
+.top__auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  min-height: 44px;
+  border-radius: 8px;
+  color: #2c2c2c;
+  background-color: #eeeeee;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-link:hover {
+  background-color: #dcdcdc;
+  transform: scale(1.03);
+}
+
+.bottom {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #eeeeee;
+  background-color: #4f4f4f;
+  padding: 12px 4px;
+  z-index: 1;
+}
+
+button {
+  width: 40px;
+  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #2c2c2c;
+  background-color: #6c757d;
+  border-radius: 8px;
+  user-select: none;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  border: none;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.done-button {
+  background-color: #eeeeee;
+}
+
+.amountButton {
+  background-color: #eeeeee;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.amountButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.price,
+.amount {
+  font-size: 16px;
+  font-weight: 500;
+}
+

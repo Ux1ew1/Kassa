@@ -1,0 +1,87 @@
+import { useState, useEffect } from 'react'
+import './ItemModal.css'
+
+function ItemModal({ isOpen, mode, item, onSave, onClose }) {
+  const [name, setName] = useState('')
+  const [price, setPrice] = useState('')
+  const [show, setShow] = useState(true)
+
+  useEffect(() => {
+    if (isOpen) {
+      if (mode === 'edit' && item) {
+        setName(item.name || '')
+        setPrice(item.price?.toString() || '')
+        setShow(item.show !== undefined ? item.show : true)
+      } else {
+        setName('')
+        setPrice('')
+        setShow(true)
+      }
+    }
+  }, [isOpen, mode, item])
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const priceNum = parseFloat(price)
+    if (!name.trim() || isNaN(priceNum) || priceNum < 0) {
+      alert('Введите корректные данные')
+      return
+    }
+    onSave({ name: name.trim(), price: priceNum, show })
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="modal" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3>{mode === 'edit' ? 'Редактирование позиции' : 'Новая позиция'}</h3>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            className="modal-input"
+            placeholder="Название"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            autoFocus
+          />
+          <input
+            type="number"
+            className="modal-input"
+            placeholder="Цена"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            inputMode="decimal"
+            min="0"
+            step="0.01"
+            required
+          />
+          <label className="modal-checkbox">
+            <input
+              type="checkbox"
+              checked={show}
+              onChange={(e) => setShow(e.target.checked)}
+            />
+            Активна
+          </label>
+          <div className="modal-actions">
+            <button type="submit" className="modal-button">
+              Сохранить
+            </button>
+            <button
+              type="button"
+              className="modal-button modal-button--secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default ItemModal
+

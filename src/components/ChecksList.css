@@ -1,0 +1,66 @@
+.top__checks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.check-item {
+  position: relative;
+}
+
+.check-item input[type="radio"] {
+  display: none;
+}
+
+.check-item label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #6c757d;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.check-item label:hover {
+  transform: scale(1.05);
+}
+
+.check-item input[type="radio"]:checked + label {
+  color: #2c2c2c;
+  background-color: #eeeeee;
+}
+
+.newCheck {
+  width: 40px;
+  height: 40px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+  background-color: #6c757d;
+  border-radius: 8px;
+  user-select: none;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  border: none;
+  outline: none;
+  font-size: 20px;
+}
+
+.newCheck:hover {
+  transform: scale(1.05);
+}
+

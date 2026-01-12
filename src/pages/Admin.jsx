@@ -1,0 +1,129 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAdminMenu } from '../hooks/useAdminMenu'
+import AdminMenuList from '../components/AdminMenuList'
+import ItemModal from '../components/ItemModal'
+import './Admin.css'
+
+function Admin() {
+  const { menu, loading, addItem, updateItem, deleteItem, toggleItem } = useAdminMenu()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMode, setModalMode] = useState('add')
+  const [editingItem, setEditingItem] = useState(null)
+
+  const filteredMenu = menu.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  )
+
+  const handleAdd = () => {
+    setModalMode('add')
+    setEditingItem(null)
+    setModalOpen(true)
+  }
+
+  const handleEdit = (item) => {
+    setModalMode('edit')
+    setEditingItem(item)
+    setModalOpen(true)
+  }
+
+  const handleSave = async (itemData) => {
+    try {
+      if (modalMode === 'add') {
+        await addItem(itemData)
+      } else if (editingItem) {
+        await updateItem(editingItem.id, itemData)
+      }
+      setModalOpen(false)
+      setEditingItem(null)
+    } catch (error) {
+      alert(error.message || 'Не удалось сохранить позицию')
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (confirm('Удалить позицию?')) {
+      try {
+        await deleteItem(id)
+      } catch (error) {
+        alert(error.message || 'Не удалось удалить позицию')
+      }
+    }
+  }
+
+  const handleToggle = async (id) => {
+    try {
+      await toggleItem(id)
+    } catch (error) {
+      alert(error.message || 'Не удалось обновить позицию')
+    }
+  }
+
+  return (
+    <div className="admin-container">
+      <header className="admin-header">
+        <h1 className="admin-header__title">Админ-панель</h1>
+        <div className="admin-header__actions">
+          <Link to="/" className="admin-link">
+            ← К кассе
+          </Link>
+        </div>
+      </header>
+
+      <main>
+        <div className="admin-controls">
+          <div className="admin-search">
+            <input
+              type="text"
+              className="admin-search-input"
+              placeholder="Поиск по названию..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="admin-search-clear"
+                onClick={() => setSearchQuery('')}
+                aria-label="Очистить поиск"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <button className="admin-add-button" onClick={handleAdd}>
+            Добавить позицию
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="admin-menu">
+            <div className="admin-placeholder">Загрузка меню...</div>
+          </div>
+        ) : (
+          <AdminMenuList
+            items={filteredMenu}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </main>
+
+      <ItemModal
+        isOpen={modalOpen}
+        mode={modalMode}
+        item={editingItem}
+        onSave={handleSave}
+        onClose={() => {
+          setModalOpen(false)
+          setEditingItem(null)
+        }}
+      />
+    </div>
+  )
+}
+
+export default Admin
+

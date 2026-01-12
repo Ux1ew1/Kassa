@@ -1,0 +1,32 @@
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #eeeeee;
+  width: 44%;
+  padding: 12px 7px;
+  min-height: 60px;
+  cursor: pointer;
+  border-radius: 7px;
+  background-color: #2c2c2c;
+  z-index: 1;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.item:active {
+  transform: scale(0.95);
+  background-color: #4f4f4f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.item-name {
+  z-index: 0;
+}
+
+.item-price {
+  z-index: 0;
+}
+
