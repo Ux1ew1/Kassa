@@ -1,13 +1,9 @@
 import "./SecretMenu.css";
 
-function SecretMenu({ open, onClose, viewMode, onChangeViewMode }) {
+function SecretMenu({ open, onClose }) {
   if (!open) {
     return null;
   }
-
-  const handleModeChange = (event) => {
-    onChangeViewMode?.(event.target.value);
-  };
 
   return (
     <div className="secret-menu-overlay" onClick={onClose}>
@@ -17,46 +13,27 @@ function SecretMenu({ open, onClose, viewMode, onChangeViewMode }) {
       >
         <div className="secret-menu-header">
           <div>
-            <div className="secret-menu-title">Секретное меню</div>
-            <div className="secret-menu-caption">Настройки для бариста</div>
+            <div className="secret-menu-title">РЎРµРєСЂРµС‚РЅРѕРµ РјРµРЅСЋ</div>
+            <div className="secret-menu-caption">РќР°СЃС‚СЂРѕР№РєРё РґР»СЏ Р±Р°СЂРёСЃС‚Р°</div>
           </div>
           <button
             type="button"
             className="secret-menu-close"
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label="Р—Р°РєСЂС‹С‚СЊ"
           >
-            ✕
+            вњ•
           </button>
         </div>
 
         <div className="secret-menu-section">
-          <div className="secret-menu-section-title">Вид отображения кофе</div>
-          <label className="secret-menu-radio">
-            <input
-              type="radio"
-              name="secret-view-mode"
-              value="list"
-              checked={viewMode === "list"}
-              onChange={handleModeChange}
-            />
-            <span>Список</span>
-          </label>
-          <label className="secret-menu-radio">
-            <input
-              type="radio"
-              name="secret-view-mode"
-              value="cards"
-              checked={viewMode === "cards"}
-              onChange={handleModeChange}
-            />
-            <span>Карточки</span>
-          </label>
+          <div className="secret-menu-section-title">Р’РёРґ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РєРѕС„Рµ</div>
+          <div className="secret-menu-note">Р’СЃРµРіРґР° РєР°СЂС‚РѕС‡РєРё</div>
         </div>
 
         <div className="secret-menu-actions">
           <a href="/admin" className="secret-menu-link">
-            Перейти в админ-панель
+            РџРµСЂРµР№С‚Рё РІ Р°РґРјРёРЅ-РїР°РЅРµР»СЊ
           </a>
         </div>
       </div>
