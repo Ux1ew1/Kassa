@@ -1,8 +1,10 @@
 .top__checks {
+  max-width: 300px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1 1 auto;
+  justify-content: space-between;
 }
 
 .checks {
@@ -33,7 +35,9 @@
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .check-item label:hover {
@@ -54,7 +58,9 @@
   background-color: #6c757d;
   border-radius: 8px;
   user-select: none;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
   border: none;
   outline: none;
   font-size: 20px;
@@ -63,4 +69,3 @@
 .newCheck:hover {
   transform: scale(1.05);
 }
-

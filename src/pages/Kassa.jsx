@@ -26,12 +26,12 @@ function Kassa() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
-  const [coffeeViewMode, setCoffeeViewMode] = useState("list");
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
+  const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
   const activeCheck = getActiveCheck();
 
   const handleAmount = () => {
-    const input = prompt("Введите сумму клиента:");
+    const input = prompt("Р’РІРµРґРёС‚Рµ СЃСѓРјРјСѓ РєР»РёРµРЅС‚Р°:");
     if (input === null) return;
 
     const given = parseFloat(input);
@@ -57,6 +57,10 @@ function Kassa() {
     setCoffeeMenuOpen(false);
   };
 
+  const handleToggleCartDrawer = () => {
+    setCartDrawerOpen((prev) => !prev);
+  };
+
   const handleToggleSecretMenu = () => {
     setSecretMenuOpen((prev) => !prev);
   };
@@ -68,6 +72,14 @@ function Kassa() {
       </h1>
       <div className="flex">
         <div className="top">
+          <button
+            className="cart-drawer-button"
+            type="button"
+            onClick={handleToggleCartDrawer}
+            aria-label="Корзина"
+          >
+            К
+          </button>
           <ChecksList
             checks={checks}
             activeCheckId={activeCheckId}
@@ -131,19 +143,44 @@ function Kassa() {
           onRemove={removeItemFromCheck}
           onToggleFulfilled={toggleItemsFulfilled}
         />
+        <div
+          className={`cart-drawer${
+            isCartDrawerOpen ? " cart-drawer--open" : ""
+          }`}
+        >
+          <div className="cart-drawer__header">
+            <span className="cart-drawer__title">Корзина товаров</span>
+            <button
+              className="cart-drawer__close"
+              type="button"
+              onClick={handleToggleCartDrawer}
+              aria-label="Корзина товаров"
+            >
+              x
+            </button>
+          </div>
+          <Cart
+            items={activeCheck?.items || []}
+            onRemove={removeItemFromCheck}
+            onToggleFulfilled={toggleItemsFulfilled}
+          />
+        </div>
+        {isCartDrawerOpen && (
+          <div
+            className="cart-drawer__backdrop"
+            onClick={handleToggleCartDrawer}
+          />
+        )}
         <CoffeeMenuDrawer
           open={isCoffeeMenuOpen}
           onClose={handleCloseCoffeeMenu}
           checks={checks}
           activeCheckId={activeCheckId}
-          viewMode={coffeeViewMode}
           onToggleFulfilled={toggleItemsFulfilled}
         />
         <SecretMenu
           open={isSecretMenuOpen}
           onClose={handleToggleSecretMenu}
-          viewMode={coffeeViewMode}
-          onChangeViewMode={setCoffeeViewMode}
         />
       </div>
     </div>
