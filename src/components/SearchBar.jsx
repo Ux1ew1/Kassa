@@ -1,18 +1,25 @@
-import './SearchBar.css'
+import "./SearchBar.css";
 
-function SearchBar({ value = '', onSearch }) {
+function SearchBar({ value = "", onSearch }) {
   const handleChange = (e) => {
-    const nextValue = e.target.value
-    if (typeof onSearch === 'function') {
-      onSearch(nextValue)
+    const nextValue = e.target.value;
+    if (typeof onSearch === "function") {
+      onSearch(nextValue);
     }
-  }
+  };
 
   const handleClear = () => {
-    if (typeof onSearch === 'function') {
-      onSearch('')
+    if (typeof onSearch === "function") {
+      onSearch("");
     }
-  }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleClear();
+    }
+  };
 
   return (
     <div className="search-container">
@@ -22,6 +29,7 @@ function SearchBar({ value = '', onSearch }) {
         placeholder="Поиск товаров..."
         value={value}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
       {value && (
         <button
@@ -34,8 +42,7 @@ function SearchBar({ value = '', onSearch }) {
         </button>
       )}
     </div>
-  )
+  );
 }
 
-export default SearchBar
-
+export default SearchBar;
