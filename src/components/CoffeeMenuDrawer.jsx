@@ -1,11 +1,6 @@
 import { useMemo } from "react";
 import "./CoffeeMenuDrawer.css";
 
-const VIEW_MODES = {
-  LIST: "list",
-  CARDS: "cards",
-};
-
 const COFFEE_KEYWORDS = [
   "коф",
   "капуч",
@@ -32,25 +27,7 @@ function getCoffeeLetter(name = "") {
   if (normalized.includes("макиато")) return "М";
 
   const firstLetter = normalized.trim().charAt(0);
-  return firstLetter ? firstLetter.toUpperCase() : "К";
-}
-
-function groupItems(items = []) {
-  const map = new Map();
-
-  items.forEach((item) => {
-    if (!map.has(item.id)) {
-      map.set(item.id, {
-        id: item.id,
-        name: item.name,
-        quantity: 0,
-      });
-    }
-    const group = map.get(item.id);
-    group.quantity += 1;
-  });
-
-  return Array.from(map.values());
+  return firstLetter ? firstLetter.toUpperCase() : "Рљ";
 }
 
 function CoffeeMenuDrawer({
@@ -58,34 +35,35 @@ function CoffeeMenuDrawer({
   onClose,
   checks = [],
   activeCheckId,
-  viewMode = VIEW_MODES.LIST,
   onToggleFulfilled,
 }) {
   const preparedChecks = useMemo(
     () =>
-      checks.map((check) => {
-        const withIndex = (check.items || []).map((item, index) => ({
-          ...item,
-          index,
-        }));
+      checks
+        .map((check) => {
+          const withIndex = (check.items || []).map((item, index) => ({
+            ...item,
+            index,
+          }));
 
-        const coffeeItems = withIndex.filter((item) =>
-          isCoffeeItem(item?.name || "")
-        );
+          const coffeeItems = withIndex.filter((item) =>
+            isCoffeeItem(item?.name || ""),
+          );
 
-        return {
-          id: check.id,
-          groupedItems: groupItems(coffeeItems),
-          squareItems: coffeeItems.map((item) => ({
-            key: `${check.id}-${item.index}`,
-            name: item.name,
-            letter: getCoffeeLetter(item.name),
-            fulfilled: Boolean(item.fulfilled),
-            index: item.index,
-          })),
-        };
-      }),
-    [checks]
+          return {
+            id: check.id,
+            hasCoffee: coffeeItems.length > 0,
+            squareItems: coffeeItems.map((item) => ({
+              key: `${check.id}-${item.index}`,
+              name: item.name,
+              letter: getCoffeeLetter(item.name),
+              fulfilled: Boolean(item.fulfilled),
+              index: item.index,
+            })),
+          };
+        })
+        .filter((check) => check.hasCoffee),
+    [checks],
   );
 
   if (!open) {
@@ -123,10 +101,6 @@ function CoffeeMenuDrawer({
           </button>
         </div>
 
-        <div className="coffee-menu-mode-tag">
-          Режим: {viewMode === VIEW_MODES.LIST ? "Список" : "Карточки"}
-        </div>
-
         <div className="coffee-menu-list">
           {preparedChecks.length === 0 && (
             <div className="coffee-menu-empty">
@@ -146,48 +120,34 @@ function CoffeeMenuDrawer({
                 <span className="coffee-menu-check-number">№{check.id}</span>
               </div>
 
-              {viewMode === VIEW_MODES.LIST ? (
-                <div className="coffee-menu-coffee">
-                  {check.groupedItems.length === 0 ? (
-                    <span className="coffee-menu-empty-inline">Кофе нет</span>
-                  ) : (
-                    check.groupedItems.map((item) => (
-                      <span
-                        key={`${check.id}-${item.id}`}
-                        className="coffee-menu-chip"
-                      >
-                        {item.name}
-                        <span className="coffee-menu-chip-qty">
-                          x{item.quantity}
-                        </span>
+              <div className="coffee-menu-squares">
+                {check.squareItems.length === 0 ? (
+                  <span className="coffee-menu-empty-inline">Кофе нет</span>
+                ) : (
+                  check.squareItems.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`coffee-square${
+                        item.fulfilled ? " coffee-square--fulfilled" : ""
+                      }`}
+                      onClick={() =>
+                        handleSquareToggle(
+                          check.id,
+                          item.index,
+                          !item.fulfilled,
+                        )
+                      }
+                      title={item.name}
+                      aria-label={item.name}
+                    >
+                      <span className="coffee-square-letter">
+                        {item.letter}
                       </span>
-                    ))
-                  )}
-                </div>
-              ) : (
-                <div className="coffee-menu-squares">
-                  {check.squareItems.length === 0 ? (
-                    <span className="coffee-menu-empty-inline">Кофе нет</span>
-                  ) : (
-                    check.squareItems.map((item) => (
-                      <button
-                        key={item.key}
-                        type="button"
-                        className={`coffee-square${
-                          item.fulfilled ? " coffee-square--fulfilled" : ""
-                        }`}
-                        onClick={() =>
-                          handleSquareToggle(check.id, item.index, !item.fulfilled)
-                        }
-                        title={item.name}
-                        aria-label={item.name}
-                      >
-                        <span className="coffee-square-letter">{item.letter}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
           ))}
         </div>
