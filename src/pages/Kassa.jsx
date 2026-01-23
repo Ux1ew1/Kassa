@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
+import { useTheme } from "../hooks/useTheme";
 import SearchBar from "../components/SearchBar";
 import Menu from "../components/Menu";
 import Cart from "../components/Cart";
@@ -28,6 +29,7 @@ function Kassa() {
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const activeCheck = getActiveCheck();
 
   const handleAmount = () => {
@@ -87,6 +89,15 @@ function Kassa() {
             onCreateNew={handleCreateNewCheck}
           />
           <button
+            className="theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Сменить тему"
+            title="Сменить тему"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          <button
             className="coffee-menu-button"
             type="button"
             onClick={handleOpenCoffeeMenu}
@@ -129,7 +140,7 @@ function Kassa() {
             aria-label="Ввести сумму"
           >
             <svg
-              fill="#000000"
+              fill="currentColor"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >

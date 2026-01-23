@@ -1,3 +1,5 @@
+@import './theme.css';
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -11,6 +13,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-app-bg);
+  color: var(--color-text-primary);
 }
 
 #root {

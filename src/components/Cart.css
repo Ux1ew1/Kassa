@@ -1,11 +1,11 @@
 .cart {
-  color: #eeeeee;
+  color: var(--color-text-primary);
 }
 
 .cart-empty {
   padding: 24px 12px;
   text-align: center;
-  color: #888888;
+  color: var(--color-text-muted);
 }
 
 .cart__item {
@@ -14,11 +14,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 7px 4px;
-  background-color: #393e46;
+  background-color: var(--color-card);
   margin: 4px 0;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s ease, opacity 0.2s ease;
+  border: 1px solid var(--color-divider);
 }
 
 .cart__item-container {
@@ -37,7 +38,7 @@
 
 .cart__item-qty {
   font-size: 16px;
-  color: #b9b9b9;
+  color: var(--color-text-muted);
 }
 
 .cart__item-price {
@@ -53,7 +54,7 @@
 
 .cart__item-price-each {
   font-size: 16px;
-  color: #b9b9b9;
+  color: var(--color-text-muted);
 }
 
 .cart__item--fulfilled {
@@ -66,8 +67,8 @@
 }
 
 .remove-item {
-  background: #ff4444;
-  color: white;
+  background: var(--color-danger);
+  color: var(--color-button-text);
   border: none;
   border-radius: 6px;
   padding: 8px 12px;
@@ -79,5 +80,5 @@
 }
 
 .remove-item:hover {
-  background: #cc0000;
+  background: var(--color-danger-hover);
 }
