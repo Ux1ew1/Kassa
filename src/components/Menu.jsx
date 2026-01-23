@@ -2,7 +2,16 @@ import { useMemo } from 'react'
 import MenuItem from './MenuItem'
 import './Menu.css'
 
-function Menu({ menuItems, activeOrder, searchQuery, onAddItem }) {
+function Menu({ menuItems, activeOrder, searchQuery, cartItems = [], onAddItem }) {
+  // Подсчитываем количество каждого товара в активном чеке
+  const itemCounts = useMemo(() => {
+    const counts = new Map()
+    cartItems.forEach((cartItem) => {
+      counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1)
+    })
+    return counts
+  }, [cartItems])
+
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     const itemsById = new Map(menuItems.map((item) => [item.id, item]))
@@ -45,11 +54,15 @@ function Menu({ menuItems, activeOrder, searchQuery, onAddItem }) {
   return (
     <div className="menu">
       {filteredItems.map((item) => (
-        <MenuItem key={item.id} item={item} onAdd={onAddItem} />
+        <MenuItem
+          key={item.id}
+          item={item}
+          quantity={itemCounts.get(item.id) || 0}
+          onAdd={onAddItem}
+        />
       ))}
     </div>
   )
 }
 
 export default Menu
-

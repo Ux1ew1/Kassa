@@ -95,6 +95,8 @@ function Kassa() {
             menuItems={menuItems}
             activeOrder={activeOrder}
             searchQuery={searchQuery}
+            // Передаем текущие позиции чека, чтобы считать количество на карточках
+            cartItems={activeCheck?.items || []}
             onAddItem={addItemToCheck}
           />
         )}
