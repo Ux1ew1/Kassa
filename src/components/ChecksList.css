@@ -30,8 +30,8 @@
   width: 40px;
   height: 40px;
   font-weight: 600;
-  color: #fff;
-  background-color: #6c757d;
+  color: var(--color-button-text);
+  background-color: var(--color-button-bg);
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
@@ -45,8 +45,8 @@
 }
 
 .check-item input[type="radio"]:checked + label {
-  color: #2c2c2c;
-  background-color: #eeeeee;
+  color: var(--color-button-alt-text);
+  background-color: var(--color-button-alt-bg);
 }
 
 .newCheck {
@@ -54,8 +54,8 @@
   height: 40px;
   font-weight: 600;
   cursor: pointer;
-  color: #fff;
-  background-color: #6c757d;
+  color: var(--color-button-text);
+  background-color: var(--color-button-bg);
   border-radius: 8px;
   user-select: none;
   transition:

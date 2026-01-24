@@ -9,5 +9,5 @@
   width: 100%;
   padding: 24px 12px;
   text-align: center;
-  color: #888888;
+  color: var(--color-text-muted);
 }
