@@ -18,6 +18,17 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+.item:nth-child(odd) {
+  margin-left: auto;
+}
+
+.item:nth-child(even) {
+  margin-right: auto;
+}
+
+.item:last-child {
+  margin-left: 20px;
+}
 
 .item:active {
   transform: scale(0.95);
