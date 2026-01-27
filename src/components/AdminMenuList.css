@@ -44,6 +44,19 @@
   color: var(--color-text-secondary);
 }
 
+.admin-item__category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
 .admin-item__status {
   font-size: 14px;
   color: var(--color-text-muted);
