@@ -1,6 +1,9 @@
 import "./SecretMenu.css";
+import { useTheme } from "../hooks/useTheme";
 
 function SecretMenu({ open, onClose }) {
+  const { theme, toggleTheme } = useTheme();
+
   if (!open) {
     return null;
   }
@@ -29,6 +32,19 @@ function SecretMenu({ open, onClose }) {
         <div className="secret-menu-section">
           <div className="secret-menu-section-title">Вид отображения кофе</div>
           <div className="secret-menu-note">Всегда карточки</div>
+        </div>
+
+        <div className="secret-menu-section">
+          <div className="secret-menu-section-title">Тема приложения</div>
+          <button
+            type="button"
+            className="secret-menu-theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Сменить тему"
+            title="Сменить тему"
+          >
+            {theme === "dark" ? "☀️ Светлая тема" : "🌙 Тёмная тема"}
+          </button>
         </div>
 
         <div className="secret-menu-actions">
