@@ -17,6 +17,32 @@ h1 {
   background-color: var(--color-app-bg);
 }
 
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 6px 2px;
+}
+
+.category-button {
+  min-width: auto;
+  width: auto;
+  min-height: auto;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.category-button--active {
+  background-color: var(--color-button-alt-bg);
+  color: var(--color-button-alt-text);
+  border-color: var(--color-button-alt-bg);
+}
+
 .top {
   display: flex;
   flex-wrap: wrap;
@@ -56,7 +82,9 @@ h1 {
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
   border: none;
   cursor: pointer;
 }
@@ -91,23 +119,13 @@ button {
   background-color: var(--color-button-bg);
   border-radius: 8px;
   user-select: none;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
   border: none;
   outline: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-}
-
-.theme-toggle {
-  background-color: var(--color-panel);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  font-size: 18px;
-}
-
-.theme-toggle:hover {
-  background-color: var(--color-button-bg-hover);
-  color: var(--color-button-text);
 }
 
 .done-button {
@@ -138,9 +156,8 @@ button {
 .cart-drawer {
   position: fixed;
   top: 0;
-  left: -80%;
-  width: 70%;
-  max-width: 320px;
+  left: -100%;
+  width: min(420px, 100%);
   height: 100vh;
   background-color: var(--color-panel);
   color: var(--color-text-primary);
@@ -189,4 +206,3 @@ button {
   overflow-y: auto;
   max-height: calc(100vh - 80px);
 }
-
