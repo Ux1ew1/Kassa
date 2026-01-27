@@ -1,7 +1,6 @@
-import { useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
-import { useTheme } from "../hooks/useTheme";
 import SearchBar from "../components/SearchBar";
 import Menu from "../components/Menu";
 import Cart from "../components/Cart";
@@ -9,6 +8,29 @@ import ChecksList from "../components/ChecksList";
 import CoffeeMenuDrawer from "../components/CoffeeMenuDrawer";
 import SecretMenu from "../components/SecretMenu";
 import "./Kassa.css";
+
+const BASE_CATEGORIES = ["все", "напитки", "еда", "алкоголь", "остальное"];
+
+const normalizeCategory = (value) => {
+  const v = (value || "").toString().trim().toLowerCase();
+  if (["all", "все"].includes(v)) return "все";
+  if (["drink", "drinks", "напитки"].includes(v)) return "напитки";
+  if (["food", "еда"].includes(v)) return "еда";
+  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "алкоголь";
+  if (["other", "misc", "остальное", "другое"].includes(v)) return "остальное";
+  return "остальное";
+};
+
+const categoryLabel = (slug) => {
+  const map = {
+    все: "Все",
+    напитки: "Напитки",
+    еда: "Еда",
+    алкоголь: "Алкоголь",
+    остальное: "Остальное",
+  };
+  return map[slug] || slug;
+};
 
 function Kassa() {
   const { menuItems, activeOrder, loading } = useMenu();
@@ -29,11 +51,28 @@ function Kassa() {
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const [activeCategory, setActiveCategory] = useState("все");
   const activeCheck = getActiveCheck();
 
+  const categories = useMemo(() => {
+    const detected = Array.from(
+      new Set(menuItems.map((item) => normalizeCategory(item.category))),
+    );
+
+    return [
+      ...BASE_CATEGORIES,
+      ...detected.filter((cat) => cat && !BASE_CATEGORIES.includes(cat)),
+    ];
+  }, [menuItems]);
+
+  useEffect(() => {
+    if (!categories.includes(activeCategory)) {
+      setActiveCategory("все");
+    }
+  }, [categories, activeCategory]);
+
   const handleAmount = () => {
-    const input = prompt("Р’РІРµРґРёС‚Рµ СЃСѓРјРјСѓ РєР»РёРµРЅС‚Р°:");
+    const input = prompt("Введите сумму клиента: ");
     if (input === null) return;
 
     const given = parseFloat(input);
@@ -89,15 +128,6 @@ function Kassa() {
             onCreateNew={handleCreateNewCheck}
           />
           <button
-            className="theme-toggle"
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Сменить тему"
-            title="Сменить тему"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          <button
             className="coffee-menu-button"
             type="button"
             onClick={handleOpenCoffeeMenu}
@@ -108,6 +138,20 @@ function Kassa() {
         </div>
 
         <SearchBar value={searchQuery} onSearch={handleSearch} />
+        <div className="categories">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`category-button${
+                activeCategory === category ? " category-button--active" : ""
+              }`}
+              onClick={() => setActiveCategory(category)}
+            >
+              {categoryLabel(category)}
+            </button>
+          ))}
+        </div>
 
         {loading ? (
           <div className="menu">
@@ -118,6 +162,7 @@ function Kassa() {
             menuItems={menuItems}
             activeOrder={activeOrder}
             searchQuery={searchQuery}
+            activeCategory={activeCategory}
             // Передаем текущие позиции чека, чтобы считать количество на карточках
             cartItems={activeCheck?.items || []}
             onAddItem={addItemToCheck}
@@ -189,10 +234,7 @@ function Kassa() {
           activeCheckId={activeCheckId}
           onToggleFulfilled={toggleItemsFulfilled}
         />
-        <SecretMenu
-          open={isSecretMenuOpen}
-          onClose={handleToggleSecretMenu}
-        />
+        <SecretMenu open={isSecretMenuOpen} onClose={handleToggleSecretMenu} />
       </div>
     </div>
   );

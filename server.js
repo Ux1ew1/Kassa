@@ -5,12 +5,15 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
+import qrcode from "qrcode-terminal";
 
 // Константы
 const HOST = "0.0.0.0";
 const PORT = 3000;
 const DEFAULT_MENU = [];
+const PREFERRED_INTERFACE = "rmnet_data2";
 
 // Пути
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +22,51 @@ const dataDir = path.join(baseDir, "data");
 const menuFile = path.join(dataDir, "menu.json");
 const distDir = path.join(baseDir, "dist");
 const publicDir = path.join(baseDir, "public");
+
+/**
+ * Возвращает IPv4-адрес: сначала rmnet_data2 (как на телефоне), затем типичные Wi‑Fi интерфейсы,
+ * затем первый внешний адрес. Нужен для вывода ссылки и QR-кода.
+ */
+const getLanIp = () => {
+  const networks = os.networkInterfaces();
+  if (!networks) return null;
+
+  const pickAddress = (ifaceName) => {
+    const entries = networks[ifaceName];
+    if (!entries) return null;
+    const target = entries.find(
+      (item) =>
+        item &&
+        item.family === "IPv4" &&
+        !item.internal &&
+        item.address &&
+        !item.address.startsWith("169.254.")
+    );
+    return target?.address || null;
+  };
+
+  const preferred =
+    pickAddress(PREFERRED_INTERFACE) ||
+    pickAddress("wlan0") ||
+    pickAddress("wlp2s0") ||
+    pickAddress("en0");
+  if (preferred) return preferred;
+
+  for (const entries of Object.values(networks)) {
+    if (!entries) continue;
+    const target = entries.find(
+      (item) =>
+        item &&
+        item.family === "IPv4" &&
+        !item.internal &&
+        item.address &&
+        !item.address.startsWith("169.254.")
+    );
+    if (target?.address) return target.address;
+  }
+
+  return null;
+};
 
 // Утилиты для работы с файлами
 const { readFile, writeFile } = fs.promises;
@@ -414,6 +462,17 @@ server.listen(PORT, HOST, async () => {
   console.log(`🚀 Сервер запущен: http://${HOST}:${PORT}`);
   console.log(`📁 Данные меню: ${menuFile}`);
   console.log(`📦 Статические файлы: ${hasDist ? distDir : "используйте 'npm run build' для создания"}`);
+  const lanIp = getLanIp();
+  if (lanIp) {
+    const lanUrl = `http://${lanIp}:${PORT}`;
+    console.log(`🌐 Доступ из сети: ${lanUrl}`);
+    console.log("📱 QR-код для быстрого перехода:");
+    qrcode.generate(lanUrl, { small: true });
+  } else {
+    console.log(
+      "ℹ️ IP не найден. Посмотрите ifconfig (rmnet_data2) и зайдите на http://<IP>:3000"
+    );
+  }
   console.log(`\n💡 Для разработки используйте: npm run dev`);
   console.log(`💡 Для продакшена соберите проект: npm run build, затем: npm start\n`);
 });
