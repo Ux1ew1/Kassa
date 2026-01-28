@@ -16,7 +16,7 @@ function Menu({
   menuItems,
   activeOrder,
   searchQuery,
-  activeCategory = "все",
+  activeCategory = "",
   cartItems = [],
   onAddItem,
 }) {
@@ -56,7 +56,7 @@ function Menu({
     return orderedVisibleItems.filter((item) => {
       const itemCategory = normalizeCategory(item.category);
       const matchesCategory =
-        activeCategory === "все" || itemCategory === activeCategory;
+        !activeCategory || itemCategory === activeCategory;
       const matchesSearch =
         query === "" || item.name.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
