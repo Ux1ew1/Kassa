@@ -31,7 +31,7 @@
   height: 40px;
   font-weight: 600;
   color: var(--color-button-text);
-  background-color: var(--color-button-bg);
+  background-color: color-mix(in srgb, var(--color-button-bg) 70%, transparent);
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
@@ -46,7 +46,7 @@
 
 .check-item input[type="radio"]:checked + label {
   color: var(--color-button-alt-text);
-  background-color: var(--color-button-alt-bg);
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) 70%, transparent);
 }
 
 .newCheck {
@@ -55,7 +55,7 @@
   font-weight: 600;
   cursor: pointer;
   color: var(--color-button-text);
-  background-color: var(--color-button-bg);
+  background-color: color-mix(in srgb, var(--color-button-bg) 70%, transparent);
   border-radius: 8px;
   user-select: none;
   transition:

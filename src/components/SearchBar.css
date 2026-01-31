@@ -9,14 +9,19 @@
   width: 100%;
   padding: 12px 42px 12px 14px;
   font-size: 16px;
-  border: 2px solid var(--color-input-border);
+  border: 1px solid var(--color-input-border);
   border-radius: 8px;
-  background-color: var(--color-input-bg);
+  background-color: color-mix(in srgb, var(--color-input-bg) var(--glass-mix-input), transparent);
   color: var(--color-text-primary);
   outline: none;
   transition: border-color 0.2s ease;
   box-sizing: border-box;
   touch-action: manipulation;
+  box-shadow: var(--glass-shadow-md), var(--glass-inset-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+    contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
 }
 
 .search-input:focus {
@@ -56,4 +61,3 @@
   background-color: var(--color-chip-bg);
   transform: translateY(-50%) scale(1.05);
 }
-
