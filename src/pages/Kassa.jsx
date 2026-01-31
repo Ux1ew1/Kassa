@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
 import SearchBar from "../components/SearchBar";
@@ -9,7 +9,7 @@ import CoffeeMenuDrawer from "../components/CoffeeMenuDrawer";
 import SecretMenu from "../components/SecretMenu";
 import "./Kassa.css";
 
-const BASE_CATEGORIES = ["все", "напитки", "еда", "алкоголь", "остальное"];
+const BASE_CATEGORIES = ["напитки", "еда", "алкоголь", "остальное"];
 
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
@@ -23,7 +23,6 @@ const normalizeCategory = (value) => {
 
 const categoryLabel = (slug) => {
   const map = {
-    все: "Все",
     напитки: "Напитки",
     еда: "Еда",
     алкоголь: "Алкоголь",
@@ -51,8 +50,14 @@ function Kassa() {
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("все");
+  const [activeCategory, setActiveCategory] = useState("");
   const activeCheck = getActiveCheck();
+  const swipeStateRef = useRef({
+    startX: 0,
+    startY: 0,
+    active: false,
+    startAtCenter: false,
+  });
 
   const categories = useMemo(() => {
     const detected = Array.from(
@@ -61,15 +66,62 @@ function Kassa() {
 
     return [
       ...BASE_CATEGORIES,
-      ...detected.filter((cat) => cat && !BASE_CATEGORIES.includes(cat)),
+      ...detected.filter(
+        (cat) => cat && cat !== "все" && !BASE_CATEGORIES.includes(cat),
+      ),
     ];
   }, [menuItems]);
 
   useEffect(() => {
-    if (!categories.includes(activeCategory)) {
-      setActiveCategory("все");
+    if (activeCategory && !categories.includes(activeCategory)) {
+      setActiveCategory("");
     }
   }, [categories, activeCategory]);
+
+  useEffect(() => {
+    const handleTouchStart = (event) => {
+      if (event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const width = window.innerWidth || 0;
+      const centerLeft = width * 0.3;
+      const centerRight = width * 0.7;
+      swipeStateRef.current = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        active: true,
+        startAtCenter: touch.clientX >= centerLeft && touch.clientX <= centerRight,
+      };
+    };
+
+    const handleTouchEnd = (event) => {
+      const state = swipeStateRef.current;
+      if (!state.active || !state.startAtCenter) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      const deltaX = touch.clientX - state.startX;
+      const deltaY = touch.clientY - state.startY;
+      const threshold = 60;
+      const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+
+      if (isHorizontal && Math.abs(deltaX) >= threshold) {
+        if (deltaX > 0) {
+          setCartDrawerOpen(true);
+        } else {
+          setCoffeeMenuOpen(true);
+        }
+      }
+
+      swipeStateRef.current.active = false;
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
 
   const handleAmount = () => {
     const input = prompt("Введите сумму клиента: ");
@@ -146,7 +198,9 @@ function Kassa() {
               className={`category-button${
                 activeCategory === category ? " category-button--active" : ""
               }`}
-              onClick={() => setActiveCategory(category)}
+              onClick={() =>
+                setActiveCategory((prev) => (prev === category ? "" : category))
+              }
             >
               {categoryLabel(category)}
             </button>
