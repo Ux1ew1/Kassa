@@ -99,6 +99,10 @@
   text-decoration-thickness: 2px;
 }
 
+:root[data-theme="dark"] .cart-drawer .cart__item {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .remove-item {
   background: color-mix(in srgb, var(--color-danger) 80%, transparent);
   color: var(--color-button-text);
