@@ -1,7 +1,7 @@
 import "./SecretMenu.css";
 import { useTheme } from "../hooks/useTheme";
 
-function SecretMenu({ open, onClose }) {
+function SecretMenu({ open, onClose, gesturesEnabled, onToggleGestures }) {
   const { theme, toggleTheme } = useTheme();
 
   if (!open) {
@@ -45,6 +45,20 @@ function SecretMenu({ open, onClose }) {
           >
             {theme === "dark" ? "☀️ Светлая тема" : "🌙 Тёмная тема"}
           </button>
+        </div>
+
+        <div className="secret-menu-section">
+          <div className="secret-menu-section-title">Жесты</div>
+          <label className="secret-menu-toggle">
+            <span>Включить жесты</span>
+            <input
+              type="checkbox"
+              checked={gesturesEnabled}
+              onChange={onToggleGestures}
+              aria-label="Включить жесты"
+            />
+            <span className="secret-menu-toggle-ui" aria-hidden="true" />
+          </label>
         </div>
 
         <div className="secret-menu-actions">
