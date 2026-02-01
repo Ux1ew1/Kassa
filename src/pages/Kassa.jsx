@@ -50,13 +50,14 @@ function Kassa() {
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [gesturesEnabled, setGesturesEnabled] = useState(true);
   const [activeCategory, setActiveCategory] = useState("");
   const activeCheck = getActiveCheck();
   const swipeStateRef = useRef({
     startX: 0,
     startY: 0,
     active: false,
-    startAtCenter: false,
+    startInZone: false,
   });
 
   const categories = useMemo(() => {
@@ -78,24 +79,31 @@ function Kassa() {
     }
   }, [categories, activeCategory]);
 
+  const isAnyMenuOpen = isCoffeeMenuOpen || isCartDrawerOpen || isSecretMenuOpen;
+
   useEffect(() => {
+    if (!gesturesEnabled) {
+      swipeStateRef.current.active = false;
+      return;
+    }
+
     const handleTouchStart = (event) => {
       if (event.touches.length !== 1) return;
       const touch = event.touches[0];
       const width = window.innerWidth || 0;
-      const centerLeft = width * 0.3;
-      const centerRight = width * 0.7;
+      const zoneLeft = width * 0.15;
+      const zoneRight = width * 0.85;
       swipeStateRef.current = {
         startX: touch.clientX,
         startY: touch.clientY,
         active: true,
-        startAtCenter: touch.clientX >= centerLeft && touch.clientX <= centerRight,
+        startInZone: touch.clientX >= zoneLeft && touch.clientX <= zoneRight,
       };
     };
 
     const handleTouchEnd = (event) => {
       const state = swipeStateRef.current;
-      if (!state.active || !state.startAtCenter) return;
+      if (!state.active) return;
       const touch = event.changedTouches[0];
       if (!touch) return;
       const deltaX = touch.clientX - state.startX;
@@ -104,10 +112,16 @@ function Kassa() {
       const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
 
       if (isHorizontal && Math.abs(deltaX) >= threshold) {
-        if (deltaX > 0) {
-          setCartDrawerOpen(true);
-        } else {
-          setCoffeeMenuOpen(true);
+        if (isCartDrawerOpen && deltaX < 0) {
+          setCartDrawerOpen(false);
+        } else if (isCoffeeMenuOpen && deltaX > 0) {
+          setCoffeeMenuOpen(false);
+        } else if (state.startInZone && !isAnyMenuOpen) {
+          if (deltaX > 0) {
+            setCartDrawerOpen(true);
+          } else {
+            setCoffeeMenuOpen(true);
+          }
         }
       }
 
@@ -121,7 +135,7 @@ function Kassa() {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, []);
+  }, [gesturesEnabled, isAnyMenuOpen, isCartDrawerOpen, isCoffeeMenuOpen]);
 
   const handleAmount = () => {
     const input = prompt("Введите сумму клиента: ");
@@ -143,6 +157,7 @@ function Kassa() {
   };
 
   const handleOpenCoffeeMenu = () => {
+    if (isCartDrawerOpen || isSecretMenuOpen) return;
     setCoffeeMenuOpen(true);
   };
 
@@ -151,10 +166,16 @@ function Kassa() {
   };
 
   const handleToggleCartDrawer = () => {
+    if (!isCartDrawerOpen && (isCoffeeMenuOpen || isSecretMenuOpen)) {
+      return;
+    }
     setCartDrawerOpen((prev) => !prev);
   };
 
   const handleToggleSecretMenu = () => {
+    if (!isSecretMenuOpen && (isCoffeeMenuOpen || isCartDrawerOpen)) {
+      return;
+    }
     setSecretMenuOpen((prev) => !prev);
   };
 
@@ -288,7 +309,12 @@ function Kassa() {
           activeCheckId={activeCheckId}
           onToggleFulfilled={toggleItemsFulfilled}
         />
-        <SecretMenu open={isSecretMenuOpen} onClose={handleToggleSecretMenu} />
+        <SecretMenu
+          open={isSecretMenuOpen}
+          onClose={handleToggleSecretMenu}
+          gesturesEnabled={gesturesEnabled}
+          onToggleGestures={() => setGesturesEnabled((prev) => !prev)}
+        />
       </div>
     </div>
   );
