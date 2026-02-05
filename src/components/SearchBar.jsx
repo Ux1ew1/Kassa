@@ -1,6 +1,8 @@
 import "./SearchBar.css";
 
 function SearchBar({ value = "", onSearch }) {
+  const hasValue = value.trim().length > 0;
+
   const handleChange = (e) => {
     const nextValue = e.target.value;
     if (typeof onSearch === "function") {
@@ -25,7 +27,7 @@ function SearchBar({ value = "", onSearch }) {
     <div className="search-container">
       <input
         type="text"
-        className="search-input"
+        className={`search-input${hasValue ? " search-input--active" : ""}`}
         placeholder="Поиск товаров..."
         value={value}
         onChange={handleChange}
