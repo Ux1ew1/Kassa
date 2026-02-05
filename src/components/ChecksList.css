@@ -8,8 +8,11 @@
 }
 
 .checks {
+  max-width: 200px;
+  overflow: hidden;
+  overflow-x: scroll;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   margin-left: 10px;
 }
@@ -46,7 +49,11 @@
 
 .check-item input[type="radio"]:checked + label {
   color: var(--color-button-alt-text);
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 70%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-alt-bg) 70%,
+    transparent
+  );
 }
 
 .newCheck {
