@@ -10,10 +10,35 @@ import { fileURLToPath } from "node:url";
 import qrcode from "qrcode-terminal";
 
 // Константы
-const HOST = "0.0.0.0";
-const PORT = 3000;
+const HOST = process.env.HOST || "0.0.0.0";
+const PORT = Number(process.env.PORT) || 3000;
 const DEFAULT_MENU = [];
-const PREFERRED_INTERFACE = "rmnet_data2";
+const PREFERRED_INTERFACE = process.env.PREFERRED_INTERFACE || "rmnet_data2";
+const PREFERRED_INTERFACES = (process.env.PREFERRED_INTERFACES || "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+const DEFAULT_INTERFACE_HINTS = [
+  "tailscale",
+  "zerotier",
+  "wireguard",
+  "openvpn",
+  "vpn",
+  "wg",
+  "tun",
+  "tap",
+  "utun",
+  "ppp",
+  "l2tp",
+  "pptp",
+  "rmnet",
+  "wlan",
+  "wi-fi",
+  "wifi",
+  "ethernet",
+  "en",
+  "eth",
+];
 
 // Пути
 const __filename = fileURLToPath(import.meta.url);
@@ -40,17 +65,29 @@ const getLanIp = () => {
         item.family === "IPv4" &&
         !item.internal &&
         item.address &&
-        !item.address.startsWith("169.254.")
+        !item.address.startsWith("169.254."),
     );
     return target?.address || null;
   };
 
-  const preferred =
-    pickAddress(PREFERRED_INTERFACE) ||
-    pickAddress("wlan0") ||
-    pickAddress("wlp2s0") ||
-    pickAddress("en0");
-  if (preferred) return preferred;
+  const normalize = (value) => value.toLowerCase();
+  const interfaceNames = Object.keys(networks);
+  const preferredHints = [
+    ...PREFERRED_INTERFACES,
+    PREFERRED_INTERFACE,
+    ...DEFAULT_INTERFACE_HINTS,
+  ].filter(Boolean);
+
+  for (const hint of preferredHints) {
+    const hintLower = normalize(hint);
+    const match = interfaceNames.find((name) => {
+      const nameLower = normalize(name);
+      return nameLower === hintLower || nameLower.includes(hintLower);
+    });
+    if (!match) continue;
+    const address = pickAddress(match);
+    if (address) return address;
+  }
 
   for (const entries of Object.values(networks)) {
     if (!entries) continue;
@@ -60,12 +97,35 @@ const getLanIp = () => {
         item.family === "IPv4" &&
         !item.internal &&
         item.address &&
-        !item.address.startsWith("169.254.")
+        !item.address.startsWith("169.254."),
     );
     if (target?.address) return target.address;
   }
 
   return null;
+};
+
+const getAllLanIps = () => {
+  const networks = os.networkInterfaces();
+  if (!networks) return [];
+  const results = [];
+
+  for (const entries of Object.values(networks)) {
+    if (!entries) continue;
+    for (const entry of entries) {
+      if (
+        entry &&
+        entry.family === "IPv4" &&
+        !entry.internal &&
+        entry.address &&
+        !entry.address.startsWith("169.254.")
+      ) {
+        results.push(entry.address);
+      }
+    }
+  }
+
+  return [...new Set(results)];
 };
 
 // Утилиты для работы с файлами
@@ -184,7 +244,7 @@ const normalizeMenuData = (data) => {
       typeof item.id !== "undefined" &&
       typeof item.name === "string" &&
       typeof item.price === "number" &&
-      item.price >= 0
+      item.price >= 0,
   );
 
   // Создаем множество валидных ID
@@ -300,8 +360,8 @@ const handleUpdateMenu = async (req, res) => {
     const items = Array.isArray(payload?.items)
       ? payload.items
       : Array.isArray(payload?.menu)
-      ? payload.menu
-      : null;
+        ? payload.menu
+        : null;
 
     if (!Array.isArray(items)) {
       return sendJson(res, 400, { message: "Меню должно быть массивом" });
@@ -461,20 +521,33 @@ server.listen(PORT, HOST, async () => {
   const hasDist = await dirExists(distDir);
   console.log(`🚀 Сервер запущен: http://${HOST}:${PORT}`);
   console.log(`📁 Данные меню: ${menuFile}`);
-  console.log(`📦 Статические файлы: ${hasDist ? distDir : "используйте 'npm run build' для создания"}`);
+  console.log(
+    `📦 Статические файлы: ${hasDist ? distDir : "используйте 'npm run build' для создания"}`,
+  );
+  const publicUrl = (process.env.PUBLIC_URL || "").trim();
   const lanIp = getLanIp();
-  if (lanIp) {
-    const lanUrl = `http://${lanIp}:${PORT}`;
-    console.log(`🌐 Доступ из сети: ${lanUrl}`);
-    console.log("📱 QR-код для быстрого перехода:");
-    qrcode.generate(lanUrl, { small: true });
+  const allIps = getAllLanIps();
+  const resolvedUrl = publicUrl || (lanIp ? `http://${lanIp}:${PORT}` : null);
+
+  if (resolvedUrl) {
+    console.log(`???? ???????????? ???? ????????: ${resolvedUrl}`);
+    console.log("???? QR-?????? ?????? ???????????????? ????????????????:");
+    qrcode.generate(resolvedUrl, { small: true });
   } else {
     console.log(
-      "ℹ️ IP не найден. Посмотрите ifconfig (rmnet_data2) и зайдите на http://<IP>:3000"
+      "?????? IP ???? ????????????. ???????????????????? ifconfig (rmnet_data2) ?? ?????????????? ???? http://<IP>:3000",
     );
   }
+
+  if (allIps.length > 1) {
+    console.log("Available IPv4 addresses:");
+    allIps.forEach((ip) => console.log(` - http://${ip}:${PORT}`));
+  }
+
   console.log(`\n💡 Для разработки используйте: npm run dev`);
-  console.log(`💡 Для продакшена соберите проект: npm run build, затем: npm start\n`);
+  console.log(
+    `💡 Для продакшена соберите проект: npm run build, затем: npm start\n`,
+  );
 });
 
 // Обработка ошибок сервера
@@ -484,4 +557,3 @@ server.on("error", (error) => {
     console.error(`❌ Порт ${PORT} уже занят. Попробуйте другой порт.`);
   }
 });
-

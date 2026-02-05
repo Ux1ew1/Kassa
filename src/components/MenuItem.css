@@ -8,7 +8,17 @@
   min-height: 60px;
   cursor: pointer;
   border-radius: 7px;
-  background-color: var(--color-card);
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--color-card) var(--glass-mix-panel), transparent);
+  border: 1px solid var(--color-divider);
+  box-shadow:
+    0 10px 24px var(--color-shadow),
+    var(--glass-inset-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+    contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
   z-index: 1;
   transition:
     transform 0.2s ease,
@@ -18,6 +28,34 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+
+.item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
+    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
+    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
+    var(--glass-noise-url);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;
+}
+
+.item::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  background: radial-gradient(
+    280px 160px at 20% 10%,
+    rgba(255, 255, 255, 0.18),
+    transparent 55%
+  );
+}
+
 .item:nth-child(odd) {
   margin-left: auto;
 }

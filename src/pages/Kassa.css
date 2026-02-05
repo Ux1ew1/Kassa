@@ -7,6 +7,77 @@
   color: var(--color-text-primary);
 }
 
+.container--lite {
+  --glass-blur: 0px;
+  --glass-saturate: 100%;
+  --glass-contrast: 100%;
+  --glass-noise-opacity: 0;
+  --glass-shadow-sm: 0 2px 6px var(--color-shadow);
+  --glass-shadow-md: 0 4px 10px var(--color-shadow);
+  --glass-shadow-lg: 0 6px 14px var(--color-shadow);
+  --glass-shadow-xl: 0 8px 18px var(--color-shadow);
+}
+
+.container--lite .top,
+.container--lite .bottom,
+.container--lite .cart-drawer,
+.container--lite .category-button,
+.container--lite .cart-drawer-button,
+.container--lite .admin-link,
+.container--lite button {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.container--lite .top::before,
+.container--lite .bottom::before,
+.container--lite .cart-drawer::before {
+  content: none;
+}
+
+.container--lite .cart-drawer {
+  background: var(--color-panel);
+  box-shadow: 2px 0 10px var(--color-shadow);
+}
+
+.container--lite .bottom {
+  background-color: var(--color-panel-strong);
+}
+
+.container--lite .coffee-menu-panel {
+  background-color: var(--color-panel);
+  box-shadow: -2px 0 10px var(--color-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.container--lite .coffee-menu-panel::before,
+.container--lite .coffee-menu-panel::after {
+  content: none;
+}
+
+.container--lite .secret-menu-panel {
+  background-color: var(--color-panel);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.container--lite .secret-menu-panel::before,
+.container--lite .secret-menu-panel::after {
+  content: none;
+}
+
+.container--lite .category-button {
+  background: var(--color-chip-bg);
+  box-shadow: 0 4px 10px var(--color-shadow);
+}
+
+.container--lite .category-button.category-button--active {
+  background-color: var(--color-button-alt-bg);
+  color: var(--color-button-alt-text);
+  border-color: var(--color-button-alt-bg);
+}
+
 h1 {
   color: var(--color-text-primary);
   text-align: center;
@@ -32,9 +103,18 @@ h1 {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-primary);
-  background-color: var(--color-panel);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0.06)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
+  box-shadow:
+    0 10px 22px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px) saturate(120%) contrast(105%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%) contrast(105%);
 }
 
 .category-button--active {
@@ -51,10 +131,32 @@ h1 {
   gap: 8px;
   padding: 12px 4px;
   margin: 0;
-  background-color: var(--color-panel-strong);
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--color-panel-strong) var(--glass-mix-panel), transparent);
   color: var(--color-button-text);
+  border-bottom: 1px solid var(--color-divider);
+  box-shadow: var(--glass-shadow-lg), var(--glass-inset-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+    contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
 }
 
+.top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
+    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
+    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
+    var(--glass-noise-url);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;
+}
 .top__auth {
   display: flex;
   align-items: center;
@@ -63,11 +165,17 @@ h1 {
 }
 
 .cart-drawer-button {
-  background-color: var(--color-button-alt-bg);
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) 40%, transparent);
   color: var(--color-button-alt-text);
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--color-divider);
+  box-shadow:
+    0 8px 18px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px) saturate(120%) contrast(105%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%) contrast(105%);
 }
 
 .admin-link {
@@ -78,19 +186,24 @@ h1 {
   min-height: 44px;
   border-radius: 8px;
   color: var(--color-button-alt-text);
-  background-color: var(--color-button-alt-bg);
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) 40%, transparent);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   transition:
     background-color 0.2s ease,
     transform 0.15s ease;
-  border: none;
+  border: 1px solid var(--color-divider);
   cursor: pointer;
+  box-shadow:
+    0 8px 18px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px) saturate(120%) contrast(105%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%) contrast(105%);
 }
 
 .admin-link:hover {
-  background-color: var(--color-button-bg-hover);
+  background-color: color-mix(in srgb, var(--color-button-bg-hover) 55%, transparent);
   transform: scale(1.03);
 }
 
@@ -102,9 +215,32 @@ h1 {
   justify-content: space-between;
   align-items: center;
   color: var(--color-button-text);
-  background-color: var(--color-panel-strong);
+  position: sticky;
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--color-panel-strong) var(--glass-mix-panel), transparent);
   padding: 12px 4px;
   z-index: 1;
+  border-top: 1px solid var(--color-divider);
+  box-shadow: 0 -12px 26px var(--color-shadow), var(--glass-inset-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+    contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+}
+
+.bottom::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
+    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
+    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
+    var(--glass-noise-url);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;
 }
 
 button {
@@ -116,25 +252,30 @@ button {
   font-weight: 600;
   cursor: pointer;
   color: var(--color-button-text);
-  background-color: var(--color-button-bg);
+  background-color: color-mix(in srgb, var(--color-button-bg) var(--glass-mix-button), transparent);
   border-radius: 8px;
   user-select: none;
   transition:
     background-color 0.2s ease,
     transform 0.15s ease;
-  border: none;
+  border: 1px solid var(--color-divider);
   outline: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--glass-shadow-sm), var(--glass-inset-soft);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
+    contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur))
+    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
 }
 
 .done-button {
-  background-color: var(--color-button-alt-bg);
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) var(--glass-mix-button-alt), transparent);
   color: var(--color-button-alt-text);
 }
 
 .amountButton {
-  background-color: var(--color-button-alt-bg);
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) var(--glass-mix-button-alt), transparent);
   color: var(--color-button-alt-text);
   padding: 7px;
   display: flex;
@@ -159,17 +300,50 @@ button {
   left: -100%;
   width: min(420px, 100%);
   height: 100vh;
-  background-color: var(--color-panel);
+  position: fixed;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0.06)
+  );
   color: var(--color-text-primary);
-  box-shadow: 6px 0 14px var(--color-shadow);
+  box-shadow:
+    6px 0 14px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   padding: 16px 12px;
   transition: left 0.25s ease;
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(18px) saturate(120%) contrast(105%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%) contrast(105%);
 }
 
+.cart-drawer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(
+      120% 90% at 30% 12%,
+      rgba(255, 255, 255, 0.1),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 90% at 75% 88%,
+      rgba(0, 0, 0, 0.1),
+      transparent 60%
+    ),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E");
+  opacity: 0.65;
+  mix-blend-mode: overlay;
+}
 .cart-drawer--open {
   left: 0;
 }
@@ -187,7 +361,7 @@ button {
 }
 
 .cart-drawer__close {
-  background-color: var(--color-button-bg);
+  background-color: color-mix(in srgb, var(--color-button-bg) 70%, transparent);
   color: var(--color-button-text);
   width: 36px;
   height: 36px;

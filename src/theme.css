@@ -32,6 +32,33 @@
 
   --color-danger: #d64242;
   --color-danger-hover: #b83030;
+
+  /* Glass design tuning */
+  --glass-blur: 18px;
+  --glass-saturate: 120%;
+  --glass-contrast: 105%;
+
+  --glass-mix-panel: 70%;
+  --glass-mix-panel-soft: 78%;
+  --glass-mix-button: 40%;
+  --glass-mix-button-hover: 55%;
+  --glass-mix-button-alt: 40%;
+  --glass-mix-input: 70%;
+
+  --glass-shadow-sm: 0 8px 18px var(--color-shadow);
+  --glass-shadow-md: 0 10px 22px var(--color-shadow);
+  --glass-shadow-lg: 0 12px 26px var(--color-shadow);
+  --glass-shadow-xl: 0 14px 30px var(--color-shadow);
+
+  --glass-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --glass-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-shadow-tint: rgba(0, 0, 0, 0.08);
+  --glass-linear-1: rgba(255, 255, 255, 0.05);
+  --glass-linear-2: rgba(255, 255, 255, 0.02);
+  --glass-noise-opacity: 0.6;
+  --glass-noise-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
