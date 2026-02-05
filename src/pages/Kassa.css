@@ -1,7 +1,8 @@
 .container {
   position: relative;
   max-width: 425px;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
   background-color: var(--color-app-bg);
   color: var(--color-text-primary);
@@ -115,12 +116,37 @@ h1 {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(14px) saturate(120%) contrast(105%);
   -webkit-backdrop-filter: blur(14px) saturate(120%) contrast(105%);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease,
+    border-color 0.22s ease;
 }
 
 .category-button--active {
   background-color: var(--color-button-alt-bg);
   color: var(--color-button-alt-text);
   border-color: var(--color-button-alt-bg);
+  box-shadow:
+    0 12px 24px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  animation: category-pop 0.22s ease;
+}
+
+.category-button:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    0 14px 26px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.category-button:active {
+  transform: scale(0.97);
+}
+
+.category-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-button-alt-bg) 50%, transparent);
+  outline-offset: 1px;
 }
 
 .top {
@@ -218,7 +244,7 @@ h1 {
   position: sticky;
   overflow: hidden;
   background-color: color-mix(in srgb, var(--color-panel-strong) var(--glass-mix-panel), transparent);
-  padding: 12px 4px;
+  padding: 12px 4px calc(12px + env(safe-area-inset-bottom));
   z-index: 1;
   border-top: 1px solid var(--color-divider);
   box-shadow: 0 -12px 26px var(--color-shadow), var(--glass-inset-strong);
@@ -300,6 +326,7 @@ button {
   left: -100%;
   width: min(420px, 100%);
   height: 100vh;
+  height: 100dvh;
   position: fixed;
   overflow: hidden;
   background: linear-gradient(
@@ -312,7 +339,9 @@ button {
     6px 0 14px var(--color-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   padding: 16px 12px;
-  transition: left 0.25s ease;
+  transition:
+    left 0.25s ease,
+    box-shadow 0.25s ease;
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -346,6 +375,9 @@ button {
 }
 .cart-drawer--open {
   left: 0;
+  box-shadow:
+    10px 0 24px var(--color-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .cart-drawer__header {
@@ -358,6 +390,8 @@ button {
 .cart-drawer__title {
   font-weight: 700;
   font-size: 18px;
+  letter-spacing: 0.01em;
+  animation: drawer-title-in 0.2s ease;
 }
 
 .cart-drawer__close {
@@ -367,6 +401,18 @@ button {
   height: 36px;
   min-width: 36px;
   min-height: 36px;
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease;
+}
+
+.cart-drawer__close:hover {
+  background-color: color-mix(in srgb, var(--color-button-bg-hover) 75%, transparent);
+  transform: scale(1.04);
+}
+
+.cart-drawer__close:active {
+  transform: scale(0.94);
 }
 
 .cart-drawer__backdrop {
@@ -374,9 +420,56 @@ button {
   inset: 0;
   background: var(--color-overlay-soft);
   z-index: 4;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: drawer-backdrop-in 0.2s ease;
 }
 
 .cart-drawer .cart {
   overflow-y: auto;
   max-height: calc(100vh - 80px);
+}
+
+@keyframes category-pop {
+  from {
+    transform: scale(0.94);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes drawer-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawer-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-button--active,
+  .cart-drawer__title,
+  .cart-drawer__backdrop {
+    animation: none;
+  }
+
+  .category-button:hover,
+  .category-button:active,
+  .cart-drawer__close:hover,
+  .cart-drawer__close:active {
+    transform: none;
+  }
 }

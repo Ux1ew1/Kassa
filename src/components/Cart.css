@@ -22,7 +22,9 @@
   cursor: pointer;
   transition:
     background-color 0.2s ease,
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
   border: 1px solid var(--color-divider);
   box-shadow: var(--glass-shadow-md), var(--glass-inset-strong);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
@@ -92,11 +94,28 @@
 
 .cart__item--fulfilled {
   opacity: 0.45;
+  background-color: color-mix(in srgb, var(--color-button-alt-bg) 20%, transparent);
 }
 
 .cart__item--fulfilled .cart__item-name span:first-child {
   text-decoration: line-through;
   text-decoration-thickness: 2px;
+}
+
+.cart__item:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 20px var(--color-shadow),
+    var(--glass-inset-strong);
+}
+
+.cart__item:active {
+  transform: scale(0.985);
+}
+
+.cart__item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-button-alt-bg) 55%, transparent);
+  outline-offset: 1px;
 }
 
 :root[data-theme="dark"] .cart-drawer .cart__item {
@@ -113,9 +132,23 @@
   min-height: 44px;
   cursor: pointer;
   touch-action: manipulation;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
 .remove-item:hover {
   background: color-mix(in srgb, var(--color-danger-hover) 85%, transparent);
+  transform: scale(1.04);
+}
+
+.remove-item:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart__item:hover,
+  .cart__item:active,
+  .remove-item:hover,
+  .remove-item:active {
+    transform: none;
+  }
 }
