@@ -24,7 +24,11 @@ function SearchBar({ value = "", onSearch }) {
   };
 
   return (
-    <div className="search-container">
+    <div
+      className={`search-container${
+        hasValue ? " search-container--active" : ""
+      }`}
+    >
       <input
         type="text"
         className={`search-input${hasValue ? " search-input--active" : ""}`}

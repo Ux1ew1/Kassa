@@ -228,6 +228,7 @@ function Kassa() {
             activeCheckId={activeCheckId}
             onCheckChange={setActiveCheckId}
             onCreateNew={handleCreateNewCheck}
+            onCompleteActiveCheck={completeCheck}
           />
           <button
             className="coffee-menu-button"
