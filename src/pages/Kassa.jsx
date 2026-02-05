@@ -51,6 +51,7 @@ function Kassa() {
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [gesturesEnabled, setGesturesEnabled] = useState(true);
+  const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
   const activeCheck = getActiveCheck();
   const swipeStateRef = useRef({
@@ -58,6 +59,8 @@ function Kassa() {
     startY: 0,
     active: false,
     startInZone: false,
+    startInTop: false,
+    movedInTop: false,
   });
 
   const categories = useMemo(() => {
@@ -93,17 +96,41 @@ function Kassa() {
       const width = window.innerWidth || 0;
       const zoneLeft = width * 0.15;
       const zoneRight = width * 0.85;
+      const target = event.target;
+      const startInTop =
+        target instanceof Element && Boolean(target.closest(".top"));
       swipeStateRef.current = {
         startX: touch.clientX,
         startY: touch.clientY,
         active: true,
         startInZone: touch.clientX >= zoneLeft && touch.clientX <= zoneRight,
+        startInTop,
+        movedInTop: false,
       };
+    };
+
+    const handleTouchMove = (event) => {
+      const state = swipeStateRef.current;
+      if (!state.active || !state.startInTop) return;
+      const touch = event.touches[0];
+      if (!touch) return;
+      const deltaX = touch.clientX - state.startX;
+      const deltaY = touch.clientY - state.startY;
+
+      if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        state.movedInTop = true;
+      }
     };
 
     const handleTouchEnd = (event) => {
       const state = swipeStateRef.current;
       if (!state.active) return;
+
+      if (state.startInTop && state.movedInTop) {
+        swipeStateRef.current.active = false;
+        return;
+      }
+
       const touch = event.changedTouches[0];
       if (!touch) return;
       const deltaX = touch.clientX - state.startX;
@@ -129,10 +156,12 @@ function Kassa() {
     };
 
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
     window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
   }, [gesturesEnabled, isAnyMenuOpen, isCartDrawerOpen, isCoffeeMenuOpen]);
@@ -180,7 +209,7 @@ function Kassa() {
   };
 
   return (
-    <div className="container">
+    <div className={`container${lowPerformanceMode ? " container--lite" : ""}`}>
       <h1 onDoubleClick={handleToggleSecretMenu} role="button" title=" ">
         ~\(≧▽≦)/~
       </h1>
@@ -314,6 +343,10 @@ function Kassa() {
           onClose={handleToggleSecretMenu}
           gesturesEnabled={gesturesEnabled}
           onToggleGestures={() => setGesturesEnabled((prev) => !prev)}
+          lowPerformanceMode={lowPerformanceMode}
+          onToggleLowPerformanceMode={() =>
+            setLowPerformanceMode((prev) => !prev)
+          }
         />
       </div>
     </div>
