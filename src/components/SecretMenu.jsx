@@ -1,7 +1,14 @@
 import "./SecretMenu.css";
 import { useTheme } from "../hooks/useTheme";
 
-function SecretMenu({ open, onClose, gesturesEnabled, onToggleGestures }) {
+function SecretMenu({
+  open,
+  onClose,
+  gesturesEnabled,
+  onToggleGestures,
+  lowPerformanceMode,
+  onToggleLowPerformanceMode,
+}) {
   const { theme, toggleTheme } = useTheme();
 
   if (!open) {
@@ -56,6 +63,20 @@ function SecretMenu({ open, onClose, gesturesEnabled, onToggleGestures }) {
               checked={gesturesEnabled}
               onChange={onToggleGestures}
               aria-label="Включить жесты"
+            />
+            <span className="secret-menu-toggle-ui" aria-hidden="true" />
+          </label>
+        </div>
+
+        <div className="secret-menu-section">
+          <div className="secret-menu-section-title">Эффект стекла</div>
+          <label className="secret-menu-toggle">
+            <span>Упрощённое стекло</span>
+            <input
+              type="checkbox"
+              checked={lowPerformanceMode}
+              onChange={onToggleLowPerformanceMode}
+              aria-label="Упрощённое стекло"
             />
             <span className="secret-menu-toggle-ui" aria-hidden="true" />
           </label>
