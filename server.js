@@ -65,7 +65,7 @@ const getLanIp = () => {
         item.family === "IPv4" &&
         !item.internal &&
         item.address &&
-        !item.address.startsWith("169.254.")
+        !item.address.startsWith("169.254."),
     );
     return target?.address || null;
   };
@@ -97,7 +97,7 @@ const getLanIp = () => {
         item.family === "IPv4" &&
         !item.internal &&
         item.address &&
-        !item.address.startsWith("169.254.")
+        !item.address.startsWith("169.254."),
     );
     if (target?.address) return target.address;
   }
@@ -244,7 +244,7 @@ const normalizeMenuData = (data) => {
       typeof item.id !== "undefined" &&
       typeof item.name === "string" &&
       typeof item.price === "number" &&
-      item.price >= 0
+      item.price >= 0,
   );
 
   // Создаем множество валидных ID
@@ -360,8 +360,8 @@ const handleUpdateMenu = async (req, res) => {
     const items = Array.isArray(payload?.items)
       ? payload.items
       : Array.isArray(payload?.menu)
-      ? payload.menu
-      : null;
+        ? payload.menu
+        : null;
 
     if (!Array.isArray(items)) {
       return sendJson(res, 400, { message: "Меню должно быть массивом" });
@@ -521,7 +521,9 @@ server.listen(PORT, HOST, async () => {
   const hasDist = await dirExists(distDir);
   console.log(`🚀 Сервер запущен: http://${HOST}:${PORT}`);
   console.log(`📁 Данные меню: ${menuFile}`);
-  console.log(`📦 Статические файлы: ${hasDist ? distDir : "используйте 'npm run build' для создания"}`);
+  console.log(
+    `📦 Статические файлы: ${hasDist ? distDir : "используйте 'npm run build' для создания"}`,
+  );
   const publicUrl = (process.env.PUBLIC_URL || "").trim();
   const lanIp = getLanIp();
   const allIps = getAllLanIps();
@@ -533,7 +535,7 @@ server.listen(PORT, HOST, async () => {
     qrcode.generate(resolvedUrl, { small: true });
   } else {
     console.log(
-      "?????? IP ???? ????????????. ???????????????????? ifconfig (rmnet_data2) ?? ?????????????? ???? http://<IP>:3000"
+      "?????? IP ???? ????????????. ???????????????????? ifconfig (rmnet_data2) ?? ?????????????? ???? http://<IP>:3000",
     );
   }
 
@@ -543,7 +545,9 @@ server.listen(PORT, HOST, async () => {
   }
 
   console.log(`\n💡 Для разработки используйте: npm run dev`);
-  console.log(`💡 Для продакшена соберите проект: npm run build, затем: npm start\n`);
+  console.log(
+    `💡 Для продакшена соберите проект: npm run build, затем: npm start\n`,
+  );
 });
 
 // Обработка ошибок сервера
@@ -553,4 +557,3 @@ server.on("error", (error) => {
     console.error(`❌ Порт ${PORT} уже занят. Попробуйте другой порт.`);
   }
 });
-
