@@ -1,7 +1,15 @@
-﻿import { useMemo } from "react";
+﻿/**
+ * Menu list component with ordering and filtering.
+ */
+import { useMemo } from "react";
 import MenuItem from "./MenuItem";
 import "./Menu.css";
 
+/**
+ * Normalizes a category label to a supported slug.
+ * @param {string} value - Raw category value.
+ * @returns {string} Normalized slug.
+ */
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (["all", "все"].includes(v)) return "все";
@@ -12,6 +20,17 @@ const normalizeCategory = (value) => {
   return "остальное";
 };
 
+/**
+ * Renders menu items list.
+ * @param {Object} props - Component props.
+ * @param {Array} props.menuItems - Menu items.
+ * @param {Array} props.activeOrder - Preferred order of visible items.
+ * @param {string} props.searchQuery - Search query.
+ * @param {string} [props.activeCategory] - Active category slug.
+ * @param {Array} [props.cartItems] - Items from active check.
+ * @param {Function} props.onAddItem - Add item handler.
+ * @returns {JSX.Element} Menu list.
+ */
 function Menu({
   menuItems,
   activeOrder,

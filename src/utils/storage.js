@@ -1,5 +1,5 @@
 /**
- * Утилиты для работы с localStorage
+ * @file Storage utilities for persisting checks in localStorage.
  */
 
 const STORAGE_KEYS = {
@@ -8,19 +8,23 @@ const STORAGE_KEYS = {
 };
 
 /**
- * Сохраняет чеки в localStorage
+ * Persists checks to localStorage.
+ * @param {Array} checks - Checks array.
+ * @param {number} activeCheckId - Active check id.
+ * @returns {void}
  */
 export function saveChecks(checks, activeCheckId) {
   try {
     localStorage.setItem(STORAGE_KEYS.CHECKS, JSON.stringify(checks));
     localStorage.setItem(STORAGE_KEYS.ACTIVE_CHECK_ID, String(activeCheckId));
   } catch (error) {
-    console.error('Ошибка сохранения чеков:', error);
+    console.error('?????? ?????????? ?????:', error);
   }
 }
 
 /**
- * Загружает чеки из localStorage
+ * Loads checks from localStorage.
+ * @returns {{checks: Array, activeCheckId: number}}
  */
 export function loadChecks() {
   try {
@@ -37,7 +41,7 @@ export function loadChecks() {
     
     return { checks, activeCheckId };
   } catch (error) {
-    console.error('Ошибка загрузки чеков:', error);
+    console.error('?????? ???????? ?????:', error);
     return {
       checks: [{ id: 1, items: [], price: 0, change: 0 }],
       activeCheckId: 1,
@@ -46,13 +50,13 @@ export function loadChecks() {
 }
 
 /**
- * Очищает все данные из localStorage
+ * Clears all localStorage data.
+ * @returns {void}
  */
 export function clearStorage() {
   try {
     localStorage.clear();
   } catch (error) {
-    console.error('Ошибка очистки localStorage:', error);
+    console.error('?????? ??????? localStorage:', error);
   }
 }
-

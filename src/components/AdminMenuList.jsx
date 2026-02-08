@@ -1,5 +1,13 @@
-﻿import "./AdminMenuList.css";
+﻿/**
+ * Admin menu list component.
+ */
+import "./AdminMenuList.css";
 
+/**
+ * Normalizes a category label to a human-readable name.
+ * @param {string} value - Raw category value.
+ * @returns {string} Display label.
+ */
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (["all", "все"].includes(v)) return "Все";
@@ -10,6 +18,15 @@ const normalizeCategory = (value) => {
   return "Остальное";
 };
 
+/**
+ * Renders the admin menu items list.
+ * @param {Object} props - Component props.
+ * @param {Array} props.items - Menu items.
+ * @param {Function} props.onToggle - Toggle visibility handler.
+ * @param {Function} props.onEdit - Edit handler.
+ * @param {Function} props.onDelete - Delete handler.
+ * @returns {JSX.Element} Admin menu list.
+ */
 function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
   if (items.length === 0) {
     return (

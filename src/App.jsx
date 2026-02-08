@@ -2,6 +2,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Kassa from './pages/Kassa'
 import Admin from './pages/Admin'
 
+/**
+ * Root application router.
+ * @returns {JSX.Element} App routes.
+ */
 function App() {
   return (
     <BrowserRouter>

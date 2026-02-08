@@ -1,6 +1,13 @@
+﻿/**
+ * Drawer with grouped coffee items across checks.
+ */
 import { useMemo } from "react";
 import "./CoffeeMenuDrawer.css";
 
+/**
+ * Keywords used to detect coffee items.
+ * @type {string[]}
+ */
 const COFFEE_KEYWORDS = [
   "коф",
   "капуч",
@@ -11,11 +18,21 @@ const COFFEE_KEYWORDS = [
   "макиато",
 ];
 
+/**
+ * Checks whether a menu item is a coffee item.
+ * @param {string} [name=""] - Item name.
+ * @returns {boolean} True if coffee-related.
+ */
 function isCoffeeItem(name = "") {
   const normalized = name.toLowerCase();
   return COFFEE_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
+/**
+ * Returns a short label for a coffee item.
+ * @param {string} [name=""] - Item name.
+ * @returns {string} Single-letter label.
+ */
 function getCoffeeLetter(name = "") {
   const normalized = name.toLowerCase();
 
@@ -30,6 +47,16 @@ function getCoffeeLetter(name = "") {
   return firstLetter ? firstLetter.toUpperCase() : "Рљ";
 }
 
+/**
+ * Renders a drawer for marking coffee items as fulfilled.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.open - Whether drawer is open.
+ * @param {Function} props.onClose - Close handler.
+ * @param {Array} [props.checks] - Checks list.
+ * @param {number} props.activeCheckId - Active check id.
+ * @param {Function} props.onToggleFulfilled - Toggle fulfilled handler.
+ * @returns {JSX.Element|null} Drawer or null.
+ */
 function CoffeeMenuDrawer({
   open,
   onClose,

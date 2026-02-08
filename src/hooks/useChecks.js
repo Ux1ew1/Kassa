@@ -1,8 +1,23 @@
+/**
+ * Checks (receipts) state management hook.
+ */
 import { useState, useEffect } from 'react'
 import { loadChecks, saveChecks } from '../utils/storage'
 
 /**
- * Хук для работы с чеками
+ * React hook for managing checks and their items.
+ * @returns {{
+ *  checks: Array,
+ *  activeCheckId: number,
+ *  setActiveCheckId: Function,
+ *  getActiveCheck: Function,
+ *  addItemToCheck: Function,
+ *  removeItemFromCheck: Function,
+ *  updateCheckChange: Function,
+ *  createNewCheck: Function,
+ *  completeCheck: Function,
+ *  toggleItemsFulfilled: Function
+ * }}
  */
 export function useChecks() {
   const [checks, setChecks] = useState([])
@@ -20,10 +35,19 @@ export function useChecks() {
     }
   }, [checks, activeCheckId])
 
+  /**
+   * Returns the active check object.
+   * @returns {Object|undefined}
+   */
   const getActiveCheck = () => {
     return checks.find((check) => check.id === activeCheckId)
   }
 
+  /**
+   * Adds a menu item to the active check.
+   * @param {{id: number|string, name: string, price: number}} item - Menu item.
+   * @returns {void}
+   */
   const addItemToCheck = (item) => {
     setChecks((prevChecks) =>
       prevChecks.map((check) => {
@@ -42,6 +66,11 @@ export function useChecks() {
     )
   }
 
+  /**
+   * Removes an item from the active check by index.
+   * @param {number} index - Item index in the check.
+   * @returns {void}
+   */
   const removeItemFromCheck = (index) => {
     setChecks((prevChecks) =>
       prevChecks.map((check) => {
@@ -59,6 +88,13 @@ export function useChecks() {
     )
   }
 
+  /**
+   * Toggles fulfillment state for items within a check.
+   * @param {number[]} indices - Indices of items to toggle.
+   * @param {boolean} fulfilled - New fulfillment value.
+   * @param {number} [targetCheckId=activeCheckId] - Target check id.
+   * @returns {void}
+   */
   const toggleItemsFulfilled = (indices = [], fulfilled, targetCheckId = activeCheckId) => {
     if (!Array.isArray(indices) || indices.length === 0) {
       return
@@ -82,6 +118,11 @@ export function useChecks() {
     )
   }
 
+  /**
+   * Updates the change for the active check.
+   * @param {number} given - Amount given by the customer.
+   * @returns {void}
+   */
   const updateCheckChange = (given) => {
     setChecks((prevChecks) =>
       prevChecks.map((check) => {
@@ -96,6 +137,10 @@ export function useChecks() {
     )
   }
 
+  /**
+   * Creates a new check and sets it as active.
+   * @returns {void}
+   */
   const createNewCheck = () => {
     const newId = checks.length > 0 ? Math.max(...checks.map((c) => c.id)) + 1 : 1
     setChecks((prevChecks) => [
@@ -105,6 +150,10 @@ export function useChecks() {
     setActiveCheckId(newId)
   }
 
+  /**
+   * Completes the active check and removes it.
+   * @returns {void}
+   */
   const completeCheck = () => {
     setChecks((prevChecks) => {
       const filtered = prevChecks.filter((check) => check.id !== activeCheckId)
@@ -135,4 +184,3 @@ export function useChecks() {
     toggleItemsFulfilled,
   }
 }
-

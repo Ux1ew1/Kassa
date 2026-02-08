@@ -1,4 +1,7 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+﻿/**
+ * Main cashier page with menu, cart, and check management.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
 import SearchBar from "../components/SearchBar";
@@ -9,8 +12,18 @@ import CoffeeMenuDrawer from "../components/CoffeeMenuDrawer";
 import SecretMenu from "../components/SecretMenu";
 import "./Kassa.css";
 
+/**
+ * Base set of categories displayed on the page.
+ * @type {string[]}
+ */
+
 const BASE_CATEGORIES = ["напитки", "еда", "алкоголь", "остальное"];
 
+/**
+ * Normalizes a category label to a supported slug.
+ * @param {string} value - Raw category value.
+ * @returns {string} Normalized category slug.
+ */
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (["all", "все"].includes(v)) return "все";
@@ -21,6 +34,11 @@ const normalizeCategory = (value) => {
   return "остальное";
 };
 
+/**
+ * Returns a display label for a category slug.
+ * @param {string} slug - Category slug.
+ * @returns {string} Display label.
+ */
 const categoryLabel = (slug) => {
   const map = {
     напитки: "Напитки",
@@ -31,6 +49,10 @@ const categoryLabel = (slug) => {
   return map[slug] || slug;
 };
 
+/**
+ * Cashier page component.
+ * @returns {JSX.Element} Kassa page layout.
+ */
 function Kassa() {
   const { menuItems, activeOrder, loading } = useMenu();
   const {
@@ -82,7 +104,8 @@ function Kassa() {
     }
   }, [categories, activeCategory]);
 
-  const isAnyMenuOpen = isCoffeeMenuOpen || isCartDrawerOpen || isSecretMenuOpen;
+  const isAnyMenuOpen =
+    isCoffeeMenuOpen || isCartDrawerOpen || isSecretMenuOpen;
 
   useEffect(() => {
     if (!gesturesEnabled) {
@@ -166,6 +189,10 @@ function Kassa() {
     };
   }, [gesturesEnabled, isAnyMenuOpen, isCartDrawerOpen, isCoffeeMenuOpen]);
 
+  /**
+   * Prompts for amount given and updates change.
+   * @returns {void}
+   */
   const handleAmount = () => {
     const input = prompt("Введите сумму клиента: ");
     if (input === null) return;
@@ -176,24 +203,45 @@ function Kassa() {
     }
   };
 
+  /**
+   * Updates search query state.
+   * @param {string} value - Search value.
+   * @returns {void}
+   */
   const handleSearch = (value) => {
     setSearchQuery(value);
   };
 
+  /**
+   * Creates a new check and resets search.
+   * @returns {void}
+   */
   const handleCreateNewCheck = () => {
     createNewCheck();
     setSearchQuery("");
   };
 
+  /**
+   * Opens the coffee drawer when possible.
+   * @returns {void}
+   */
   const handleOpenCoffeeMenu = () => {
     if (isCartDrawerOpen || isSecretMenuOpen) return;
     setCoffeeMenuOpen(true);
   };
 
+  /**
+   * Closes the coffee drawer.
+   * @returns {void}
+   */
   const handleCloseCoffeeMenu = () => {
     setCoffeeMenuOpen(false);
   };
 
+  /**
+   * Toggles the cart drawer visibility.
+   * @returns {void}
+   */
   const handleToggleCartDrawer = () => {
     if (!isCartDrawerOpen && (isCoffeeMenuOpen || isSecretMenuOpen)) {
       return;
@@ -201,6 +249,10 @@ function Kassa() {
     setCartDrawerOpen((prev) => !prev);
   };
 
+  /**
+   * Toggles the secret menu visibility.
+   * @returns {void}
+   */
   const handleToggleSecretMenu = () => {
     if (!isSecretMenuOpen && (isCoffeeMenuOpen || isCartDrawerOpen)) {
       return;

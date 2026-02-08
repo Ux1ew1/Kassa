@@ -1,6 +1,20 @@
+﻿/**
+ * Secret settings menu overlay.
+ */
 import "./SecretMenu.css";
 import { useTheme } from "../hooks/useTheme";
 
+/**
+ * Renders the secret settings panel.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.open - Whether the menu is open.
+ * @param {Function} props.onClose - Close handler.
+ * @param {boolean} props.gesturesEnabled - Gestures enabled flag.
+ * @param {Function} props.onToggleGestures - Toggle gestures handler.
+ * @param {boolean} props.lowPerformanceMode - Low performance mode flag.
+ * @param {Function} props.onToggleLowPerformanceMode - Toggle low performance handler.
+ * @returns {JSX.Element|null} Secret menu overlay or null.
+ */
 function SecretMenu({
   open,
   onClose,
