@@ -1,8 +1,22 @@
+/**
+ * Admin menu management hook.
+ */
 import { useState, useEffect, useCallback } from 'react'
 import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
 
 /**
- * Хук для управления меню в админ-панели
+ * React hook for managing menu items from the admin panel.
+ * @returns {{
+ *  menu: Array,
+ *  activeOrder: Array,
+ *  loading: boolean,
+ *  error: string | null,
+ *  addItem: Function,
+ *  updateItem: Function,
+ *  deleteItem: Function,
+ *  toggleItem: Function,
+ *  reloadMenu: Function
+ * }}
  */
 export function useAdminMenu() {
   const [menu, setMenu] = useState([])
@@ -14,6 +28,10 @@ export function useAdminMenu() {
     loadMenu()
   }, [])
 
+  /**
+   * Fetches menu data from the API and updates local state.
+   * @returns {Promise<void>}
+   */
   const loadMenu = async () => {
     setLoading(true)
     setError(null)
@@ -22,7 +40,7 @@ export function useAdminMenu() {
       setMenu(items)
       setActiveOrder(order)
     } catch (err) {
-      console.error('Ошибка загрузки меню:', err)
+      console.error('?????? ???????? ????:', err)
       setError(err.message)
       setMenu([])
       setActiveOrder([])
@@ -31,6 +49,12 @@ export function useAdminMenu() {
     }
   }
 
+  /**
+   * Ensures active order contains valid, visible items with no duplicates.
+   * @param {Array} items - Menu items.
+   * @param {Array} order - Current active order.
+   * @returns {Array} Sanitized active order.
+   */
   const ensureActiveOrderConsistency = useCallback((items, order) => {
     const validIds = new Set(items.map((item) => item.id))
     const seen = new Set()
@@ -53,6 +77,12 @@ export function useAdminMenu() {
     return ordered
   }, [])
 
+  /**
+   * Saves menu changes to the API and updates local state.
+   * @param {Array} newMenu - Updated menu.
+   * @param {Array} newOrder - Updated order.
+   * @returns {Promise<void>}
+   */
   const persistChanges = async (newMenu, newOrder) => {
     const consistentOrder = ensureActiveOrderConsistency(newMenu, newOrder)
     try {
@@ -60,17 +90,22 @@ export function useAdminMenu() {
       setMenu(newMenu)
       setActiveOrder(consistentOrder)
     } catch (err) {
-      console.error('Ошибка сохранения меню:', err)
+      console.error('?????? ?????????? ????:', err)
       throw err
     }
   }
 
+  /**
+   * Adds a new menu item.
+   * @param {Object} itemData - Item fields.
+   * @returns {Promise<void>}
+   */
   const addItem = async (itemData) => {
     const newId = menu.length > 0 ? Math.max(...menu.map((item) => item.id)) + 1 : 1
     const newItem = { id: newId, ...itemData }
 
     if (!validateMenuItem(newItem)) {
-      throw new Error('Некорректные данные позиции')
+      throw new Error('???????????? ?????? ???????')
     }
 
     const newMenu = [...menu, newItem]
@@ -81,16 +116,22 @@ export function useAdminMenu() {
     await persistChanges(newMenu, newOrder)
   }
 
+  /**
+   * Updates an existing menu item.
+   * @param {number|string} id - Item id.
+   * @param {Object} itemData - Updated fields.
+   * @returns {Promise<void>}
+   */
   const updateItem = async (id, itemData) => {
     const itemIndex = menu.findIndex((item) => item.id === id)
     if (itemIndex === -1) {
-      throw new Error('Позиция не найдена')
+      throw new Error('??????? ?? ???????')
     }
 
     const updatedItem = { ...menu[itemIndex], ...itemData }
 
     if (!validateMenuItem(updatedItem)) {
-      throw new Error('Некорректные данные позиции')
+      throw new Error('???????????? ?????? ???????')
     }
 
     const newMenu = [...menu]
@@ -106,6 +147,11 @@ export function useAdminMenu() {
     await persistChanges(newMenu, newOrder)
   }
 
+  /**
+   * Deletes a menu item.
+   * @param {number|string} id - Item id.
+   * @returns {Promise<void>}
+   */
   const deleteItem = async (id) => {
     const newMenu = menu.filter((item) => item.id !== id)
     const newOrder = activeOrder.filter((itemId) => itemId !== id)
@@ -113,6 +159,11 @@ export function useAdminMenu() {
     await persistChanges(newMenu, newOrder)
   }
 
+  /**
+   * Toggles menu item visibility.
+   * @param {number|string} id - Item id.
+   * @returns {Promise<void>}
+   */
   const toggleItem = async (id) => {
     const item = menu.find((item) => item.id === id)
     if (!item) return
@@ -132,4 +183,3 @@ export function useAdminMenu() {
     reloadMenu: loadMenu,
   }
 }
-

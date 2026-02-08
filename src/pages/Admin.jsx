@@ -5,6 +5,10 @@ import AdminMenuList from '../components/AdminMenuList'
 import ItemModal from '../components/ItemModal'
 import './Admin.css'
 
+/**
+ * Admin page for managing menu items.
+ * @returns {JSX.Element} Admin page layout.
+ */
 function Admin() {
   const { menu, loading, addItem, updateItem, deleteItem, toggleItem } = useAdminMenu()
   const [searchQuery, setSearchQuery] = useState('')
@@ -16,18 +20,32 @@ function Admin() {
     item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
   )
 
+  /**
+   * Opens the modal for adding a new item.
+   * @returns {void}
+   */
   const handleAdd = () => {
     setModalMode('add')
     setEditingItem(null)
     setModalOpen(true)
   }
 
+  /**
+   * Opens the modal for editing an item.
+   * @param {Object} item - Menu item to edit.
+   * @returns {void}
+   */
   const handleEdit = (item) => {
     setModalMode('edit')
     setEditingItem(item)
     setModalOpen(true)
   }
 
+  /**
+   * Persists item changes based on modal mode.
+   * @param {Object} itemData - Item data from the modal.
+   * @returns {Promise<void>}
+   */
   const handleSave = async (itemData) => {
     try {
       if (modalMode === 'add') {
@@ -42,6 +60,11 @@ function Admin() {
     }
   }
 
+  /**
+   * Deletes a menu item after confirmation.
+   * @param {number|string} id - Item id.
+   * @returns {Promise<void>}
+   */
   const handleDelete = async (id) => {
     if (confirm('Удалить позицию?')) {
       try {
@@ -52,6 +75,11 @@ function Admin() {
     }
   }
 
+  /**
+   * Toggles item visibility.
+   * @param {number|string} id - Item id.
+   * @returns {Promise<void>}
+   */
   const handleToggle = async (id) => {
     try {
       await toggleItem(id)

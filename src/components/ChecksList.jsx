@@ -1,6 +1,19 @@
+﻿/**
+ * Checks list component for switching active check.
+ */
 import { useRef } from "react";
 import "./ChecksList.css";
 
+/**
+ * Renders the checks list with create/complete actions.
+ * @param {Object} props - Component props.
+ * @param {Array} props.checks - Checks list.
+ * @param {number} props.activeCheckId - Active check id.
+ * @param {Function} props.onCheckChange - Handler for selecting a check.
+ * @param {Function} props.onCreateNew - Handler for creating a new check.
+ * @param {Function} [props.onCompleteActiveCheck] - Handler for completing active check.
+ * @returns {JSX.Element} Checks list.
+ */
 function ChecksList({
   checks,
   activeCheckId,

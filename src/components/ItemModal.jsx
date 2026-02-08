@@ -1,8 +1,20 @@
-﻿import { useState, useEffect } from "react";
+﻿/**
+ * Modal for creating or editing a menu item.
+ */
+import { useState, useEffect } from "react";
 import "./ItemModal.css";
 
-const CATEGORY_OPTIONS = ["напитки", "еда", "алкоголь", "остальное"];
+/**
+ * Allowed menu categories.
+ * @type {string[]}
+ */
+const CATEGORY_OPTIONS = ["Напитки", "Еда", "Алкоголь", "Остальное"];
 
+/**
+ * Normalizes a category label to a supported slug.
+ * @param {string} value - Raw category value.
+ * @returns {string} Normalized slug.
+ */
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (["all", "все"].includes(v)) return "все";
@@ -13,6 +25,16 @@ const normalizeCategory = (value) => {
   return "остальное";
 };
 
+/**
+ * Renders a modal form for a menu item.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.isOpen - Whether modal is open.
+ * @param {'add'|'edit'} props.mode - Modal mode.
+ * @param {Object|null} props.item - Item to edit.
+ * @param {Function} props.onSave - Save handler.
+ * @param {Function} props.onClose - Close handler.
+ * @returns {JSX.Element|null} Modal or null.
+ */
 function ItemModal({ isOpen, mode, item, onSave, onClose }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -35,6 +57,11 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
     }
   }, [isOpen, mode, item]);
 
+  /**
+   * Validates and submits form data.
+   * @param {Event} e - Form submit event.
+   * @returns {void}
+   */
   const handleSubmit = (e) => {
     e.preventDefault();
     const priceNum = parseFloat(price);

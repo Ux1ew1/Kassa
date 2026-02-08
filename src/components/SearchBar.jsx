@@ -1,5 +1,15 @@
+﻿/**
+ * Search input component for filtering menu items.
+ */
 import "./SearchBar.css";
 
+/**
+ * Renders a search input with clear action.
+ * @param {Object} props - Component props.
+ * @param {string} [props.value=""] - Current value.
+ * @param {Function} props.onSearch - Change handler.
+ * @returns {JSX.Element} Search bar.
+ */
 function SearchBar({ value = "", onSearch }) {
   const hasValue = value.trim().length > 0;
 

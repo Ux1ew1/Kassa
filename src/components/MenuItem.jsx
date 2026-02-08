@@ -1,5 +1,16 @@
+﻿/**
+ * Menu item card component.
+ */
 import "./MenuItem.css";
 
+/**
+ * Renders a single menu item card.
+ * @param {Object} props - Component props.
+ * @param {{id: number|string, name: string, price: number}} props.item - Menu item.
+ * @param {number} [props.quantity=0] - Count of item in cart.
+ * @param {Function} props.onAdd - Add handler.
+ * @returns {JSX.Element} Menu item card.
+ */
 function MenuItem({ item, quantity = 0, onAdd }) {
   const handleClick = () => {
     onAdd(item);

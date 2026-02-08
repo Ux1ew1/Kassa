@@ -1,8 +1,18 @@
+/**
+ * Menu data hook for loading and exposing menu items and ordering.
+ */
 import { useState, useEffect } from 'react'
 import { fetchMenu } from '../utils/api'
 
 /**
- * Хук для работы с меню
+ * React hook for loading and exposing menu data.
+ * @returns {{
+ *  menuItems: Array,
+ *  activeOrder: Array,
+ *  loading: boolean,
+ *  error: string | null,
+ *  reloadMenu: Function
+ * }}
  */
 export function useMenu() {
   const [menuItems, setMenuItems] = useState([])
@@ -14,6 +24,10 @@ export function useMenu() {
     loadMenu()
   }, [])
 
+  /**
+   * Fetches menu data from the API and updates local state.
+   * @returns {Promise<void>}
+   */
   const loadMenu = async () => {
     setLoading(true)
     setError(null)
@@ -22,7 +36,7 @@ export function useMenu() {
       setMenuItems(items)
       setActiveOrder(order)
     } catch (err) {
-      console.error('Ошибка загрузки меню:', err)
+      console.error('?????? ???????? ????:', err)
       setError(err.message)
       setMenuItems([])
       setActiveOrder([])
@@ -39,4 +53,3 @@ export function useMenu() {
     reloadMenu: loadMenu,
   }
 }
-

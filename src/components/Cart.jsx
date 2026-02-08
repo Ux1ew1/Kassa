@@ -1,6 +1,14 @@
+﻿/**
+ * Cart component for displaying items in the active check.
+ */
 import { formatPrice } from '../utils/api'
 import './Cart.css'
 
+/**
+ * Groups cart items by menu item id.
+ * @param {Array} [items=[]] - Cart items.
+ * @returns {Array} Grouped items with totals and indices.
+ */
 function groupCartItems(items = []) {
   const groups = []
   const map = new Map()
@@ -32,6 +40,14 @@ function groupCartItems(items = []) {
   return groups
 }
 
+/**
+ * Renders the cart contents.
+ * @param {Object} props - Component props.
+ * @param {Array} props.items - Cart items.
+ * @param {Function} [props.onRemove] - Remove handler by index.
+ * @param {Function} [props.onToggleFulfilled] - Toggle fulfilled handler.
+ * @returns {JSX.Element} Cart list.
+ */
 function Cart({ items, onRemove, onToggleFulfilled }) {
   if (items.length === 0) {
     return (

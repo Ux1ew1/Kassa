@@ -1,3 +1,6 @@
+/**
+ * @file Vite configuration for the Kassa app.
+ */
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
