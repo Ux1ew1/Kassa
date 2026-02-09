@@ -2,7 +2,7 @@
   max-width: 300px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex: 1 1 auto;
   justify-content: space-between;
   position: relative;
@@ -14,7 +14,7 @@
   overflow-x: scroll;
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 7px;
   margin-left: 10px;
   scroll-snap-type: x proximity;
   position: relative;

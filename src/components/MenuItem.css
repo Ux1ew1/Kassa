@@ -67,12 +67,11 @@
   background: radial-gradient(
     280px 160px at 20% 10%,
     rgba(255, 255, 255, 0.18),
-    transparent 55%
+    transparent 60%
   );
   opacity: 0.3;
   transition: opacity 0.22s ease;
 }
- 
 
 .item:nth-child(odd) {
   margin-left: auto;
