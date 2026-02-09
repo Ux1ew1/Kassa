@@ -38,8 +38,7 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    background-color 0.2s ease,
-    transform 0.15s ease;
+    background-color 0.2s ease;
   box-sizing: border-box;
   touch-action: manipulation;
   box-shadow: var(--glass-shadow-md), var(--glass-inset-strong);
@@ -51,7 +50,6 @@
 
 .search-input:focus {
   border-color: var(--color-border);
-  transform: translateY(-1px);
   box-shadow:
     0 12px 24px var(--color-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -128,12 +126,14 @@
     animation: none;
   }
 
-  .search-input:focus {
-    transform: none;
-  }
-
   .search-clear-button:hover,
   .search-clear-button:active {
     transform: translateY(-50%);
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .search-input--active {
+    animation: none;
   }
 }

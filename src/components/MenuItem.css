@@ -10,10 +10,16 @@
   border-radius: 7px;
   position: relative;
   overflow: hidden;
-  background-color: color-mix(in srgb, var(--color-card) var(--glass-mix-panel), transparent);
-  border: 1px solid var(--color-divider);
+  background-color: color-mix(
+    in srgb,
+    var(--color-card) var(--glass-mix-panel),
+    transparent
+  );
+  border: 1px solid
+    color-mix(in srgb, var(--color-divider) 70%, rgba(255, 255, 255, 0.28));
   box-shadow:
     0 10px 24px var(--color-shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
     var(--glass-inset-strong);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
     contrast(var(--glass-contrast));
@@ -37,8 +43,16 @@
   pointer-events: none;
   border-radius: inherit;
   background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
+    radial-gradient(
+      120% 90% at 30% 12%,
+      var(--glass-highlight),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 90% at 75% 88%,
+      var(--glass-shadow-tint),
+      transparent 60%
+    ),
     linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
     var(--glass-noise-url);
   opacity: var(--glass-noise-opacity);
@@ -58,6 +72,7 @@
   opacity: 0.3;
   transition: opacity 0.22s ease;
 }
+ 
 
 .item:nth-child(odd) {
   margin-left: auto;
@@ -74,13 +89,16 @@
 .item:active {
   transform: scale(0.95);
   background-color: var(--color-card-strong);
-  box-shadow: 0 2px 8px var(--color-shadow);
+  box-shadow:
+    0 2px 8px var(--color-shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .item:hover {
   transform: translateY(-2px);
   box-shadow:
     0 14px 28px var(--color-shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     var(--glass-inset-strong);
 }
 
@@ -89,7 +107,8 @@
 }
 
 .item:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-button-alt-bg) 60%, transparent);
+  outline: 2px solid
+    color-mix(in srgb, var(--color-button-alt-bg) 60%, transparent);
   outline-offset: 2px;
 }
 
@@ -126,7 +145,11 @@
   font-weight: 600;
   text-align: center;
   border-radius: 999px;
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 70%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-alt-bg) 70%,
+    transparent
+  );
   box-shadow:
     0 4px 10px var(--color-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);

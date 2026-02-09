@@ -1,7 +1,7 @@
 ﻿/**
  * Checks list component for switching active check.
  */
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ChecksList.css";
 
 /**
@@ -22,6 +22,45 @@ function ChecksList({
   onCompleteActiveCheck,
 }) {
   const lastTapRef = useRef({ id: null, time: 0 });
+  const checksRef = useRef(null);
+  const [showRightIndicator, setShowRightIndicator] = useState(false);
+
+  useEffect(() => {
+    let rafA = 0;
+    let rafB = 0;
+
+    const updateOverflowState = () => {
+      const container = checksRef.current;
+      if (!container) return;
+
+      const overflow = container.scrollWidth - container.clientWidth > 1;
+      const canScrollRight =
+        container.scrollLeft + container.clientWidth < container.scrollWidth - 1;
+      setShowRightIndicator(overflow && canScrollRight);
+    };
+
+    rafA = window.requestAnimationFrame(() => {
+      updateOverflowState();
+      rafB = window.requestAnimationFrame(updateOverflowState);
+    });
+
+    window.addEventListener("resize", updateOverflowState);
+    const container = checksRef.current;
+    if (container) {
+      container.addEventListener("scroll", updateOverflowState, {
+        passive: true,
+      });
+    }
+
+    return () => {
+      window.cancelAnimationFrame(rafA);
+      window.cancelAnimationFrame(rafB);
+      window.removeEventListener("resize", updateOverflowState);
+      if (container) {
+        container.removeEventListener("scroll", updateOverflowState);
+      }
+    };
+  }, [checks.length]);
 
   const handleTap = (checkId) => {
     const now = Date.now();
@@ -43,7 +82,11 @@ function ChecksList({
 
   return (
     <div className="top__checks">
-      <div className="checks" id="checks">
+      <div
+        className={`checks${showRightIndicator ? " checks--overflow-right" : ""}`}
+        id="checks"
+        ref={checksRef}
+      >
         {checks.map((check) => (
           <div key={check.id} className="check-item">
             <input
