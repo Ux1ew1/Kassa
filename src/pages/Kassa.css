@@ -1,8 +1,8 @@
 .container {
   position: relative;
   max-width: 425px;
-  min-height: 100vh;
-  height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1vh) * 100);
   margin: 0 auto;
   background-color: var(--color-app-bg);
   color: var(--color-text-primary);
@@ -20,7 +20,6 @@
 }
 
 .container--lite .top,
-.container--lite .bottom,
 .container--lite .cart-drawer,
 .container--lite .category-button,
 .container--lite .cart-drawer-button,
@@ -31,7 +30,6 @@
 }
 
 .container--lite .top::before,
-.container--lite .bottom::before,
 .container--lite .cart-drawer::before {
   content: none;
 }
@@ -41,9 +39,6 @@
   box-shadow: 2px 0 10px var(--color-shadow);
 }
 
-.container--lite .bottom {
-  background-color: var(--color-panel-strong);
-}
 
 .container--lite .coffee-menu-panel {
   background-color: var(--color-panel);
@@ -145,7 +140,8 @@ h1 {
 }
 
 .category-button:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-button-alt-bg) 50%, transparent);
+  outline: 2px solid
+    color-mix(in srgb, var(--color-button-alt-bg) 50%, transparent);
   outline-offset: 1px;
 }
 
@@ -159,7 +155,11 @@ h1 {
   margin: 0;
   position: relative;
   overflow: hidden;
-  background-color: color-mix(in srgb, var(--color-panel-strong) var(--glass-mix-panel), transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-panel-strong) var(--glass-mix-panel),
+    transparent
+  );
   color: var(--color-button-text);
   border-bottom: 1px solid var(--color-divider);
   box-shadow: var(--glass-shadow-lg), var(--glass-inset-strong);
@@ -176,8 +176,16 @@ h1 {
   pointer-events: none;
   border-radius: inherit;
   background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
+    radial-gradient(
+      120% 90% at 30% 12%,
+      var(--glass-highlight),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 90% at 75% 88%,
+      var(--glass-shadow-tint),
+      transparent 60%
+    ),
     linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
     var(--glass-noise-url);
   opacity: var(--glass-noise-opacity);
@@ -191,7 +199,11 @@ h1 {
 }
 
 .cart-drawer-button {
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 40%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-alt-bg) 40%,
+    transparent
+  );
   color: var(--color-button-alt-text);
   display: flex;
   align-items: center;
@@ -212,7 +224,11 @@ h1 {
   min-height: 44px;
   border-radius: 8px;
   color: var(--color-button-alt-text);
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 40%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-alt-bg) 40%,
+    transparent
+  );
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -229,44 +245,12 @@ h1 {
 }
 
 .admin-link:hover {
-  background-color: color-mix(in srgb, var(--color-button-bg-hover) 55%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-bg-hover) 55%,
+    transparent
+  );
   transform: scale(1.03);
-}
-
-.bottom {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--color-button-text);
-  position: sticky;
-  overflow: hidden;
-  background-color: color-mix(in srgb, var(--color-panel-strong) var(--glass-mix-panel), transparent);
-  padding: 12px 4px calc(12px + env(safe-area-inset-bottom));
-  z-index: 1;
-  border-top: 1px solid var(--color-divider);
-  box-shadow: 0 -12px 26px var(--color-shadow), var(--glass-inset-strong);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
-    contrast(var(--glass-contrast));
-  -webkit-backdrop-filter: blur(var(--glass-blur))
-    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
-}
-
-.bottom::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
-    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
-    var(--glass-noise-url);
-  opacity: var(--glass-noise-opacity);
-  mix-blend-mode: overlay;
 }
 
 button {
@@ -278,7 +262,11 @@ button {
   font-weight: 600;
   cursor: pointer;
   color: var(--color-button-text);
-  background-color: color-mix(in srgb, var(--color-button-bg) var(--glass-mix-button), transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-bg) var(--glass-mix-button),
+    transparent
+  );
   border-radius: 8px;
   user-select: none;
   transition:
@@ -293,31 +281,6 @@ button {
     contrast(var(--glass-contrast));
   -webkit-backdrop-filter: blur(var(--glass-blur))
     saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
-}
-
-.done-button {
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) var(--glass-mix-button-alt), transparent);
-  color: var(--color-button-alt-text);
-}
-
-.amountButton {
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) var(--glass-mix-button-alt), transparent);
-  color: var(--color-button-alt-text);
-  padding: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.amountButton svg {
-  width: 24px;
-  height: 24px;
-}
-
-.price,
-.amount {
-  font-size: 16px;
-  font-weight: 500;
 }
 
 .cart-drawer {
@@ -363,12 +326,12 @@ button {
       rgba(255, 255, 255, 0.1),
       transparent 55%
     ),
-    radial-gradient(
-      120% 90% at 75% 88%,
-      rgba(0, 0, 0, 0.1),
-      transparent 60%
+    radial-gradient(120% 90% at 75% 88%, rgba(0, 0, 0, 0.1), transparent 60%),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.02)
     ),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E");
   opacity: 0.65;
   mix-blend-mode: overlay;
@@ -407,7 +370,11 @@ button {
 }
 
 .cart-drawer__close:hover {
-  background-color: color-mix(in srgb, var(--color-button-bg-hover) 75%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--color-button-bg-hover) 75%,
+    transparent
+  );
   transform: scale(1.04);
 }
 

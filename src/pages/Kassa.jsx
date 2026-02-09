@@ -10,6 +10,7 @@ import Cart from "../components/Cart";
 import ChecksList from "../components/ChecksList";
 import CoffeeMenuDrawer from "../components/CoffeeMenuDrawer";
 import SecretMenu from "../components/SecretMenu";
+import BottomBar from "../components/BottomBar";
 import "./Kassa.css";
 
 /**
@@ -106,6 +107,41 @@ function Kassa() {
 
   const isAnyMenuOpen =
     isCoffeeMenuOpen || isCartDrawerOpen || isSecretMenuOpen;
+
+  useEffect(() => {
+    if (!isAnyMenuOpen) {
+      return undefined;
+    }
+
+    const { body, documentElement } = document;
+    const scrollY = window.scrollY;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPosition = body.style.position;
+    const previousBodyTop = body.style.top;
+    const previousBodyLeft = body.style.left;
+    const previousBodyRight = body.style.right;
+    const previousBodyWidth = body.style.width;
+    const previousHtmlOverflow = documentElement.style.overflow;
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    documentElement.style.overflow = "hidden";
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      body.style.position = previousBodyPosition;
+      body.style.top = previousBodyTop;
+      body.style.left = previousBodyLeft;
+      body.style.right = previousBodyRight;
+      body.style.width = previousBodyWidth;
+      documentElement.style.overflow = previousHtmlOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isAnyMenuOpen]);
 
   useEffect(() => {
     if (!gesturesEnabled) {
@@ -326,30 +362,11 @@ function Kassa() {
           />
         )}
 
-        <div className="bottom">
-          <button
-            className="done-button"
-            onClick={completeCheck}
-            aria-label="Завершить чек"
-          >
-            ✓
-          </button>
-          <span className="price">Цена: {activeCheck?.price || 0} руб.</span>
-          <span className="amount">Сдача: {activeCheck?.change || 0} руб.</span>
-          <button
-            className="amountButton"
-            onClick={handleAmount}
-            aria-label="Ввести сумму"
-          >
-            <svg
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M8 21h2v-3h6v-2h-6v-2h4.5c2.757 0 5-2.243 5-5s-2.243-5-5-5H9a1 1 0 0 0-1 1v7H5v2h3v2H5v2h3v3zm2-15h4.5c1.654 0 3 1.346 3 3s-1.346 3-3 3H10V6z" />
-            </svg>
-          </button>
-        </div>
+        <BottomBar
+          activeCheck={activeCheck}
+          onComplete={completeCheck}
+          onAmount={handleAmount}
+        />
 
         <Cart
           items={activeCheck?.items || []}

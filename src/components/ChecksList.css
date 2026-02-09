@@ -2,9 +2,10 @@
   max-width: 300px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex: 1 1 auto;
   justify-content: space-between;
+  position: relative;
 }
 
 .checks {
@@ -13,9 +14,26 @@
   overflow-x: scroll;
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 7px;
   margin-left: 10px;
   scroll-snap-type: x proximity;
+  position: relative;
+  z-index: 1;
+}
+
+.checks--overflow-right {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
 }
 
 .check-item {
@@ -66,6 +84,8 @@
 }
 
 .newCheck {
+  position: relative;
+  z-index: 3;
   width: 40px;
   height: 40px;
   font-weight: 600;
