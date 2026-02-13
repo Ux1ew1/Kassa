@@ -11,6 +11,7 @@ import ChecksList from "../components/ChecksList";
 import CoffeeMenuDrawer from "../components/CoffeeMenuDrawer";
 import SecretMenu from "../components/SecretMenu";
 import BottomBar from "../components/BottomBar";
+import ChangeModal from "../components/ChangeModal";
 import "./Kassa.css";
 
 /**
@@ -73,6 +74,7 @@ function Kassa() {
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [isChangeModalOpen, setChangeModalOpen] = useState(false);
   const [gesturesEnabled, setGesturesEnabled] = useState(true);
   const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
@@ -106,7 +108,10 @@ function Kassa() {
   }, [categories, activeCategory]);
 
   const isAnyMenuOpen =
-    isCoffeeMenuOpen || isCartDrawerOpen || isSecretMenuOpen;
+    isCoffeeMenuOpen ||
+    isCartDrawerOpen ||
+    isSecretMenuOpen ||
+    isChangeModalOpen;
 
   useEffect(() => {
     if (!isAnyMenuOpen) {
@@ -226,17 +231,21 @@ function Kassa() {
   }, [gesturesEnabled, isAnyMenuOpen, isCartDrawerOpen, isCoffeeMenuOpen]);
 
   /**
-   * Prompts for amount given and updates change.
+   * Opens change modal.
    * @returns {void}
    */
   const handleAmount = () => {
-    const input = prompt("Введите сумму клиента: ");
-    if (input === null) return;
+    setChangeModalOpen(true);
+  };
 
-    const given = parseFloat(input);
-    if (!isNaN(given) && given >= 0) {
-      updateCheckChange(given);
-    }
+  /**
+   * Saves amount given and updates change.
+   * @param {number} given - Amount given by the customer.
+   * @returns {void}
+   */
+  const handleConfirmChange = (given) => {
+    updateCheckChange(given);
+    setChangeModalOpen(false);
   };
 
   /**
@@ -417,6 +426,13 @@ function Kassa() {
           onToggleLowPerformanceMode={() =>
             setLowPerformanceMode((prev) => !prev)
           }
+        />
+        <ChangeModal
+          isOpen={isChangeModalOpen}
+          price={activeCheck?.price || 0}
+          currentChange={activeCheck?.change || 0}
+          onClose={() => setChangeModalOpen(false)}
+          onConfirm={handleConfirmChange}
         />
       </div>
     </div>
