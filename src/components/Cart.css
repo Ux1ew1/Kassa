@@ -16,7 +16,7 @@
   padding: 7px 4px;
   position: relative;
   overflow: hidden;
-  background-color: color-mix(in srgb, var(--color-card) var(--glass-mix-panel), transparent);
+  background-color: var(--color-card);
   margin: 4px 0;
   border-radius: 8px;
   cursor: pointer;
@@ -26,26 +26,11 @@
     transform 0.15s ease,
     box-shadow 0.2s ease;
   border: 1px solid var(--color-divider);
-  box-shadow: var(--glass-shadow-md), var(--glass-inset-strong);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
-    contrast(var(--glass-contrast));
-  -webkit-backdrop-filter: blur(var(--glass-blur))
-    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  box-shadow: 0 8px 16px var(--color-shadow);
 }
 
 .cart__item::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
-    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
-    var(--glass-noise-url);
-  opacity: var(--glass-noise-opacity);
-  mix-blend-mode: overlay;
+  content: none;
 }
 
 .cart__item-container {
@@ -104,9 +89,7 @@
 
 .cart__item:hover {
   transform: translateY(-1px);
-  box-shadow:
-    0 10px 20px var(--color-shadow),
-    var(--glass-inset-strong);
+  box-shadow: 0 10px 20px var(--color-shadow);
 }
 
 .cart__item:active {

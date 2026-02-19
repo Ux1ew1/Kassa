@@ -16,30 +16,13 @@
   overflow: hidden;
   border: 1px solid var(--color-divider);
   border-radius: 10px;
-  background-color: color-mix(in srgb, var(--color-card) var(--glass-mix-panel), transparent);
+  background-color: var(--color-card);
   transition: border-color 0.2s ease, transform 0.15s ease;
-  box-shadow:
-    0 14px 26px var(--color-shadow),
-    var(--glass-inset-strong);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
-    contrast(var(--glass-contrast));
-  -webkit-backdrop-filter: blur(var(--glass-blur))
-    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  box-shadow: 0 14px 26px var(--color-shadow);
 }
 
 .admin-item::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
-    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
-    var(--glass-noise-url);
-  opacity: var(--glass-noise-opacity);
-  mix-blend-mode: overlay;
+  content: none;
 }
 .admin-item:hover {
   border-color: var(--color-border);
@@ -97,17 +80,13 @@
   padding: 10px 14px;
   font-size: 14px;
   min-height: 40px;
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 70%, transparent);
+  background-color: var(--color-button-alt-bg);
   color: var(--color-button-alt-text);
   border: 1px solid var(--color-divider);
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.15s ease;
-  box-shadow:
-    0 10px 22px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(12px) saturate(120%) contrast(105%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%) contrast(105%);
+  box-shadow: 0 10px 22px var(--color-shadow);
 }
 
 .admin-item__button:hover {

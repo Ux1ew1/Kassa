@@ -11,35 +11,20 @@
 .modal-content {
   position: relative;
   overflow: hidden;
-  background-color: color-mix(in srgb, var(--color-panel) var(--glass-mix-panel), transparent);
+  background-color: var(--color-panel);
   border: 1px solid var(--color-divider);
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 12px 32px var(--color-shadow), var(--glass-inset-strong);
+  box-shadow: 0 12px 32px var(--color-shadow);
   width: 90%;
   max-width: 360px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate))
-    contrast(var(--glass-contrast));
-  -webkit-backdrop-filter: blur(var(--glass-blur))
-    saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
 }
 
 .modal-content::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background-image:
-    radial-gradient(120% 90% at 30% 12%, var(--glass-highlight), transparent 55%),
-    radial-gradient(120% 90% at 75% 88%, var(--glass-shadow-tint), transparent 60%),
-    linear-gradient(135deg, var(--glass-linear-1), var(--glass-linear-2)),
-    var(--glass-noise-url);
-  opacity: var(--glass-noise-opacity);
-  mix-blend-mode: overlay;
+  content: none;
 }
 
 .modal-content::after {

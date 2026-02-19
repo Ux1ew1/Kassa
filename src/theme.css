@@ -57,8 +57,6 @@
   --glass-shadow-tint: rgba(0, 0, 0, 0.08);
   --glass-linear-1: rgba(255, 255, 255, 0.05);
   --glass-linear-2: rgba(255, 255, 255, 0.02);
-  --glass-noise-opacity: 0.6;
-  --glass-noise-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {

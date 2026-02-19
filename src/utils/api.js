@@ -2,7 +2,7 @@
  * @file API utilities for interacting with the backend.
  */
 
-const API_BASE = '/api';
+const API_BASE = "/api";
 
 /**
  * Safely parses JSON from a fetch Response.
@@ -24,21 +24,21 @@ export async function safeJson(response) {
 export async function fetchMenu() {
   const response = await fetch(`${API_BASE}/menu`);
   const payload = await safeJson(response);
-  
+
   if (!response.ok) {
-    throw new Error(payload?.message || '?? ??????? ????????? ????');
+    throw new Error(payload?.message || "?? ??????? ????????? ????");
   }
-  
+
   const items = Array.isArray(payload?.items)
     ? payload.items
     : Array.isArray(payload?.menu)
-    ? payload.menu
-    : [];
-  
+      ? payload.menu
+      : [];
+
   const activeOrder = Array.isArray(payload?.activeOrder)
     ? payload.activeOrder
     : items.filter((item) => item.show).map((item) => item.id);
-  
+
   return { items, activeOrder };
 }
 
@@ -50,17 +50,17 @@ export async function fetchMenu() {
  */
 export async function saveMenu(items, activeOrder) {
   const response = await fetch(`${API_BASE}/menu`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, activeOrder }),
   });
-  
+
   const payload = await safeJson(response);
-  
+
   if (!response.ok) {
-    throw new Error(payload?.message || '?? ??????? ????????? ????');
+    throw new Error(payload?.message || "?? ??????? ????????? ????");
   }
-  
+
   return payload;
 }
 
@@ -70,7 +70,7 @@ export async function saveMenu(items, activeOrder) {
  * @returns {string} Formatted price.
  */
 export function formatPrice(price) {
-  return `${price} ???.`;
+  return `${price} руб.`;
 }
 
 /**
@@ -81,10 +81,11 @@ export function formatPrice(price) {
 export function validateMenuItem(item) {
   return (
     item &&
-    typeof item.id !== 'undefined' &&
-    typeof item.name === 'string' &&
+    typeof item.id !== "undefined" &&
+    typeof item.name === "string" &&
     item.name.trim().length > 0 &&
-    typeof item.price === 'number' &&
+    typeof item.price === "number" &&
     item.price >= 0
   );
 }
+ 
