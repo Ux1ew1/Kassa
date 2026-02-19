@@ -29,7 +29,5 @@ body {
 #root {
   width: 100%;  
   min-height: calc(var(--vh, 1vh) * 100);
-  background: rgba(227, 238, 247, 0.45);
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  background: transparent;
 }

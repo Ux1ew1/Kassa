@@ -119,6 +119,6 @@ function Cart({ items, onRemove, onToggleFulfilled }) {
     </div>
   )
 }
-
+ 
 export default Cart
 
