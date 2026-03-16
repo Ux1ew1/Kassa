@@ -1,7 +1,8 @@
 /**
  * Menu data hook for loading and exposing menu items and ordering.
  */
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useEffect } from 'react'
 import { fetchMenu } from '../utils/api'
 
 /**
@@ -14,29 +15,42 @@ import { fetchMenu } from '../utils/api'
  *  reloadMenu: Function
  * }}
  */
-export function useMenu() {
+export function useMenu(roomId, userId) {
   const [menuItems, setMenuItems] = useState([])
   const [activeOrder, setActiveOrder] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!roomId || !userId) {
+      setMenuItems([])
+      setActiveOrder([])
+      setLoading(false)
+      return
+    }
+
     loadMenu()
-  }, [])
+  }, [roomId, userId])
 
   /**
    * Fetches menu data from the API and updates local state.
    * @returns {Promise<void>}
    */
   const loadMenu = async () => {
+    if (!roomId || !userId) {
+      setMenuItems([])
+      setActiveOrder([])
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
-      const { items, activeOrder: order } = await fetchMenu()
+      const { items, activeOrder: order } = await fetchMenu(roomId, userId)
       setMenuItems(items)
       setActiveOrder(order)
     } catch (err) {
-      console.error('?????? ???????? ????:', err)
+      console.error('Ошибка загрузки меню:', err)
       setError(err.message)
       setMenuItems([])
       setActiveOrder([])

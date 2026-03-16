@@ -18,15 +18,21 @@ import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
  *  reloadMenu: Function
  * }}
  */
-export function useAdminMenu() {
+export function useAdminMenu(roomId, userId) {
   const [menu, setMenu] = useState([])
   const [activeOrder, setActiveOrder] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!roomId || !userId) {
+      setMenu([])
+      setActiveOrder([])
+      setLoading(false)
+      return
+    }
     loadMenu()
-  }, [])
+  }, [roomId, userId])
 
   /**
    * Fetches menu data from the API and updates local state.
@@ -36,7 +42,7 @@ export function useAdminMenu() {
     setLoading(true)
     setError(null)
     try {
-      const { items, activeOrder: order } = await fetchMenu()
+      const { items, activeOrder: order } = await fetchMenu(roomId, userId)
       setMenu(items)
       setActiveOrder(order)
     } catch (err) {
@@ -86,7 +92,7 @@ export function useAdminMenu() {
   const persistChanges = async (newMenu, newOrder) => {
     const consistentOrder = ensureActiveOrderConsistency(newMenu, newOrder)
     try {
-      await saveMenu(newMenu, consistentOrder)
+      await saveMenu(roomId, userId, newMenu, consistentOrder)
       setMenu(newMenu)
       setActiveOrder(consistentOrder)
     } catch (err) {
