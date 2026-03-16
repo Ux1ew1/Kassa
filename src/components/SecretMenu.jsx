@@ -37,7 +37,7 @@ function SecretMenu({
       >
         <div className="secret-menu-header">
           <div>
-            <div className="secret-menu-title">Секретное меню</div>
+            <div className="secret-menu-title">Настройки</div>
             <div className="secret-menu-caption">Настройки для бариста</div>
           </div>
           <button
@@ -48,11 +48,6 @@ function SecretMenu({
           >
             ✕
           </button>
-        </div>
-
-        <div className="secret-menu-section">
-          <div className="secret-menu-section-title">Вид отображения кофе</div>
-          <div className="secret-menu-note">Всегда карточки</div>
         </div>
 
         <div className="secret-menu-section">
