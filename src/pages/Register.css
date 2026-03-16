@@ -1,0 +1,75 @@
+.register-page {
+  min-height: calc(var(--vh, 1vh) * 100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.register-card {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-card);
+  border: 1px solid var(--color-divider);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px var(--color-shadow);
+  padding: 18px;
+}
+
+.register-title {
+  margin: 0;
+  text-align: left;
+}
+
+.register-subtitle {
+  margin: 0 0 6px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.register-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.register-switch__item {
+  width: 100%;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.register-switch__item--active {
+  background-color: var(--color-button-alt-bg);
+  color: var(--color-button-alt-text);
+  border-color: var(--color-button-alt-bg);
+}
+
+.register-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.register-input {
+  width: 100%;
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  background: var(--color-app-bg);
+}
+
+.register-button {
+  width: 100%;
+  height: 44px;
+  margin-top: 6px;
+}
+
+.register-error {
+  margin: 2px 0;
+  color: #c62828;
+  font-size: 14px;
+}

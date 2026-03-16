@@ -9,12 +9,33 @@ import './Admin.css'
  * Admin page for managing menu items.
  * @returns {JSX.Element} Admin page layout.
  */
-function Admin() {
-  const { menu, loading, addItem, updateItem, deleteItem, toggleItem } = useAdminMenu()
+function Admin({ user, activeRoom }) {
+  const { menu, loading, addItem, updateItem, deleteItem, toggleItem } = useAdminMenu(
+    activeRoom?.id,
+    user?.id,
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState('add')
   const [editingItem, setEditingItem] = useState(null)
+
+  if (!activeRoom?.id) {
+    return (
+      <div className="admin-container">
+        <header className="admin-header">
+          <h1 className="admin-header__title">Админ-панель</h1>
+          <div className="admin-header__actions">
+            <Link to="/" className="admin-link">
+              ← К кассе
+            </Link>
+          </div>
+        </header>
+        <main>
+          <div className="admin-placeholder">Выберите комнату на главном экране.</div>
+        </main>
+      </div>
+    )
+  }
 
   const filteredMenu = menu.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())

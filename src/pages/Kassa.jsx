@@ -3,6 +3,17 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
+import {
+  createRoom,
+  fetchMyRooms,
+  fetchRoomMembers,
+  inviteToRoom,
+  joinRoomByCode,
+  leaveRoom,
+  renameRoom,
+  updateRoomMemberRole,
+  kickRoomMember,
+} from "../utils/api";
 import { useChecks } from "../hooks/useChecks";
 import SearchBar from "../components/SearchBar";
 import Menu from "../components/Menu";
@@ -19,7 +30,18 @@ import "./Kassa.css";
  * @type {string[]}
  */
 
-const BASE_CATEGORIES = ["напитки", "еда", "алкоголь", "остальное"];
+const BASE_CATEGORIES = [];
+const roleLabel = (role) => {
+  if (role === "owner") return "👑 owner";
+  if (role === "admin") return "🛠 admin";
+  return "user";
+};
+
+const userBadge = (role) => {
+  if (role === "owner") return "👑 ";
+  if (role === "admin") return "🛠 ";
+  return "";
+};
 
 /**
  * Normalizes a category label to a supported slug.
@@ -55,8 +77,8 @@ const categoryLabel = (slug) => {
  * Cashier page component.
  * @returns {JSX.Element} Kassa page layout.
  */
-function Kassa() {
-  const { menuItems, activeOrder, loading } = useMenu();
+function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
+  const { menuItems, activeOrder, loading } = useMenu(activeRoom?.id, user?.id);
   const {
     checks,
     activeCheckId,
@@ -75,6 +97,20 @@ function Kassa() {
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [isChangeModalOpen, setChangeModalOpen] = useState(false);
+  const [isRoomModalOpen, setRoomModalOpen] = useState(false);
+  const [isInviteModalOpen, setInviteModalOpen] = useState(false);
+  const [rooms, setRooms] = useState([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+  const [roomError, setRoomError] = useState("");
+  const [roomDraft, setRoomDraft] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [inviteLogin, setInviteLogin] = useState("");
+  const [inviteRole, setInviteRole] = useState("user");
+  const [inviteError, setInviteError] = useState("");
+  const [roomRequestPending, setRoomRequestPending] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState("");
   const [gesturesEnabled, setGesturesEnabled] = useState(true);
   const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
@@ -120,6 +156,30 @@ function Kassa() {
       setActiveCategory("");
     }
   }, [categories, activeCategory]);
+
+  useEffect(() => {
+    const loadRooms = async () => {
+      if (!user?.id) {
+        setRooms([]);
+        return;
+      }
+      setRoomsLoading(true);
+      setRoomError("");
+      try {
+        const loadedRooms = await fetchMyRooms(user.id);
+        setRooms(loadedRooms);
+        if (!activeRoom?.id && loadedRooms.length > 0) {
+          onRoomChange(loadedRooms[0]);
+        }
+      } catch (error) {
+        setRoomError(error.message || "Не удалось загрузить комнаты");
+      } finally {
+        setRoomsLoading(false);
+      }
+    };
+
+    loadRooms();
+  }, [user?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -196,6 +256,8 @@ function Kassa() {
   const isAnyOverlayOpen =
     isSecretMenuOpen ||
     isChangeModalOpen ||
+    isRoomModalOpen ||
+    isInviteModalOpen ||
     (isCoffeeOverlayMode && isCoffeeMenuOpen) ||
     (!isDesktop && isCartDrawerOpen);
 
@@ -403,15 +465,232 @@ function Kassa() {
     setSecretMenuOpen((prev) => !prev);
   };
 
+  const handleOpenRoomModal = () => {
+    if (roomRequestPending) return;
+    setRoomDraft(activeRoom?.name || "");
+    setInviteError("");
+    setRoomError("");
+    setRoomModalOpen(true);
+  };
+
+  const handleOpenInviteModal = () => {
+    if (roomRequestPending) return;
+    setInviteError("");
+    setJoinCode("");
+    setInviteModalOpen(true);
+  };
+
+  const loadRoomMembers = async (roomId) => {
+    if (!roomId || !user?.id) {
+      setMembers([]);
+      return;
+    }
+
+    setMembersLoading(true);
+    setMembersError("");
+    try {
+      const loadedMembers = await fetchRoomMembers(roomId, user.id);
+      setMembers(loadedMembers);
+    } catch (error) {
+      setMembersError(error.message || "Не удалось загрузить участников");
+      setMembers([]);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const handleCloseRoomModal = () => {
+    if (roomRequestPending) return;
+    setRoomModalOpen(false);
+  };
+
+  const handleCloseInviteModal = () => {
+    if (roomRequestPending) return;
+    setInviteModalOpen(false);
+  };
+
+  const handleSaveRoom = async () => {
+    if (roomRequestPending) return;
+    const nextName = roomDraft.trim();
+    if (!nextName) return;
+
+    try {
+      setRoomRequestPending(true);
+      const payload = await createRoom(nextName, user.id);
+      const createdRoom = payload?.room;
+      if (!createdRoom) {
+        throw new Error("Не удалось создать комнату");
+      }
+      const nextRooms = [createdRoom, ...rooms.filter((room) => room.id !== createdRoom.id)];
+      setRooms(nextRooms);
+      onRoomChange(createdRoom);
+      setRoomDraft(createdRoom.name);
+      setRoomError("");
+    } catch (error) {
+      setRoomError(error.message || "Не удалось создать комнату");
+      return;
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  const handleRenameRoom = async () => {
+    if (!activeRoom?.id || roomRequestPending) return;
+    const nextName = roomDraft.trim();
+    if (!nextName) return;
+
+    try {
+      setRoomRequestPending(true);
+      setRoomError("");
+      const payload = await renameRoom(activeRoom.id, user.id, nextName);
+      const updatedRoom = payload?.room;
+      if (!updatedRoom) throw new Error("Не удалось изменить комнату");
+
+      const loadedRooms = await fetchMyRooms(user.id);
+      setRooms(loadedRooms);
+      const active = loadedRooms.find((room) => room.id === updatedRoom.id) || updatedRoom;
+      onRoomChange(active);
+      setRoomDraft(active.name);
+    } catch (error) {
+      setRoomError(error.message || "Не удалось изменить название комнаты");
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  const handleSelectRoom = async (room) => {
+    if (roomRequestPending) return;
+    onRoomChange(room);
+    setRoomDraft(room.name);
+    await loadRoomMembers(room.id);
+  };
+
+  const handleInviteToRoom = async () => {
+    if (!activeRoom?.id) return;
+    const login = inviteLogin.trim();
+    if (!login) return;
+
+    try {
+      setInviteError("");
+      await inviteToRoom(activeRoom.id, user.id, login, inviteRole);
+      setInviteLogin("");
+      const loadedRooms = await fetchMyRooms(user.id);
+      setRooms(loadedRooms);
+      await loadRoomMembers(activeRoom.id);
+    } catch (error) {
+      setInviteError(error.message || "Не удалось пригласить пользователя");
+    }
+  };
+
+  const handleJoinByCode = async () => {
+    const code = joinCode.trim().toUpperCase();
+    if (!code || roomRequestPending) return;
+
+    try {
+      setRoomRequestPending(true);
+      setInviteError("");
+      const payload = await joinRoomByCode(user.id, code);
+      const joinedRoom = payload?.room;
+      if (!joinedRoom) throw new Error("Не удалось присоединиться к комнате");
+
+      const loadedRooms = await fetchMyRooms(user.id);
+      setRooms(loadedRooms);
+      const active = loadedRooms.find((room) => room.id === joinedRoom.id) || joinedRoom;
+      onRoomChange(active);
+      setInviteModalOpen(false);
+    } catch (error) {
+      setInviteError(error.message || "Не удалось войти в комнату");
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  const handleLeaveRoom = async () => {
+    if (!activeRoom?.id || !user?.id || roomRequestPending) return;
+    try {
+      setRoomRequestPending(true);
+      setRoomError("");
+      await leaveRoom(activeRoom.id, user.id);
+      const loadedRooms = await fetchMyRooms(user.id);
+      setRooms(loadedRooms);
+      onRoomChange(loadedRooms[0] || null);
+      await loadRoomMembers(loadedRooms[0]?.id);
+    } catch (error) {
+      setRoomError(error.message || "Не удалось выйти из комнаты");
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  const canManageCurrentRoom =
+    activeRoom?.id && (activeRoom?.role === "owner" || activeRoom?.role === "admin");
+
+  const handleUpdateMemberRole = async (memberUserId, role) => {
+    if (!activeRoom?.id || !user?.id || roomRequestPending) return;
+    try {
+      setRoomRequestPending(true);
+      await updateRoomMemberRole(activeRoom.id, user.id, memberUserId, role);
+      await loadRoomMembers(activeRoom.id);
+      const loadedRooms = await fetchMyRooms(user.id);
+      setRooms(loadedRooms);
+      const updatedActive = loadedRooms.find((room) => room.id === activeRoom.id);
+      if (updatedActive) {
+        onRoomChange(updatedActive);
+      }
+    } catch (error) {
+      setMembersError(error.message || "Не удалось обновить роль");
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  const handleKickMember = async (memberUserId) => {
+    if (!activeRoom?.id || !user?.id || roomRequestPending) return;
+    try {
+      setRoomRequestPending(true);
+      await kickRoomMember(activeRoom.id, user.id, memberUserId);
+      await loadRoomMembers(activeRoom.id);
+    } catch (error) {
+      setMembersError(error.message || "Не удалось исключить пользователя");
+    } finally {
+      setRoomRequestPending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isRoomModalOpen || !activeRoom?.id) return;
+    loadRoomMembers(activeRoom.id);
+  }, [isRoomModalOpen, activeRoom?.id, user?.id]);
+
   return (
     <div
       className={`container${lowPerformanceMode ? " container--lite" : ""}${
         isDesktop ? " container--desktop kassa-desktop" : ""
       }`}
     >
-      <h1 onDoubleClick={handleToggleSecretMenu} role="button" title=" ">
-        ~\(≧▽≦)/~
-      </h1>
+      <div className="app-header">
+        <h1 onDoubleClick={handleToggleSecretMenu} role="button" title=" ">
+          ~\(≧▽≦)/~
+        </h1>
+        <div className="app-header__right">
+          <div className="app-header__meta">
+            <span className="app-header__user">
+              {`${userBadge(activeRoom?.role)}${user?.login || "Гость"}`}
+            </span>
+            <span className="app-header__room">
+              {activeRoom?.name ? activeRoom.name : "Комната не выбрана"}
+            </span>
+          </div>
+          <button
+            className="app-header__logout"
+            type="button"
+            onClick={onLogout}
+            aria-label="Выйти"
+          >
+            Выйти
+          </button>
+        </div>
+      </div>
       <div className={`flex${isDesktop ? " flex--desktop" : ""}`}>
         {isDesktop ? (
           <>
@@ -441,6 +720,24 @@ function Kassa() {
                 />
                 <div className="top-actions">
                   <button
+                    className="room-button"
+                    type="button"
+                    onClick={handleOpenInviteModal}
+                    aria-label="Приглашение"
+                    disabled={roomRequestPending}
+                  >
+                    Пригласить
+                  </button>
+                  <button
+                    className="room-button"
+                    type="button"
+                    onClick={handleOpenRoomModal}
+                    aria-label="Комната"
+                    disabled={roomRequestPending}
+                  >
+                    {activeRoom?.name ? activeRoom.name : "Комната"}
+                  </button>
+                  <button
                     className="newCheck"
                     type="button"
                     onClick={handleCreateNewCheck}
@@ -466,36 +763,56 @@ function Kassa() {
                   </button>
                 </div>
               </div>
-              <SearchBar value={searchQuery} onSearch={handleSearch} />
-              <div className="categories">
-                {categories.map((category) => (
+              {!activeRoom?.id ? (
+                <div className="menu room-empty">
+                  <div className="menu-placeholder room-empty__text">
+                    Меню пустое. Создайте комнату, чтобы продолжить.
+                  </div>
                   <button
-                    key={category}
+                    className="room-empty__button"
                     type="button"
-                    className={`category-button${
-                      activeCategory === category ? " category-button--active" : ""
-                    }`}
-                    onClick={() =>
-                      setActiveCategory((prev) => (prev === category ? "" : category))
-                    }
+                    onClick={handleOpenRoomModal}
+                    disabled={roomRequestPending}
                   >
-                    {categoryLabel(category)}
+                    Задать комнату
                   </button>
-                ))}
-              </div>
-              {loading ? (
-                <div className="menu">
-                  <div className="menu-placeholder">Загрузка меню...</div>
                 </div>
               ) : (
-                <Menu
-                  menuItems={menuItems}
-                  activeOrder={activeOrder}
-                  searchQuery={searchQuery}
-                  activeCategory={activeCategory}
-                  cartItems={activeCheck?.items || []}
-                  onAddItem={addItemToCheck}
-                />
+                <>
+                  <SearchBar value={searchQuery} onSearch={handleSearch} />
+                  {categories.length > 0 && (
+                    <div className="categories">
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={`category-button${
+                            activeCategory === category ? " category-button--active" : ""
+                          }`}
+                          onClick={() =>
+                            setActiveCategory((prev) => (prev === category ? "" : category))
+                          }
+                        >
+                          {categoryLabel(category)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {loading ? (
+                    <div className="menu">
+                      <div className="menu-placeholder">Загрузка меню...</div>
+                    </div>
+                  ) : (
+                    <Menu
+                      menuItems={menuItems}
+                      activeOrder={activeOrder}
+                      searchQuery={searchQuery}
+                      activeCategory={activeCategory}
+                      cartItems={activeCheck?.items || []}
+                      onAddItem={addItemToCheck}
+                    />
+                  )}
+                </>
               )}
             </main>
 
@@ -541,6 +858,24 @@ function Kassa() {
               />
               <div className="top-actions">
                 <button
+                  className="room-button"
+                  type="button"
+                  onClick={handleOpenInviteModal}
+                  aria-label="Приглашение"
+                  disabled={roomRequestPending}
+                >
+                  Пригласить
+                </button>
+                <button
+                  className="room-button"
+                  type="button"
+                  onClick={handleOpenRoomModal}
+                  aria-label="Комната"
+                  disabled={roomRequestPending}
+                >
+                  {activeRoom?.name ? activeRoom.name : "Комната"}
+                </button>
+                <button
                   className="newCheck"
                   type="button"
                   onClick={handleCreateNewCheck}
@@ -559,37 +894,57 @@ function Kassa() {
               </div>
             </div>
 
-            <SearchBar value={searchQuery} onSearch={handleSearch} />
-            <div className="categories">
-              {categories.map((category) => (
+            {!activeRoom?.id ? (
+              <div className="menu room-empty">
+                <div className="menu-placeholder room-empty__text">
+                  Меню пустое. Создайте комнату, чтобы продолжить.
+                </div>
                 <button
-                  key={category}
+                  className="room-empty__button"
                   type="button"
-                  className={`category-button${
-                    activeCategory === category ? " category-button--active" : ""
-                  }`}
-                  onClick={() =>
-                    setActiveCategory((prev) => (prev === category ? "" : category))
-                  }
+                  onClick={handleOpenRoomModal}
+                  disabled={roomRequestPending}
                 >
-                  {categoryLabel(category)}
+                  Задать комнату
                 </button>
-              ))}
-            </div>
-
-            {loading ? (
-              <div className="menu">
-                <div className="menu-placeholder">Загрузка меню...</div>
               </div>
             ) : (
-              <Menu
-                menuItems={menuItems}
-                activeOrder={activeOrder}
-                searchQuery={searchQuery}
-                activeCategory={activeCategory}
-                cartItems={activeCheck?.items || []}
-                onAddItem={addItemToCheck}
-              />
+              <>
+                <SearchBar value={searchQuery} onSearch={handleSearch} />
+                {categories.length > 0 && (
+                  <div className="categories">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        className={`category-button${
+                          activeCategory === category ? " category-button--active" : ""
+                        }`}
+                        onClick={() =>
+                          setActiveCategory((prev) => (prev === category ? "" : category))
+                        }
+                      >
+                        {categoryLabel(category)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {loading ? (
+                  <div className="menu">
+                    <div className="menu-placeholder">Загрузка меню...</div>
+                  </div>
+                ) : (
+                  <Menu
+                    menuItems={menuItems}
+                    activeOrder={activeOrder}
+                    searchQuery={searchQuery}
+                    activeCategory={activeCategory}
+                    cartItems={activeCheck?.items || []}
+                    onAddItem={addItemToCheck}
+                  />
+                )}
+              </>
             )}
 
             <BottomBar
@@ -659,6 +1014,232 @@ function Kassa() {
         onClose={() => setChangeModalOpen(false)}
         onConfirm={handleConfirmChange}
       />
+      {isRoomModalOpen && (
+        <div
+          className="room-modal-backdrop"
+          onClick={() => {
+            if (!roomRequestPending) handleCloseRoomModal();
+          }}
+        >
+          <div className="room-modal" onClick={(event) => event.stopPropagation()}>
+            <h2 className="room-modal__title">Комнаты</h2>
+            {roomsLoading ? (
+              <div className="room-modal__note">Загрузка комнат...</div>
+            ) : (
+              <div className="room-list">
+                {rooms.length === 0 ? (
+                  <div className="room-modal__note">Вы пока не состоите ни в одной комнате.</div>
+                ) : (
+                  rooms.map((room) => (
+                    <button
+                      key={room.id}
+                      type="button"
+                      className={`room-list__item${
+                        activeRoom?.id === room.id ? " room-list__item--active" : ""
+                      }`}
+                      onClick={() => handleSelectRoom(room)}
+                      disabled={roomRequestPending}
+                    >
+                      {room.name} · {roleLabel(room.role)}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="room-modal__divider" />
+            <div className="room-modal__subtitle">Участники комнаты</div>
+            {membersLoading ? (
+              <div className="room-modal__note">Загрузка участников...</div>
+            ) : members.length === 0 ? (
+              <div className="room-modal__note">Список участников пуст.</div>
+            ) : (
+              <div className="member-list">
+                {members.map((member) => {
+                  const isOwner = member.role === "owner";
+                  const isSelf = member.userId === user?.id;
+                  return (
+                    <div key={member.userId} className="member-list__item">
+                      <div className="member-list__meta">
+                        <span className="member-list__name">{member.login}</span>
+                        <span className="member-list__role">{roleLabel(member.role)}</span>
+                      </div>
+                      {canManageCurrentRoom ? (
+                        <div className="member-list__actions">
+                          <select
+                            className="member-list__select"
+                            value={member.role}
+                            onChange={(event) =>
+                              handleUpdateMemberRole(member.userId, event.target.value)
+                            }
+                            disabled={roomRequestPending || isOwner}
+                          >
+                            <option value="owner">owner</option>
+                            <option value="admin">admin</option>
+                            <option value="user">user</option>
+                          </select>
+                          <button
+                            type="button"
+                            className="member-list__kick"
+                            onClick={() => handleKickMember(member.userId)}
+                            disabled={roomRequestPending || isOwner || isSelf}
+                          >
+                            Кик
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {membersError ? <div className="room-modal__error">{membersError}</div> : null}
+
+            {activeRoom?.id ? (
+              <>
+                <div className="room-modal__divider" />
+                <div className="room-modal__subtitle">
+                  Короткий ID комнаты: <strong>{activeRoom?.code || "—"}</strong>
+                </div>
+                <div className="room-modal__subtitle">Название комнаты</div>
+                <input
+                  className="room-modal__input"
+                  type="text"
+                  value={roomDraft}
+                  onChange={(event) => setRoomDraft(event.target.value)}
+                  placeholder="Например: VIP 1"
+                  autoFocus
+                  disabled={roomRequestPending}
+                />
+                {roomError ? <div className="room-modal__error">{roomError}</div> : null}
+                {canManageCurrentRoom ? (
+                  <div className="room-modal__actions">
+                    <button
+                      type="button"
+                      onClick={handleRenameRoom}
+                      disabled={roomRequestPending}
+                    >
+                      Сохранить название
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <div className="room-modal__divider" />
+                <div className="room-modal__subtitle">Создать новую комнату</div>
+                <input
+                  className="room-modal__input"
+                  type="text"
+                  value={roomDraft}
+                  onChange={(event) => setRoomDraft(event.target.value)}
+                  placeholder="Например: VIP 1"
+                  autoFocus
+                  disabled={roomRequestPending}
+                />
+                {roomError ? <div className="room-modal__error">{roomError}</div> : null}
+              </>
+            )}
+
+            <div className="room-modal__actions">
+              <button type="button" onClick={handleCloseRoomModal} disabled={roomRequestPending}>
+                Отмена
+              </button>
+              {activeRoom?.id ? (
+                <button
+                  type="button"
+                  onClick={handleLeaveRoom}
+                  disabled={roomRequestPending}
+                >
+                  Выйти из комнаты
+                </button>
+              ) : null}
+              <button type="button" onClick={handleSaveRoom} disabled={roomRequestPending}>
+                {roomRequestPending ? (
+                  <>
+                    <span className="room-spinner" aria-hidden="true" />
+                    {activeRoom?.id ? "Сохранение..." : "Создание..."}
+                  </>
+                ) : (
+                  activeRoom?.id ? "Создать новую" : "Создать"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isInviteModalOpen && (
+        <div
+          className="room-modal-backdrop"
+          onClick={() => {
+            if (!roomRequestPending) handleCloseInviteModal();
+          }}
+        >
+          <div className="room-modal" onClick={(event) => event.stopPropagation()}>
+            <h2 className="room-modal__title">Приглашение / Вход</h2>
+            {activeRoom?.id ? (
+              <div className="room-modal__subtitle">
+                ID текущей комнаты: <strong>{activeRoom?.code || "—"}</strong>
+              </div>
+            ) : (
+              <div className="room-modal__note">Текущая комната не выбрана.</div>
+            )}
+
+            <div className="room-modal__divider" />
+            <div className="room-modal__subtitle">Войти в комнату по ID</div>
+            <input
+              className="room-modal__input"
+              type="text"
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              placeholder="Например: A7K9Q2"
+              disabled={roomRequestPending}
+            />
+            <div className="room-modal__actions">
+              <button type="button" onClick={handleJoinByCode} disabled={roomRequestPending}>
+                Войти
+              </button>
+            </div>
+
+            {canManageCurrentRoom ? (
+              <>
+                <div className="room-modal__divider" />
+                <div className="room-modal__subtitle">Пригласить по логину</div>
+                <input
+                  className="room-modal__input"
+                  type="text"
+                  value={inviteLogin}
+                  onChange={(event) => setInviteLogin(event.target.value)}
+                  placeholder="Логин пользователя"
+                  disabled={roomRequestPending}
+                />
+                <select
+                  className="room-modal__input"
+                  value={inviteRole}
+                  onChange={(event) => setInviteRole(event.target.value)}
+                  disabled={roomRequestPending}
+                >
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </select>
+                <div className="room-modal__actions">
+                  <button type="button" onClick={handleInviteToRoom} disabled={roomRequestPending}>
+                    Пригласить
+                  </button>
+                </div>
+              </>
+            ) : null}
+
+            {inviteError ? <div className="room-modal__error">{inviteError}</div> : null}
+
+            <div className="room-modal__actions">
+              <button type="button" onClick={handleCloseInviteModal} disabled={roomRequestPending}>
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
