@@ -5,6 +5,29 @@
   padding: 12px 4px;
 }
 
+@media (min-width: 600px) and (max-width: 1023px) {
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) and (orientation: landscape) {
+  .menu {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+}
+
 .menu > .item:nth-child(1) {
   animation-delay: 0.02s;
 }

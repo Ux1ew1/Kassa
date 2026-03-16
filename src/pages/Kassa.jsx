@@ -78,6 +78,20 @@ function Kassa() {
   const [gesturesEnabled, setGesturesEnabled] = useState(true);
   const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(min-width: 1024px)").matches;
+  });
+  const [isCompactDesktop, setIsCompactDesktop] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(width: 1280px) and (height: 960px)").matches;
+  });
+  const [isDesktop1100To1366, setIsDesktop1100To1366] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(
+      "(min-width: 1100px) and (max-width: 1366px)",
+    ).matches;
+  });
   const activeCheck = getActiveCheck();
   const swipeStateRef = useRef({
     startX: 0,
@@ -107,14 +121,86 @@ function Kassa() {
     }
   }, [categories, activeCategory]);
 
-  const isAnyMenuOpen =
-    isCoffeeMenuOpen ||
-    isCartDrawerOpen ||
-    isSecretMenuOpen ||
-    isChangeModalOpen;
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const media = window.matchMedia("(min-width: 1024px)");
+    const handleChange = (event) => {
+      setIsDesktop(event.matches);
+    };
+
+    setIsDesktop(media.matches);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   useEffect(() => {
-    if (!isAnyMenuOpen) {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const media = window.matchMedia(
+      "(min-width: 1100px) and (max-width: 1366px)",
+    );
+    const handleChange = (event) => {
+      setIsDesktop1100To1366(event.matches);
+    };
+
+    setIsDesktop1100To1366(media.matches);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const media = window.matchMedia("(width: 1280px) and (height: 960px)");
+    const handleChange = (event) => {
+      setIsCompactDesktop(event.matches);
+    };
+
+    setIsCompactDesktop(media.matches);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+    setCartDrawerOpen(false);
+  }, [isDesktop]);
+
+  const isCoffeeOverlayMode =
+    !isDesktop || isCompactDesktop || isDesktop1100To1366;
+  const isAnyOverlayOpen =
+    isSecretMenuOpen ||
+    isChangeModalOpen ||
+    (isCoffeeOverlayMode && isCoffeeMenuOpen) ||
+    (!isDesktop && isCartDrawerOpen);
+
+  useEffect(() => {
+    if (!isAnyOverlayOpen) {
       return undefined;
     }
 
@@ -146,10 +232,10 @@ function Kassa() {
       documentElement.style.overflow = previousHtmlOverflow;
       window.scrollTo(0, scrollY);
     };
-  }, [isAnyMenuOpen]);
+  }, [isAnyOverlayOpen]);
 
   useEffect(() => {
-    if (!gesturesEnabled) {
+    if (!gesturesEnabled || isDesktop) {
       swipeStateRef.current.active = false;
       return;
     }
@@ -207,7 +293,7 @@ function Kassa() {
           setCartDrawerOpen(false);
         } else if (isCoffeeMenuOpen && deltaX > 0) {
           setCoffeeMenuOpen(false);
-        } else if (state.startInZone && !isAnyMenuOpen) {
+        } else if (state.startInZone && !isAnyOverlayOpen) {
           if (deltaX > 0) {
             setCartDrawerOpen(true);
           } else {
@@ -228,7 +314,7 @@ function Kassa() {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [gesturesEnabled, isAnyMenuOpen, isCartDrawerOpen, isCoffeeMenuOpen]);
+  }, [gesturesEnabled, isAnyOverlayOpen, isCartDrawerOpen, isCoffeeMenuOpen, isDesktop]);
 
   /**
    * Opens change modal.
@@ -271,6 +357,11 @@ function Kassa() {
    * @returns {void}
    */
   const handleOpenCoffeeMenu = () => {
+    if (isDesktop) {
+      setCoffeeMenuOpen((prev) => !prev);
+      return;
+    }
+
     if (isCartDrawerOpen || isSecretMenuOpen) return;
     setCoffeeMenuOpen(true);
   };
@@ -288,6 +379,8 @@ function Kassa() {
    * @returns {void}
    */
   const handleToggleCartDrawer = () => {
+    if (isDesktop) return;
+
     if (!isCartDrawerOpen && (isCoffeeMenuOpen || isSecretMenuOpen)) {
       return;
     }
@@ -299,6 +392,11 @@ function Kassa() {
    * @returns {void}
    */
   const handleToggleSecretMenu = () => {
+    if (isDesktop) {
+      setSecretMenuOpen((prev) => !prev);
+      return;
+    }
+
     if (!isSecretMenuOpen && (isCoffeeMenuOpen || isCartDrawerOpen)) {
       return;
     }
@@ -306,135 +404,261 @@ function Kassa() {
   };
 
   return (
-    <div className={`container${lowPerformanceMode ? " container--lite" : ""}`}>
+    <div
+      className={`container${lowPerformanceMode ? " container--lite" : ""}${
+        isDesktop ? " container--desktop kassa-desktop" : ""
+      }`}
+    >
       <h1 onDoubleClick={handleToggleSecretMenu} role="button" title=" ">
         ~\(≧▽≦)/~
       </h1>
-      <div className="flex">
-        <div className="top">
-          <button
-            className="cart-drawer-button"
-            type="button"
-            onClick={handleToggleCartDrawer}
-            aria-label="Корзина"
-          >
-            К
-          </button>
-          <ChecksList
-            checks={checks}
-            activeCheckId={activeCheckId}
-            onCheckChange={setActiveCheckId}
-            onCreateNew={handleCreateNewCheck}
-            onCompleteActiveCheck={completeCheck}
-          />
-          <button
-            className="coffee-menu-button"
-            type="button"
-            onClick={handleOpenCoffeeMenu}
-            aria-label="Открыть кофейное меню"
-          >
-            ☕
-          </button>
-        </div>
+      <div className={`flex${isDesktop ? " flex--desktop" : ""}`}>
+        {isDesktop ? (
+          <>
+            <aside className="desktop-column desktop-column--left">
+              <div className="desktop-panel desktop-panel--cart">
+                <div className="desktop-panel__title">Корзина</div>
+                <Cart
+                  items={activeCheck?.items || []}
+                  onRemove={removeItemFromCheck}
+                  onToggleFulfilled={toggleItemsFulfilled}
+                />
+              </div>
+              <BottomBar
+                activeCheck={activeCheck}
+                onComplete={completeCheck}
+                onAmount={handleAmount}
+                isDesktop
+              />
+            </aside>
 
-        <SearchBar value={searchQuery} onSearch={handleSearch} />
-        <div className="categories">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={`category-button${
-                activeCategory === category ? " category-button--active" : ""
-              }`}
-              onClick={() =>
-                setActiveCategory((prev) => (prev === category ? "" : category))
-              }
-            >
-              {categoryLabel(category)}
-            </button>
-          ))}
-        </div>
+            <main className="desktop-column desktop-column--center">
+              <div className="top top--desktop-main">
+                <ChecksList
+                  checks={checks}
+                  activeCheckId={activeCheckId}
+                  onCheckChange={setActiveCheckId}
+                />
+                <div className="top-actions">
+                  <button
+                    className="newCheck"
+                    type="button"
+                    onClick={handleCreateNewCheck}
+                    aria-label="Новый чек"
+                  >
+                    +
+                  </button>
+                  <button
+                    className="coffee-menu-button"
+                    type="button"
+                    onClick={handleOpenCoffeeMenu}
+                    aria-label="Открыть кофейное меню"
+                  >
+                    ☕
+                  </button>
+                  <button
+                    className="desktop-secret-button"
+                    type="button"
+                    onClick={handleToggleSecretMenu}
+                    aria-label="Открыть секретное меню"
+                  >
+                    ⚙
+                  </button>
+                </div>
+              </div>
+              <SearchBar value={searchQuery} onSearch={handleSearch} />
+              <div className="categories">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`category-button${
+                      activeCategory === category ? " category-button--active" : ""
+                    }`}
+                    onClick={() =>
+                      setActiveCategory((prev) => (prev === category ? "" : category))
+                    }
+                  >
+                    {categoryLabel(category)}
+                  </button>
+                ))}
+              </div>
+              {loading ? (
+                <div className="menu">
+                  <div className="menu-placeholder">Загрузка меню...</div>
+                </div>
+              ) : (
+                <Menu
+                  menuItems={menuItems}
+                  activeOrder={activeOrder}
+                  searchQuery={searchQuery}
+                  activeCategory={activeCategory}
+                  cartItems={activeCheck?.items || []}
+                  onAddItem={addItemToCheck}
+                />
+              )}
+            </main>
 
-        {loading ? (
-          <div className="menu">
-            <div className="menu-placeholder">Загрузка меню...</div>
-          </div>
+            <aside className="desktop-column desktop-column--right">
+              {!isCompactDesktop && !isDesktop1100To1366 && (
+                <CoffeeMenuDrawer
+                  open={isCoffeeMenuOpen}
+                  onClose={handleCloseCoffeeMenu}
+                  checks={checks}
+                  activeCheckId={activeCheckId}
+                  onToggleFulfilled={toggleItemsFulfilled}
+                  variant="panel"
+                />
+              )}
+            </aside>
+
+            {(isCompactDesktop || isDesktop1100To1366) && (
+              <CoffeeMenuDrawer
+                open={isCoffeeMenuOpen}
+                onClose={handleCloseCoffeeMenu}
+                checks={checks}
+                activeCheckId={activeCheckId}
+                onToggleFulfilled={toggleItemsFulfilled}
+                variant="overlay"
+              />
+            )}
+          </>
         ) : (
-          <Menu
-            menuItems={menuItems}
-            activeOrder={activeOrder}
-            searchQuery={searchQuery}
-            activeCategory={activeCategory}
-            // Передаем текущие позиции чека, чтобы считать количество на карточках
-            cartItems={activeCheck?.items || []}
-            onAddItem={addItemToCheck}
-          />
-        )}
+          <>
+            <div className="top">
+              <button
+                className="cart-drawer-button"
+                type="button"
+                onClick={handleToggleCartDrawer}
+                aria-label="Корзина"
+              >
+                К
+              </button>
+              <ChecksList
+                checks={checks}
+                activeCheckId={activeCheckId}
+                onCheckChange={setActiveCheckId}
+              />
+              <div className="top-actions">
+                <button
+                  className="newCheck"
+                  type="button"
+                  onClick={handleCreateNewCheck}
+                  aria-label="Новый чек"
+                >
+                  +
+                </button>
+                <button
+                  className="coffee-menu-button"
+                  type="button"
+                  onClick={handleOpenCoffeeMenu}
+                  aria-label="Открыть кофейное меню"
+                >
+                  ☕
+                </button>
+              </div>
+            </div>
 
-        <BottomBar
-          activeCheck={activeCheck}
-          onComplete={completeCheck}
-          onAmount={handleAmount}
-        />
+            <SearchBar value={searchQuery} onSearch={handleSearch} />
+            <div className="categories">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className={`category-button${
+                    activeCategory === category ? " category-button--active" : ""
+                  }`}
+                  onClick={() =>
+                    setActiveCategory((prev) => (prev === category ? "" : category))
+                  }
+                >
+                  {categoryLabel(category)}
+                </button>
+              ))}
+            </div>
 
-        <Cart
-          items={activeCheck?.items || []}
-          onRemove={removeItemFromCheck}
-          onToggleFulfilled={toggleItemsFulfilled}
-        />
-        <div
-          className={`cart-drawer${
-            isCartDrawerOpen ? " cart-drawer--open" : ""
-          }`}
-        >
-          <div className="cart-drawer__header">
-            <span className="cart-drawer__title">Корзина товаров</span>
-            <button
-              className="cart-drawer__close"
-              type="button"
-              onClick={handleToggleCartDrawer}
-              aria-label="Корзина товаров"
+            {loading ? (
+              <div className="menu">
+                <div className="menu-placeholder">Загрузка меню...</div>
+              </div>
+            ) : (
+              <Menu
+                menuItems={menuItems}
+                activeOrder={activeOrder}
+                searchQuery={searchQuery}
+                activeCategory={activeCategory}
+                cartItems={activeCheck?.items || []}
+                onAddItem={addItemToCheck}
+              />
+            )}
+
+            <BottomBar
+              activeCheck={activeCheck}
+              onComplete={completeCheck}
+              onAmount={handleAmount}
+            />
+
+            <Cart
+              items={activeCheck?.items || []}
+              onRemove={removeItemFromCheck}
+              onToggleFulfilled={toggleItemsFulfilled}
+            />
+
+            <div
+              className={`cart-drawer${
+                isCartDrawerOpen ? " cart-drawer--open" : ""
+              }`}
             >
-              x
-            </button>
-          </div>
-          <Cart
-            items={activeCheck?.items || []}
-            onRemove={removeItemFromCheck}
-            onToggleFulfilled={toggleItemsFulfilled}
-          />
-        </div>
-        {isCartDrawerOpen && (
-          <div
-            className="cart-drawer__backdrop"
-            onClick={handleToggleCartDrawer}
-          />
+              <div className="cart-drawer__header">
+                <span className="cart-drawer__title">Корзина товаров</span>
+                <button
+                  className="cart-drawer__close"
+                  type="button"
+                  onClick={handleToggleCartDrawer}
+                  aria-label="Корзина товаров"
+                >
+                  x
+                </button>
+              </div>
+              <Cart
+                items={activeCheck?.items || []}
+                onRemove={removeItemFromCheck}
+                onToggleFulfilled={toggleItemsFulfilled}
+              />
+            </div>
+            {isCartDrawerOpen && (
+              <div
+                className="cart-drawer__backdrop"
+                onClick={handleToggleCartDrawer}
+              />
+            )}
+            <CoffeeMenuDrawer
+              open={isCoffeeMenuOpen}
+              onClose={handleCloseCoffeeMenu}
+              checks={checks}
+              activeCheckId={activeCheckId}
+              onToggleFulfilled={toggleItemsFulfilled}
+            />
+          </>
         )}
-        <CoffeeMenuDrawer
-          open={isCoffeeMenuOpen}
-          onClose={handleCloseCoffeeMenu}
-          checks={checks}
-          activeCheckId={activeCheckId}
-          onToggleFulfilled={toggleItemsFulfilled}
-        />
-        <SecretMenu
-          open={isSecretMenuOpen}
-          onClose={handleToggleSecretMenu}
-          gesturesEnabled={gesturesEnabled}
-          onToggleGestures={() => setGesturesEnabled((prev) => !prev)}
-          lowPerformanceMode={lowPerformanceMode}
-          onToggleLowPerformanceMode={() =>
-            setLowPerformanceMode((prev) => !prev)
-          }
-        />
-        <ChangeModal
-          isOpen={isChangeModalOpen}
-          price={activeCheck?.price || 0}
-          currentChange={activeCheck?.change || 0}
-          onClose={() => setChangeModalOpen(false)}
-          onConfirm={handleConfirmChange}
-        />
       </div>
+      <SecretMenu
+        open={isSecretMenuOpen}
+        onClose={handleToggleSecretMenu}
+        gesturesEnabled={gesturesEnabled}
+        onToggleGestures={() => setGesturesEnabled((prev) => !prev)}
+        lowPerformanceMode={lowPerformanceMode}
+        onToggleLowPerformanceMode={() =>
+          setLowPerformanceMode((prev) => !prev)
+        }
+      />
+      <ChangeModal
+        isOpen={isChangeModalOpen}
+        price={activeCheck?.price || 0}
+        currentChange={activeCheck?.change || 0}
+        onClose={() => setChangeModalOpen(false)}
+        onConfirm={handleConfirmChange}
+      />
     </div>
   );
 }

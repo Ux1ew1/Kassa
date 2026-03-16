@@ -33,6 +33,15 @@
   -webkit-backdrop-filter: blur(18px) saturate(120%) contrast(105%);
 }
 
+.coffee-menu-panel--static {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--color-divider);
+  animation: none;
+  box-shadow: 0 10px 20px var(--color-shadow);
+}
+
 .coffee-menu-panel::before {
   content: "";
   position: absolute;

@@ -1,21 +1,22 @@
 .top__checks {
-  max-width: 300px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 0;
   flex: 1 1 auto;
-  justify-content: space-between;
+  justify-content: flex-start;
+  min-width: 0;
   position: relative;
 }
 
 .checks {
-  max-width: 200px;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   overflow-x: scroll;
   display: flex;
   flex-wrap: nowrap;
   gap: 7px;
-  margin-left: 10px;
+  margin-left: 0;
   scroll-snap-type: x proximity;
   position: relative;
   z-index: 1;

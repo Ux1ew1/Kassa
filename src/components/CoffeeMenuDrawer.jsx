@@ -44,7 +44,7 @@ function getCoffeeLetter(name = "") {
   if (normalized.includes("макиато")) return "М";
 
   const firstLetter = normalized.trim().charAt(0);
-  return firstLetter ? firstLetter.toUpperCase() : "Рљ";
+  return firstLetter ? firstLetter.toUpperCase() : "К";
 }
 
 /**
@@ -55,6 +55,7 @@ function getCoffeeLetter(name = "") {
  * @param {Array} [props.checks] - Checks list.
  * @param {number} props.activeCheckId - Active check id.
  * @param {Function} props.onToggleFulfilled - Toggle fulfilled handler.
+ * @param {"overlay"|"panel"} [props.variant="overlay"] - Rendering mode.
  * @returns {JSX.Element|null} Drawer or null.
  */
 function CoffeeMenuDrawer({
@@ -63,6 +64,7 @@ function CoffeeMenuDrawer({
   checks = [],
   activeCheckId,
   onToggleFulfilled,
+  variant = "overlay",
 }) {
   const preparedChecks = useMemo(
     () =>
@@ -101,84 +103,86 @@ function CoffeeMenuDrawer({
     onToggleFulfilled?.([itemIndex], fulfilled, checkId);
   };
 
-  return (
-    <div className="coffee-menu-overlay" onClick={onClose}>
-      <div
-        className="coffee-menu-panel"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-      >
-        <div className="coffee-menu-header">
-          <div>
-            <div className="coffee-menu-title">Кофейные позиции</div>
-            <div className="coffee-menu-subtitle">
-              {preparedChecks.length > 0
-                ? "Дублируем кофе по каждому чеку"
-                : "Чеки отсутствуют"}
+  const content = (
+    <div
+      className={`coffee-menu-panel${variant === "panel" ? " coffee-menu-panel--static" : ""}`}
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      <div className="coffee-menu-header">
+        <div>
+          <div className="coffee-menu-title">Кофейные позиции</div>
+          <div className="coffee-menu-subtitle">
+            {preparedChecks.length > 0
+              ? "Дублируем кофе по каждому чеку"
+              : "Чеки отсутствуют"}
+          </div>
+        </div>
+        <button
+          className="coffee-menu-close"
+          type="button"
+          onClick={onClose}
+          aria-label="Закрыть меню"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="coffee-menu-list">
+        {preparedChecks.length === 0 && (
+          <div className="coffee-menu-empty">
+            Создайте чек, чтобы увидеть его содержимое
+          </div>
+        )}
+
+        {preparedChecks.map((check) => (
+          <div
+            key={check.id}
+            className={`coffee-menu-row${
+              check.id === activeCheckId ? " coffee-menu-row--active" : ""
+            }`}
+          >
+            <div className="coffee-menu-check">
+              <span className="coffee-menu-check-label">Чек</span>
+              <span className="coffee-menu-check-number">№{check.id}</span>
+            </div>
+
+            <div className="coffee-menu-squares">
+              {check.squareItems.length === 0 ? (
+                <span className="coffee-menu-empty-inline">Кофе нет</span>
+              ) : (
+                check.squareItems.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`coffee-square${
+                      item.fulfilled ? " coffee-square--fulfilled" : ""
+                    }`}
+                    onClick={() =>
+                      handleSquareToggle(check.id, item.index, !item.fulfilled)
+                    }
+                    title={item.name}
+                    aria-label={item.name}
+                  >
+                    <span className="coffee-square-letter">{item.letter}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
-          <button
-            className="coffee-menu-close"
-            type="button"
-            onClick={onClose}
-            aria-label="Закрыть меню"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="coffee-menu-list">
-          {preparedChecks.length === 0 && (
-            <div className="coffee-menu-empty">
-              Создайте чек, чтобы увидеть его содержимое
-            </div>
-          )}
-
-          {preparedChecks.map((check) => (
-            <div
-              key={check.id}
-              className={`coffee-menu-row${
-                check.id === activeCheckId ? " coffee-menu-row--active" : ""
-              }`}
-            >
-              <div className="coffee-menu-check">
-                <span className="coffee-menu-check-label">Чек</span>
-                <span className="coffee-menu-check-number">№{check.id}</span>
-              </div>
-
-              <div className="coffee-menu-squares">
-                {check.squareItems.length === 0 ? (
-                  <span className="coffee-menu-empty-inline">Кофе нет</span>
-                ) : (
-                  check.squareItems.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={`coffee-square${
-                        item.fulfilled ? " coffee-square--fulfilled" : ""
-                      }`}
-                      onClick={() =>
-                        handleSquareToggle(
-                          check.id,
-                          item.index,
-                          !item.fulfilled,
-                        )
-                      }
-                      title={item.name}
-                      aria-label={item.name}
-                    >
-                      <span className="coffee-square-letter">
-                        {item.letter}
-                      </span>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
+    </div>
+  );
+
+  if (variant === "panel") {
+    return content;
+  }
+
+  return (
+    <div className="coffee-menu-overlay" onClick={onClose}>
+      {content}
     </div>
   );
 }

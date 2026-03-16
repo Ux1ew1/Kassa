@@ -5,10 +5,10 @@ body {
 }
 
 .admin-container {
-  max-width: 768px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 12px 40px;
+  padding: 24px 16px 40px;
   background-color: var(--color-app-bg);
   color: var(--color-text-primary);
   min-height: 100vh;
@@ -158,5 +158,32 @@ body {
 
   .admin-search {
     width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .admin-header {
+    margin-bottom: 28px;
+  }
+
+  .admin-controls {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .admin-search {
+    min-width: 0;
+  }
+
+  .admin-add-button {
+    white-space: nowrap;
   }
 }

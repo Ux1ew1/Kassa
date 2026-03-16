@@ -57,6 +57,33 @@
   margin-left: 3px;
 }
 
+@media (min-width: 600px) and (max-width: 1023px) {
+  .item {
+    width: auto;
+    margin: 0;
+  }
+
+  .item:nth-child(odd),
+  .item:nth-child(even),
+  .item:last-child {
+    margin: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .item {
+    width: auto;
+    min-height: 84px;
+    margin: 0;
+  }
+
+  .item:nth-child(odd),
+  .item:nth-child(even),
+  .item:last-child {
+    margin: 0;
+  }
+}
+
 .item:active {
   transform: scale(0.95);
   background-color: var(--color-card-strong);
