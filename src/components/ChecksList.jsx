@@ -14,6 +14,7 @@ import "./ChecksList.css";
  */
 function ChecksList({ checks, activeCheckId, onCheckChange }) {
   const checksRef = useRef(null);
+  const prevChecksCountRef = useRef(0);
   const [showRightIndicator, setShowRightIndicator] = useState(false);
 
   useEffect(() => {
@@ -51,6 +52,26 @@ function ChecksList({ checks, activeCheckId, onCheckChange }) {
         container.removeEventListener("scroll", updateOverflowState);
       }
     };
+  }, [checks.length]);
+
+  useEffect(() => {
+    const container = checksRef.current;
+    if (!container) {
+      prevChecksCountRef.current = checks.length;
+      return;
+    }
+
+    const hasNewCheck = checks.length > prevChecksCountRef.current;
+    const hasHorizontalOverflow = container.scrollWidth - container.clientWidth > 1;
+
+    if (hasNewCheck && hasHorizontalOverflow) {
+      container.scrollTo({
+        left: container.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+
+    prevChecksCountRef.current = checks.length;
   }, [checks.length]);
 
   return (
