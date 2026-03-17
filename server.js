@@ -4,7 +4,6 @@ import path from "node:path";
 import os from "node:os";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import qrcode from "qrcode-terminal";
 
 const loadDotEnv = () => {
   const envPath = path.join(process.cwd(), ".env");
@@ -842,13 +841,50 @@ const handleLeaveRoom = async (req, res) => {
       return sendJson(res, 404, { message: "Вы не состоите в этой комнате" });
     }
 
+    const safeRoomId = encodeURIComponent(roomId);
     if (membership.role === "owner") {
-      return sendJson(res, 403, {
-        message: "Owner не может выйти из комнаты. Передайте роль owner другому пользователю.",
+      const members = await supabaseRequest(
+        `/rest/v1/room_members?select=user_id,role&room_id=eq.${safeRoomId}`,
+      );
+      const otherMembers = (Array.isArray(members) ? members : []).filter(
+        (member) => member.user_id !== userId,
+      );
+
+      if (otherMembers.length === 0) {
+        await supabaseRequest(`/rest/v1/room_members?room_id=eq.${safeRoomId}`, {
+          method: "DELETE",
+          headers: { Prefer: "return=minimal" },
+        });
+        await supabaseRequest(`/rest/v1/room_menus?room_id=eq.${safeRoomId}`, {
+          method: "DELETE",
+          headers: { Prefer: "return=minimal" },
+        });
+        await supabaseRequest(`/rest/v1/rooms?id=eq.${safeRoomId}`, {
+          method: "DELETE",
+          headers: { Prefer: "return=minimal" },
+        });
+        return sendJson(res, 200, { ok: true, roomDeleted: true });
+      }
+
+      const nextOwner =
+        otherMembers.find((member) => member.role === "admin") || otherMembers[0];
+      const safeNextOwnerUserId = encodeURIComponent(nextOwner.user_id);
+
+      await supabaseRequest(
+        `/rest/v1/room_members?room_id=eq.${safeRoomId}&user_id=eq.${safeNextOwnerUserId}`,
+        {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: { role: "owner" },
+        },
+      );
+      await supabaseRequest(`/rest/v1/rooms?id=eq.${safeRoomId}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: { created_by: nextOwner.user_id },
       });
     }
 
-    const safeRoomId = encodeURIComponent(roomId);
     const safeUserId = encodeURIComponent(userId);
     await supabaseRequest(
       `/rest/v1/room_members?room_id=eq.${safeRoomId}&user_id=eq.${safeUserId}`,
@@ -1182,7 +1218,6 @@ server.listen(PORT, HOST, async () => {
 
   if (resolvedUrl) {
     console.log(`Публичный URL: ${resolvedUrl}`);
-    qrcode.generate(resolvedUrl, { small: true });
   }
 
   if (allIps.length > 1) {
