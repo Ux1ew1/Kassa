@@ -1,22 +1,11 @@
-﻿/**
- * Menu item card component.
- */
 import "./MenuItem.css";
+import { useCurrency } from "../contexts/CurrencyContext";
 
-/**
- * Renders a single menu item card.
- * @param {Object} props - Component props.
- * @param {{id: number|string, name: string, price: number}} props.item - Menu item.
- * @param {number} [props.quantity=0] - Count of item in cart.
- * @param {Function} props.onAdd - Add handler.
- * @returns {JSX.Element} Menu item card.
- */
 function MenuItem({ item, quantity = 0, onAdd }) {
+  const { formatCurrency } = useCurrency();
   const handleClick = () => {
     onAdd(item);
-    if (navigator.vibrate) {
-      navigator.vibrate(15);
-    }
+    if (navigator.vibrate) navigator.vibrate(15);
   };
 
   return (
@@ -34,7 +23,7 @@ function MenuItem({ item, quantity = 0, onAdd }) {
     >
       <span className="item-name">{item.name}</span>
       <div className="item-footer">
-        <span className="item-price">{item.price} руб.</span>
+        <span className="item-price">{formatCurrency(item.price)}</span>
         {quantity > 0 && <span className="item-quantity">x{quantity}</span>}
       </div>
     </div>

@@ -1,38 +1,27 @@
-﻿/**
- * Admin menu list component.
- */
+import { useLanguage } from "../contexts/LanguageContext";
+import { useCurrency } from "../contexts/CurrencyContext";
 import "./AdminMenuList.css";
 
-/**
- * Normalizes a category label to a human-readable name.
- * @param {string} value - Raw category value.
- * @returns {string} Display label.
- */
-const normalizeCategory = (value) => {
+const normalizeCategory = (value, isEn) => {
   const v = (value || "").toString().trim().toLowerCase();
-  if (["all", "все"].includes(v)) return "Все";
-  if (["drink", "drinks", "напитки"].includes(v)) return "Напитки";
-  if (["food", "еда"].includes(v)) return "Еда";
-  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "Алкоголь";
-  if (["other", "misc", "остальное", "другое"].includes(v)) return "Остальное";
-  return "Остальное";
+  if (["all", "все"].includes(v)) return isEn ? "All" : "Все";
+  if (["drink", "drinks", "напитки"].includes(v)) return isEn ? "Drinks" : "Напитки";
+  if (["food", "еда"].includes(v)) return isEn ? "Food" : "Еда";
+  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return isEn ? "Alcohol" : "Алкоголь";
+  if (["other", "misc", "остальное", "другое"].includes(v)) return isEn ? "Other" : "Остальное";
+  return isEn ? "Other" : "Остальное";
 };
 
-/**
- * Renders the admin menu items list.
- * @param {Object} props - Component props.
- * @param {Array} props.items - Menu items.
- * @param {Function} props.onToggle - Toggle visibility handler.
- * @param {Function} props.onEdit - Edit handler.
- * @param {Function} props.onDelete - Delete handler.
- * @returns {JSX.Element} Admin menu list.
- */
 function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
+  const { language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const isEn = language === "en";
+
   if (items.length === 0) {
     return (
       <div className="admin-menu">
         <div className="admin-placeholder">
-          Меню пока пустое. Добавьте первую позицию.
+          {isEn ? "Menu is empty. Add your first item." : "Меню пока пустое. Добавьте первую позицию."}
         </div>
       </div>
     );
@@ -41,41 +30,30 @@ function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
   return (
     <div className="admin-menu">
       {items.map((item) => (
-        <div
-          key={item.id}
-          className={`admin-item${item.show ? "" : " admin-item--inactive"}`}
-        >
+        <div key={item.id} className={`admin-item${item.show ? "" : " admin-item--inactive"}`}>
           <div className="admin-item__info">
             <span className="admin-item__name">{item.name}</span>
-            <span className="admin-item__price">{item.price} руб.</span>
+            <span className="admin-item__price">{formatCurrency(item.price)}</span>
             <span className="admin-item__category">
-              Категория: {normalizeCategory(item.category)}
+              {isEn ? "Category" : "Категория"}: {normalizeCategory(item.category, isEn)}
             </span>
             <span className="admin-item__status">
-              {item.show ? "Активно" : "Скрыто"}
+              {item.show ? (isEn ? "Visible" : "Активно") : isEn ? "Hidden" : "Скрыто"}
             </span>
           </div>
           <div className="admin-item__actions">
-            <button
-              className="admin-item__button"
-              onClick={() => onToggle(item.id)}
-              type="button"
-            >
-              {item.show ? "Скрыть" : "Показать"}
+            <button className="admin-item__button" onClick={() => onToggle(item.id)} type="button">
+              {item.show ? (isEn ? "Hide" : "Скрыть") : isEn ? "Show" : "Показать"}
             </button>
-            <button
-              className="admin-item__button"
-              onClick={() => onEdit(item)}
-              type="button"
-            >
-              Изменить
+            <button className="admin-item__button" onClick={() => onEdit(item)} type="button">
+              {isEn ? "Edit" : "Изменить"}
             </button>
             <button
               className="admin-item__button admin-item__button--danger"
               onClick={() => onDelete(item.id)}
               type="button"
             >
-              Удалить
+              {isEn ? "Delete" : "Удалить"}
             </button>
           </div>
         </div>

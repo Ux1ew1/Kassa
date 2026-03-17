@@ -1,20 +1,7 @@
-﻿/**
- * Modal for creating or editing a menu item.
- */
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import "./ItemModal.css";
 
-/**
- * Allowed menu categories.
- * @type {string[]}
- */
-const CATEGORY_OPTIONS = ["Напитки", "Еда", "Алкоголь", "Остальное"];
-
-/**
- * Normalizes a category label to a supported slug.
- * @param {string} value - Raw category value.
- * @returns {string} Normalized slug.
- */
 const normalizeCategory = (value) => {
   const v = (value || "").toString().trim().toLowerCase();
   if (["all", "все"].includes(v)) return "все";
@@ -25,58 +12,47 @@ const normalizeCategory = (value) => {
   return "остальное";
 };
 
-/**
- * Renders a modal form for a menu item.
- * @param {Object} props - Component props.
- * @param {boolean} props.isOpen - Whether modal is open.
- * @param {'add'|'edit'} props.mode - Modal mode.
- * @param {Object|null} props.item - Item to edit.
- * @param {Function} props.onSave - Save handler.
- * @param {Function} props.onClose - Close handler.
- * @returns {JSX.Element|null} Modal or null.
- */
 function ItemModal({ isOpen, mode, item, onSave, onClose }) {
+  const { language } = useLanguage();
+  const isEn = language === "en";
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("остальное");
   const [show, setShow] = useState(true);
 
+  const categoryOptions = useMemo(
+    () => [
+      { value: "напитки", label: isEn ? "Drinks" : "Напитки" },
+      { value: "еда", label: isEn ? "Food" : "Еда" },
+      { value: "алкоголь", label: isEn ? "Alcohol" : "Алкоголь" },
+      { value: "остальное", label: isEn ? "Other" : "Остальное" },
+    ],
+    [isEn],
+  );
+
   useEffect(() => {
-    if (isOpen) {
-      if (mode === "edit" && item) {
-        setName(item.name || "");
-        setPrice(item.price?.toString() || "");
-        setCategory(normalizeCategory(item.category));
-        setShow(item.show !== undefined ? item.show : true);
-      } else {
-        setName("");
-        setPrice("");
-        setCategory("остальное");
-        setShow(true);
-      }
+    if (!isOpen) return;
+    if (mode === "edit" && item) {
+      setName(item.name || "");
+      setPrice(item.price?.toString() || "");
+      setCategory(normalizeCategory(item.category));
+      setShow(item.show !== undefined ? item.show : true);
+      return;
     }
+    setName("");
+    setPrice("");
+    setCategory("остальное");
+    setShow(true);
   }, [isOpen, mode, item]);
 
-  /**
-   * Validates and submits form data.
-   * @param {Event} e - Form submit event.
-   * @returns {void}
-   */
   const handleSubmit = (e) => {
     e.preventDefault();
     const priceNum = parseFloat(price);
-    const normalizedCategory = normalizeCategory(category);
-
-    if (!name.trim() || isNaN(priceNum) || priceNum < 0) {
-      alert("Введите корректные данные");
+    if (!name.trim() || Number.isNaN(priceNum) || priceNum < 0) {
+      alert(isEn ? "Please enter valid values" : "Введите корректные данные");
       return;
     }
-    onSave({
-      name: name.trim(),
-      price: priceNum,
-      show,
-      category: normalizedCategory,
-    });
+    onSave({ name: name.trim(), price: priceNum, show, category: normalizeCategory(category) });
   };
 
   if (!isOpen) return null;
@@ -84,23 +60,23 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
   return (
     <div className="modal" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>{mode === "edit" ? "Редактирование позиции" : "Новая позиция"}</h3>
+        <h3>{mode === "edit" ? (isEn ? "Edit item" : "Редактирование позиции") : isEn ? "New item" : "Новая позиция"}</h3>
         <form onSubmit={handleSubmit}>
-          <span className="modal-label">Название </span>
+          <span className="modal-label">{isEn ? "Name" : "Название"}</span>
           <input
             type="text"
             className="modal-input"
-            placeholder="Название"
+            placeholder={isEn ? "Name" : "Название"}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             autoFocus
           />
-          <span className="modal-label">Стоимость</span>
+          <span className="modal-label">{isEn ? "Price" : "Стоимость"}</span>
           <input
             type="number"
             className="modal-input"
-            placeholder="Цена"
+            placeholder={isEn ? "Price" : "Цена"}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputMode="decimal"
@@ -109,7 +85,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
             required
           />
           <label className="modal-label" htmlFor="category">
-            Категория
+            {isEn ? "Category" : "Категория"}
           </label>
           <select
             id="category"
@@ -117,9 +93,9 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -129,18 +105,14 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
               checked={show}
               onChange={(e) => setShow(e.target.checked)}
             />
-            Активна
+            {isEn ? "Visible" : "Активна"}
           </label>
           <div className="modal-actions">
             <button type="submit" className="modal-button">
-              Сохранить
+              {isEn ? "Save" : "Сохранить"}
             </button>
-            <button
-              type="button"
-              className="modal-button modal-button--secondary"
-              onClick={onClose}
-            >
-              Отмена
+            <button type="button" className="modal-button modal-button--secondary" onClick={onClose}>
+              {isEn ? "Cancel" : "Отмена"}
             </button>
           </div>
         </form>
@@ -150,3 +122,4 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
 }
 
 export default ItemModal;
+

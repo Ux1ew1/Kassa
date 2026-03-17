@@ -1,13 +1,11 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { loginUser, registerUser } from "../utils/api";
+import { useLanguage } from "../contexts/LanguageContext";
 import "./Register.css";
 
-/**
- * Auth page (login + register).
- * @param {{onRegistered: (user: {id: string, login: string}) => void}} props
- * @returns {JSX.Element}
- */
 function Register({ onRegistered }) {
+  const { language } = useLanguage();
+  const isEn = language === "en";
   const [mode, setMode] = useState("login");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
@@ -29,8 +27,12 @@ function Register({ onRegistered }) {
       setError(
         submitError.message ||
           (mode === "register"
-            ? "Не удалось зарегистрироваться"
-            : "Не удалось войти"),
+            ? isEn
+              ? "Failed to register"
+              : "Не удалось зарегистрироваться"
+            : isEn
+              ? "Failed to sign in"
+              : "Не удалось войти"),
       );
     } finally {
       setLoading(false);
@@ -41,12 +43,22 @@ function Register({ onRegistered }) {
     <div className="register-page">
       <form className="register-card" onSubmit={handleSubmit}>
         <h1 className="register-title">
-          {mode === "register" ? "Регистрация" : "Вход"}
+          {mode === "register"
+            ? isEn
+              ? "Sign up"
+              : "Регистрация"
+            : isEn
+              ? "Sign in"
+              : "Вход"}
         </h1>
         <p className="register-subtitle">
           {mode === "register"
-            ? "Создайте аккаунт с логином и паролем."
-            : "Введите логин и пароль, чтобы войти."}
+            ? isEn
+              ? "Create an account with login and password."
+              : "Создайте аккаунт с логином и паролем."
+            : isEn
+              ? "Enter your login and password to continue."
+              : "Введите логин и пароль, чтобы войти."}
         </p>
 
         <div className="register-switch">
@@ -60,7 +72,7 @@ function Register({ onRegistered }) {
               setError("");
             }}
           >
-            Вход
+            {isEn ? "Sign in" : "Вход"}
           </button>
           <button
             type="button"
@@ -72,12 +84,12 @@ function Register({ onRegistered }) {
               setError("");
             }}
           >
-            Регистрация
+            {isEn ? "Sign up" : "Регистрация"}
           </button>
         </div>
 
         <label className="register-label" htmlFor="login">
-          Логин
+          {isEn ? "Login" : "Логин"}
         </label>
         <input
           id="login"
@@ -91,7 +103,7 @@ function Register({ onRegistered }) {
         />
 
         <label className="register-label" htmlFor="password">
-          Пароль
+          {isEn ? "Password" : "Пароль"}
         </label>
         <input
           id="password"
@@ -109,11 +121,19 @@ function Register({ onRegistered }) {
         <button className="register-button" type="submit" disabled={loading}>
           {loading
             ? mode === "register"
-              ? "Создание..."
-              : "Вход..."
+              ? isEn
+                ? "Creating..."
+                : "Создание..."
+              : isEn
+                ? "Signing in..."
+                : "Вход..."
             : mode === "register"
-              ? "Зарегистрироваться"
-              : "Войти"}
+              ? isEn
+                ? "Sign up"
+                : "Зарегистрироваться"
+              : isEn
+                ? "Sign in"
+                : "Войти"}
         </button>
       </form>
     </div>
@@ -121,3 +141,4 @@ function Register({ onRegistered }) {
 }
 
 export default Register;
+

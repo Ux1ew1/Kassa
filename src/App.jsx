@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import Kassa from './pages/Kassa'
 import Admin from './pages/Admin'
 import Register from './pages/Register'
+import { LanguageProvider } from './contexts/LanguageContext'
+import { CurrencyProvider } from './contexts/CurrencyContext'
 
 const AUTH_STORAGE_KEY = 'kassa_user'
 const ROOM_STORAGE_KEY = 'kassa_active_room'
@@ -78,35 +80,39 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthed ? (
-              <Kassa
-                user={user}
-                onLogout={handleLogout}
-                activeRoom={activeRoom}
-                onRoomChange={handleRoomChange}
-              />
-            ) : (
-              <Register onRegistered={handleRegistered} />
-            )
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            isAuthed && canManageMenu ? (
-              <Admin user={user} activeRoom={activeRoom} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <LanguageProvider>
+      <CurrencyProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthed ? (
+                  <Kassa
+                    user={user}
+                    onLogout={handleLogout}
+                    activeRoom={activeRoom}
+                    onRoomChange={handleRoomChange}
+                  />
+                ) : (
+                  <Register onRegistered={handleRegistered} />
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                isAuthed && canManageMenu ? (
+                  <Admin user={user} activeRoom={activeRoom} />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </CurrencyProvider>
+    </LanguageProvider>
   )
 }
 

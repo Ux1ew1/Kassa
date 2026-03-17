@@ -1,13 +1,7 @@
-﻿/**
- * Drawer with grouped coffee items across checks.
- */
 import { useMemo } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import "./CoffeeMenuDrawer.css";
 
-/**
- * Keywords used to detect coffee items.
- * @type {string[]}
- */
 const COFFEE_KEYWORDS = [
   "коф",
   "капуч",
@@ -16,48 +10,35 @@ const COFFEE_KEYWORDS = [
   "латт",
   "раф",
   "макиато",
+  "coffee",
+  "capp",
+  "americano",
+  "espresso",
+  "latte",
+  "raf",
+  "macchiato",
 ];
 
-/**
- * Checks whether a menu item is a coffee item.
- * @param {string} [name=""] - Item name.
- * @returns {boolean} True if coffee-related.
- */
 function isCoffeeItem(name = "") {
   const normalized = name.toLowerCase();
   return COFFEE_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
-/**
- * Returns a short label for a coffee item.
- * @param {string} [name=""] - Item name.
- * @returns {string} Single-letter label.
- */
 function getCoffeeLetter(name = "") {
   const normalized = name.toLowerCase();
-
-  if (normalized.includes("капуч")) return "К";
-  if (normalized.includes("амер")) return "А";
-  if (normalized.includes("эспресс")) return "Э";
-  if (normalized.includes("латт")) return "Л";
-  if (normalized.includes("раф")) return "Р";
-  if (normalized.includes("макиато")) return "М";
-
+  if (normalized.includes("капуч") || normalized.includes("capp")) return "C";
+  if (normalized.includes("амер") || normalized.includes("americano"))
+    return "A";
+  if (normalized.includes("эспресс") || normalized.includes("espresso"))
+    return "E";
+  if (normalized.includes("латт") || normalized.includes("latte")) return "L";
+  if (normalized.includes("раф")) return "R";
+  if (normalized.includes("макиато") || normalized.includes("macchiato"))
+    return "M";
   const firstLetter = normalized.trim().charAt(0);
-  return firstLetter ? firstLetter.toUpperCase() : "К";
+  return firstLetter ? firstLetter.toUpperCase() : "C";
 }
 
-/**
- * Renders a drawer for marking coffee items as fulfilled.
- * @param {Object} props - Component props.
- * @param {boolean} props.open - Whether drawer is open.
- * @param {Function} props.onClose - Close handler.
- * @param {Array} [props.checks] - Checks list.
- * @param {number} props.activeCheckId - Active check id.
- * @param {Function} props.onToggleFulfilled - Toggle fulfilled handler.
- * @param {"overlay"|"panel"} [props.variant="overlay"] - Rendering mode.
- * @returns {JSX.Element|null} Drawer or null.
- */
 function CoffeeMenuDrawer({
   open,
   onClose,
@@ -66,6 +47,8 @@ function CoffeeMenuDrawer({
   onToggleFulfilled,
   variant = "overlay",
 }) {
+  const { language } = useLanguage();
+  const isEn = language === "en";
   const preparedChecks = useMemo(
     () =>
       checks
@@ -74,11 +57,9 @@ function CoffeeMenuDrawer({
             ...item,
             index,
           }));
-
           const coffeeItems = withIndex.filter((item) =>
             isCoffeeItem(item?.name || ""),
           );
-
           return {
             id: check.id,
             hasCoffee: coffeeItems.length > 0,
@@ -95,9 +76,7 @@ function CoffeeMenuDrawer({
     [checks],
   );
 
-  if (!open) {
-    return null;
-  }
+  if (!open) return null;
 
   const handleSquareToggle = (checkId, itemIndex, fulfilled) => {
     onToggleFulfilled?.([itemIndex], fulfilled, checkId);
@@ -106,24 +85,28 @@ function CoffeeMenuDrawer({
   const content = (
     <div
       className={`coffee-menu-panel${variant === "panel" ? " coffee-menu-panel--static" : ""}`}
-      onClick={(event) => {
-        event.stopPropagation();
-      }}
+      onClick={(event) => event.stopPropagation()}
     >
       <div className="coffee-menu-header">
         <div>
-          <div className="coffee-menu-title">Кофейные позиции</div>
+          <div className="coffee-menu-title">
+            {isEn ? "Coffee items" : "Кофейные позиции"}
+          </div>
           <div className="coffee-menu-subtitle">
             {preparedChecks.length > 0
-              ? "Дублируем кофе по каждому чеку"
-              : "Чеки отсутствуют"}
+              ? isEn
+                ? "Coffee grouped by checks"
+                : "Дублируем кофе по каждому чеку"
+              : isEn
+                ? "No checks yet"
+                : "Чеки отсутствуют"}
           </div>
         </div>
         <button
           className="coffee-menu-close"
           type="button"
           onClick={onClose}
-          aria-label="Закрыть меню"
+          aria-label={isEn ? "Close menu" : "Закрыть меню"}
         >
           ✕
         </button>
@@ -132,33 +115,35 @@ function CoffeeMenuDrawer({
       <div className="coffee-menu-list">
         {preparedChecks.length === 0 && (
           <div className="coffee-menu-empty">
-            Создайте чек, чтобы увидеть его содержимое
+            {isEn
+              ? "All drinks from the coffee category will be displayed here"
+              : `Здесь будут отображаться все напитки из категории "кофе"`}
           </div>
         )}
 
         {preparedChecks.map((check) => (
           <div
             key={check.id}
-            className={`coffee-menu-row${
-              check.id === activeCheckId ? " coffee-menu-row--active" : ""
-            }`}
+            className={`coffee-menu-row${check.id === activeCheckId ? " coffee-menu-row--active" : ""}`}
           >
             <div className="coffee-menu-check">
-              <span className="coffee-menu-check-label">Чек</span>
+              <span className="coffee-menu-check-label">
+                {isEn ? "Check" : "Чек"}
+              </span>
               <span className="coffee-menu-check-number">№{check.id}</span>
             </div>
 
             <div className="coffee-menu-squares">
               {check.squareItems.length === 0 ? (
-                <span className="coffee-menu-empty-inline">Кофе нет</span>
+                <span className="coffee-menu-empty-inline">
+                  {isEn ? "No coffee" : "Кофе нет"}
+                </span>
               ) : (
                 check.squareItems.map((item) => (
                   <button
                     key={item.key}
                     type="button"
-                    className={`coffee-square${
-                      item.fulfilled ? " coffee-square--fulfilled" : ""
-                    }`}
+                    className={`coffee-square${item.fulfilled ? " coffee-square--fulfilled" : ""}`}
                     onClick={() =>
                       handleSquareToggle(check.id, item.index, !item.fulfilled)
                     }
@@ -176,10 +161,7 @@ function CoffeeMenuDrawer({
     </div>
   );
 
-  if (variant === "panel") {
-    return content;
-  }
-
+  if (variant === "panel") return content;
   return (
     <div className="coffee-menu-overlay" onClick={onClose}>
       {content}

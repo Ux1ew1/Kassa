@@ -1,121 +1,101 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAdminMenu } from '../hooks/useAdminMenu'
-import AdminMenuList from '../components/AdminMenuList'
-import ItemModal from '../components/ItemModal'
-import './Admin.css'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAdminMenu } from "../hooks/useAdminMenu";
+import { useLanguage } from "../contexts/LanguageContext";
+import AdminMenuList from "../components/AdminMenuList";
+import ItemModal from "../components/ItemModal";
+import "./Admin.css";
 
-/**
- * Admin page for managing menu items.
- * @returns {JSX.Element} Admin page layout.
- */
 function Admin({ user, activeRoom }) {
-  const { menu, loading, addItem, updateItem, deleteItem, toggleItem } = useAdminMenu(
-    activeRoom?.id,
-    user?.id,
-  )
-  const [searchQuery, setSearchQuery] = useState('')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState('add')
-  const [editingItem, setEditingItem] = useState(null)
+  const { language } = useLanguage();
+  const isEn = language === "en";
+  const { menu, loading, addItem, updateItem, deleteItem, toggleItem } =
+    useAdminMenu(activeRoom?.id, user?.id);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add");
+  const [editingItem, setEditingItem] = useState(null);
 
   if (!activeRoom?.id) {
     return (
       <div className="admin-container">
         <header className="admin-header">
-          <h1 className="admin-header__title">Админ-панель</h1>
+          <h1 className="admin-header__title">
+            {isEn ? "Admin panel" : "Админ-панель"}
+          </h1>
           <div className="admin-header__actions">
             <Link to="/" className="admin-link">
-              ← К кассе
+              {isEn ? "← Back to cashier" : "← К кассе"}
             </Link>
           </div>
         </header>
         <main>
-          <div className="admin-placeholder">Выберите комнату на главном экране.</div>
+          <div className="admin-placeholder">
+            {isEn
+              ? "Choose a room on the main screen."
+              : "Выберите комнату на главном экране."}
+          </div>
         </main>
       </div>
-    )
+    );
   }
 
   const filteredMenu = menu.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-  )
+    item.name.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+  );
 
-  /**
-   * Opens the modal for adding a new item.
-   * @returns {void}
-   */
   const handleAdd = () => {
-    setModalMode('add')
-    setEditingItem(null)
-    setModalOpen(true)
-  }
+    setModalMode("add");
+    setEditingItem(null);
+    setModalOpen(true);
+  };
 
-  /**
-   * Opens the modal for editing an item.
-   * @param {Object} item - Menu item to edit.
-   * @returns {void}
-   */
   const handleEdit = (item) => {
-    setModalMode('edit')
-    setEditingItem(item)
-    setModalOpen(true)
-  }
+    setModalMode("edit");
+    setEditingItem(item);
+    setModalOpen(true);
+  };
 
-  /**
-   * Persists item changes based on modal mode.
-   * @param {Object} itemData - Item data from the modal.
-   * @returns {Promise<void>}
-   */
   const handleSave = async (itemData) => {
     try {
-      if (modalMode === 'add') {
-        await addItem(itemData)
+      if (modalMode === "add") {
+        await addItem(itemData);
       } else if (editingItem) {
-        await updateItem(editingItem.id, itemData)
+        await updateItem(editingItem.id, itemData);
       }
-      setModalOpen(false)
-      setEditingItem(null)
+      setModalOpen(false);
+      setEditingItem(null);
     } catch (error) {
-      alert(error.message || 'Не удалось сохранить позицию')
+      alert(error.message || (isEn ? "Failed to save item" : "Не удалось сохранить позицию"));
     }
-  }
+  };
 
-  /**
-   * Deletes a menu item after confirmation.
-   * @param {number|string} id - Item id.
-   * @returns {Promise<void>}
-   */
   const handleDelete = async (id) => {
-    if (confirm('Удалить позицию?')) {
-      try {
-        await deleteItem(id)
-      } catch (error) {
-        alert(error.message || 'Не удалось удалить позицию')
-      }
+    if (!confirm(isEn ? "Delete this item?" : "Удалить позицию?")) return;
+    try {
+      await deleteItem(id);
+    } catch (error) {
+      alert(error.message || (isEn ? "Failed to delete item" : "Не удалось удалить позицию"));
     }
-  }
+  };
 
-  /**
-   * Toggles item visibility.
-   * @param {number|string} id - Item id.
-   * @returns {Promise<void>}
-   */
   const handleToggle = async (id) => {
     try {
-      await toggleItem(id)
+      await toggleItem(id);
     } catch (error) {
-      alert(error.message || 'Не удалось обновить позицию')
+      alert(error.message || (isEn ? "Failed to update item" : "Не удалось обновить позицию"));
     }
-  }
+  };
 
   return (
     <div className="admin-container">
       <header className="admin-header">
-        <h1 className="admin-header__title">Админ-панель</h1>
+        <h1 className="admin-header__title">
+          {isEn ? "Admin panel" : "Админ-панель"}
+        </h1>
         <div className="admin-header__actions">
           <Link to="/" className="admin-link">
-            ← К кассе
+            {isEn ? "← Back to cashier" : "← К кассе"}
           </Link>
         </div>
       </header>
@@ -126,7 +106,7 @@ function Admin({ user, activeRoom }) {
             <input
               type="text"
               className="admin-search-input"
-              placeholder="Поиск по названию..."
+              placeholder={isEn ? "Search by name..." : "Поиск по названию..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -134,21 +114,23 @@ function Admin({ user, activeRoom }) {
               <button
                 type="button"
                 className="admin-search-clear"
-                onClick={() => setSearchQuery('')}
-                aria-label="Очистить поиск"
+                onClick={() => setSearchQuery("")}
+                aria-label={isEn ? "Clear search" : "Очистить поиск"}
               >
                 ✕
               </button>
             )}
           </div>
           <button className="admin-add-button" onClick={handleAdd}>
-            Добавить позицию
+            {isEn ? "Add item" : "Добавить позицию"}
           </button>
         </div>
 
         {loading ? (
           <div className="admin-menu">
-            <div className="admin-placeholder">Загрузка меню...</div>
+            <div className="admin-placeholder">
+              {isEn ? "Loading menu..." : "Загрузка меню..."}
+            </div>
           </div>
         ) : (
           <AdminMenuList
@@ -166,13 +148,13 @@ function Admin({ user, activeRoom }) {
         item={editingItem}
         onSave={handleSave}
         onClose={() => {
-          setModalOpen(false)
-          setEditingItem(null)
+          setModalOpen(false);
+          setEditingItem(null);
         }}
       />
     </div>
-  )
+  );
 }
 
-export default Admin
+export default Admin;
 
