@@ -9,13 +9,19 @@ import { useSeo } from './hooks/useSeo'
 
 const AUTH_STORAGE_KEY = 'kassa_user'
 const ROOM_STORAGE_KEY = 'kassa_active_room'
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const getStoredUser = () => {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed.id !== 'string' || typeof parsed.login !== 'string') {
+    if (
+      !parsed ||
+      typeof parsed.id !== 'string' ||
+      !UUID_PATTERN.test(parsed.id) ||
+      typeof parsed.login !== 'string'
+    ) {
       return null
     }
     return parsed

@@ -1,4 +1,4 @@
-import fs from "node:fs";
+п»їimport fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -157,22 +157,22 @@ const REGISTER_PASSWORD_MAX_LENGTH = 72;
 const REGISTER_LOGIN_PATTERN = /^[a-z0-9._-]+$/i;
 const hashPassword = (password, salt) => crypto.scryptSync(password, salt, 64).toString("hex");
 const validateRegisterCredentials = (login, password) => {
-  if (!login) return "Логин обязателен";
+  if (!login) return "Р›РѕРіРёРЅ РѕР±СЏР·Р°С‚РµР»РµРЅ";
   if (login.length < REGISTER_LOGIN_MIN_LENGTH) {
-    return `Логин должен содержать минимум ${REGISTER_LOGIN_MIN_LENGTH} символа`;
+    return `Р›РѕРіРёРЅ РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РјРёРЅРёРјСѓРј ${REGISTER_LOGIN_MIN_LENGTH} СЃРёРјРІРѕР»Р°`;
   }
   if (login.length > REGISTER_LOGIN_MAX_LENGTH) {
-    return `Логин должен содержать не более ${REGISTER_LOGIN_MAX_LENGTH} символов`;
+    return `Р›РѕРіРёРЅ РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РЅРµ Р±РѕР»РµРµ ${REGISTER_LOGIN_MAX_LENGTH} СЃРёРјРІРѕР»РѕРІ`;
   }
   if (!REGISTER_LOGIN_PATTERN.test(login)) {
-    return "Логин может содержать только буквы, цифры, точку, подчёркивание и дефис";
+    return "Р›РѕРіРёРЅ РјРѕР¶РµС‚ СЃРѕРґРµСЂР¶Р°С‚СЊ С‚РѕР»СЊРєРѕ Р±СѓРєРІС‹, С†РёС„СЂС‹, С‚РѕС‡РєСѓ, РїРѕРґС‡С‘СЂРєРёРІР°РЅРёРµ Рё РґРµС„РёСЃ";
   }
-  if (!password) return "Пароль обязателен";
+  if (!password) return "РџР°СЂРѕР»СЊ РѕР±СЏР·Р°С‚РµР»РµРЅ";
   if (password.length < REGISTER_PASSWORD_MIN_LENGTH) {
-    return `Пароль должен содержать минимум ${REGISTER_PASSWORD_MIN_LENGTH} символов`;
+    return `РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РјРёРЅРёРјСѓРј ${REGISTER_PASSWORD_MIN_LENGTH} СЃРёРјРІРѕР»РѕРІ`;
   }
   if (password.length > REGISTER_PASSWORD_MAX_LENGTH) {
-    return `Пароль должен содержать не более ${REGISTER_PASSWORD_MAX_LENGTH} символов`;
+    return `РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РЅРµ Р±РѕР»РµРµ ${REGISTER_PASSWORD_MAX_LENGTH} СЃРёРјРІРѕР»РѕРІ`;
   }
   return null;
 };
@@ -274,7 +274,7 @@ const generateUniqueRoomCode = async () => {
       return code;
     }
   }
-  throw new Error("Не удалось сгенерировать короткий ID комнаты");
+  throw new Error("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РєРѕСЂРѕС‚РєРёР№ ID РєРѕРјРЅР°С‚С‹");
 };
 
 const sendJson = (res, statusCode, payload) => {
@@ -287,13 +287,13 @@ const sendJson = (res, statusCode, payload) => {
   res.end(JSON.stringify(payload));
 };
 
-const parseRequestBody = async (req) => {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isUuid = (value) => UUID_PATTERN.test((value || "").toString().trim());
 
-  const raw = Buffer.concat(chunks).toString("utf-8");
-  if (!raw || raw.trim().length === 0) return {};
-
+const parseRawJson = (value) => {
+  const raw = value.toString().trim();
+  if (!raw) return {};
   try {
     return JSON.parse(raw);
   } catch {
@@ -301,20 +301,37 @@ const parseRequestBody = async (req) => {
   }
 };
 
+const parseRequestBody = async (req) => {
+  if (typeof req.body !== "undefined" && req.body !== null) {
+    if (typeof req.body === "object" && !Buffer.isBuffer(req.body)) {
+      return req.body;
+    }
+    if (Buffer.isBuffer(req.body) || typeof req.body === "string") {
+      return parseRawJson(req.body);
+    }
+  }
+
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+
+  if (chunks.length === 0) return {};
+  return parseRawJson(Buffer.concat(chunks).toString("utf-8"));
+};
+
 const handleGetMenu = async (res, roomId, userId) => {
   if (!roomId || !userId) {
-    return sendJson(res, 400, { message: "roomId и userId обязательны" });
+    return sendJson(res, 400, { message: "roomId Рё userId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
   }
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
   try {
     const membership = await findMembership(roomId, userId);
     if (!membership) {
-      return sendJson(res, 403, { message: "Нет доступа к комнате" });
+      return sendJson(res, 403, { message: "РќРµС‚ РґРѕСЃС‚СѓРїР° Рє РєРѕРјРЅР°С‚Рµ" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -332,18 +349,18 @@ const handleGetMenu = async (res, roomId, userId) => {
 
     sendJson(res, 200, { menu: items, activeOrder });
   } catch (error) {
-    console.error("Ошибка чтения меню:", error);
-    sendJson(res, 500, { message: "Не удалось загрузить меню" });
+    console.error("РћС€РёР±РєР° С‡С‚РµРЅРёСЏ РјРµРЅСЋ:", error);
+    sendJson(res, 500, { message: "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РјРµРЅСЋ" });
   }
 };
 
 const handleUpdateMenu = async (req, res, roomId, userId) => {
   if (!roomId || !userId) {
-    return sendJson(res, 400, { message: "roomId и userId обязательны" });
+    return sendJson(res, 400, { message: "roomId Рё userId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
   }
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -351,7 +368,7 @@ const handleUpdateMenu = async (req, res, roomId, userId) => {
     const payload = await parseRequestBody(req);
     const membership = await findMembership(roomId, userId);
     if (!membership || !canManageRoom(membership.role)) {
-      return sendJson(res, 403, { message: "Недостаточно прав для изменения меню" });
+      return sendJson(res, 403, { message: "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РјРµРЅСЋ" });
     }
 
     const items = Array.isArray(payload?.items)
@@ -361,7 +378,7 @@ const handleUpdateMenu = async (req, res, roomId, userId) => {
         : null;
 
     if (!Array.isArray(items)) {
-      return sendJson(res, 400, { message: "Меню должно быть массивом" });
+      return sendJson(res, 400, { message: "РњРµРЅСЋ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РјР°СЃСЃРёРІРѕРј" });
     }
 
     const activeOrder = Array.isArray(payload?.activeOrder) ? payload.activeOrder : [];
@@ -383,23 +400,23 @@ const handleUpdateMenu = async (req, res, roomId, userId) => {
     });
 
     sendJson(res, 200, {
-      message: "Меню обновлено",
+      message: "РњРµРЅСЋ РѕР±РЅРѕРІР»РµРЅРѕ",
       menu: normalized.items,
       activeOrder: normalized.activeOrder,
     });
   } catch (error) {
-    console.error("Ошибка обновления меню:", error);
+    console.error("РћС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ РјРµРЅСЋ:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    sendJson(res, 500, { message: "Не удалось обновить меню" });
+    sendJson(res, 500, { message: "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ РјРµРЅСЋ" });
   }
 };
 
 const handleRegister = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -414,7 +431,7 @@ const handleRegister = async (req, res) => {
 
     const existingUser = await findUserByLogin(login);
     if (existingUser) {
-      return sendJson(res, 409, { message: "Пользователь с таким логином уже существует" });
+      return sendJson(res, 409, { message: "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј Р»РѕРіРёРЅРѕРј СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚" });
     }
 
     const userId = crypto.randomUUID();
@@ -437,18 +454,18 @@ const handleRegister = async (req, res) => {
 
     return sendJson(res, 201, { user: { id: userId, login } });
   } catch (error) {
-    console.error("Ошибка регистрации пользователя:", error);
+    console.error("РћС€РёР±РєР° СЂРµРіРёСЃС‚СЂР°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось зарегистрировать пользователя" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ" });
   }
 };
 
 const handleLogin = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -458,12 +475,12 @@ const handleLogin = async (req, res) => {
     const password = (payload?.password || "").toString().trim();
 
     if (!login || !password) {
-      return sendJson(res, 400, { message: "Укажите логин и пароль" });
+      return sendJson(res, 400, { message: "РЈРєР°Р¶РёС‚Рµ Р»РѕРіРёРЅ Рё РїР°СЂРѕР»СЊ" });
     }
 
     const user = await findUserByLogin(login);
     if (!user || !verifyPassword(password, user.password_salt, user.password_hash)) {
-      return sendJson(res, 401, { message: "Неверный логин или пароль" });
+      return sendJson(res, 401, { message: "РќРµРІРµСЂРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё РїР°СЂРѕР»СЊ" });
     }
 
     return sendJson(res, 200, {
@@ -473,18 +490,18 @@ const handleLogin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Ошибка входа пользователя:", error);
+    console.error("РћС€РёР±РєР° РІС…РѕРґР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось выполнить вход" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ" });
   }
 };
 
 const handleCreateRoom = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -494,12 +511,17 @@ const handleCreateRoom = async (req, res) => {
     const userId = (payload?.userId || "").toString().trim();
 
     if (!name || !userId) {
-      return sendJson(res, 400, { message: "name и userId обязательны" });
+      return sendJson(res, 400, { message: "name Рё userId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
+    }
+    if (!isUuid(userId)) {
+      return sendJson(res, 400, {
+        message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ userId. Р’С‹Р№РґРёС‚Рµ РёР· Р°РєРєР°СѓРЅС‚Р° Рё РІРѕР№РґРёС‚Рµ СЃРЅРѕРІР°.",
+      });
     }
 
     const owner = await findUserById(userId);
     if (!owner) {
-      return sendJson(res, 404, { message: "Пользователь не найден" });
+      return sendJson(res, 404, { message: "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ" });
     }
 
     const roomId = crypto.randomUUID();
@@ -526,21 +548,21 @@ const handleCreateRoom = async (req, res) => {
       room: { id: roomId, code: roomCode, name, role: "owner" },
     });
   } catch (error) {
-    console.error("Ошибка создания комнаты:", error);
+    console.error("РћС€РёР±РєР° СЃРѕР·РґР°РЅРёСЏ РєРѕРјРЅР°С‚С‹:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось создать комнату" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РєРѕРјРЅР°С‚Сѓ" });
   }
 };
 
 const handleGetMyRooms = async (res, userId) => {
   if (!userId) {
-    return sendJson(res, 400, { message: "userId обязателен" });
+    return sendJson(res, 400, { message: "userId РѕР±СЏР·Р°С‚РµР»РµРЅ" });
   }
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -570,15 +592,15 @@ const handleGetMyRooms = async (res, userId) => {
 
     return sendJson(res, 200, { rooms: result });
   } catch (error) {
-    console.error("Ошибка загрузки комнат пользователя:", error);
-    return sendJson(res, 500, { message: error.message || "Не удалось загрузить комнаты" });
+    console.error("РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё РєРѕРјРЅР°С‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:", error);
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РєРѕРјРЅР°С‚С‹" });
   }
 };
 
 const handleInviteToRoom = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -591,22 +613,22 @@ const handleInviteToRoom = async (req, res) => {
     const targetRole = role === "admin" ? "admin" : "user";
 
     if (!roomId || !inviterId || !login) {
-      return sendJson(res, 400, { message: "roomId, inviterId и login обязательны" });
+      return sendJson(res, 400, { message: "roomId, inviterId Рё login РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
     }
 
     const inviterMembership = await findMembership(roomId, inviterId);
     if (!inviterMembership || !canManageRoom(inviterMembership.role)) {
-      return sendJson(res, 403, { message: "Недостаточно прав для приглашения" });
+      return sendJson(res, 403, { message: "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ РїСЂРёРіР»Р°С€РµРЅРёСЏ" });
     }
 
     const room = await findRoomById(roomId);
     if (!room) {
-      return sendJson(res, 404, { message: "Комната не найдена" });
+      return sendJson(res, 404, { message: "РљРѕРјРЅР°С‚Р° РЅРµ РЅР°Р№РґРµРЅР°" });
     }
 
     const invitedUser = await findUserByLogin(login);
     if (!invitedUser) {
-      return sendJson(res, 404, { message: "Пользователь с таким логином не найден" });
+      return sendJson(res, 404, { message: "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј Р»РѕРіРёРЅРѕРј РЅРµ РЅР°Р№РґРµРЅ" });
     }
 
     const existingMembership = await findMembership(roomId, invitedUser.id);
@@ -637,18 +659,18 @@ const handleInviteToRoom = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Ошибка приглашения в комнату:", error);
+    console.error("РћС€РёР±РєР° РїСЂРёРіР»Р°С€РµРЅРёСЏ РІ РєРѕРјРЅР°С‚Сѓ:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось пригласить пользователя" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёРіР»Р°СЃРёС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ" });
   }
 };
 
 const handleJoinRoomByCode = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -658,7 +680,12 @@ const handleJoinRoomByCode = async (req, res) => {
     const code = (payload?.code || "").toString().trim().toUpperCase();
 
     if (!userId || !code) {
-      return sendJson(res, 400, { message: "userId и code обязательны" });
+      return sendJson(res, 400, { message: "userId Рё code РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
+    }
+    if (!isUuid(userId)) {
+      return sendJson(res, 400, {
+        message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ userId. Р’С‹Р№РґРёС‚Рµ РёР· Р°РєРєР°СѓРЅС‚Р° Рё РІРѕР№РґРёС‚Рµ СЃРЅРѕРІР°.",
+      });
     }
 
     const rows = await supabaseRequest(
@@ -666,7 +693,7 @@ const handleJoinRoomByCode = async (req, res) => {
     );
     const room = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
     if (!room) {
-      return sendJson(res, 404, { message: "Комната с таким ID не найдена" });
+      return sendJson(res, 404, { message: "РљРѕРјРЅР°С‚Р° СЃ С‚Р°РєРёРј ID РЅРµ РЅР°Р№РґРµРЅР°" });
     }
 
     await supabaseRequest("/rest/v1/room_members", {
@@ -685,18 +712,18 @@ const handleJoinRoomByCode = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Ошибка входа в комнату по ID:", error);
+    console.error("РћС€РёР±РєР° РІС…РѕРґР° РІ РєРѕРјРЅР°С‚Сѓ РїРѕ ID:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось присоединиться к комнате" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРёСЃРѕРµРґРёРЅРёС‚СЊСЃСЏ Рє РєРѕРјРЅР°С‚Рµ" });
   }
 };
 
 const handleRenameRoom = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -707,12 +734,12 @@ const handleRenameRoom = async (req, res) => {
     const name = (payload?.name || "").toString().trim();
 
     if (!roomId || !actorId || !name) {
-      return sendJson(res, 400, { message: "roomId, actorId и name обязательны" });
+      return sendJson(res, 400, { message: "roomId, actorId Рё name РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
     }
 
     const actorMembership = await findMembership(roomId, actorId);
     if (!actorMembership || !canManageRoom(actorMembership.role)) {
-      return sendJson(res, 403, { message: "Недостаточно прав для изменения комнаты" });
+      return sendJson(res, 403, { message: "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РєРѕРјРЅР°С‚С‹" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -732,18 +759,18 @@ const handleRenameRoom = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Ошибка переименования комнаты:", error);
+    console.error("РћС€РёР±РєР° РїРµСЂРµРёРјРµРЅРѕРІР°РЅРёСЏ РєРѕРјРЅР°С‚С‹:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось изменить название комнаты" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РёР·РјРµРЅРёС‚СЊ РЅР°Р·РІР°РЅРёРµ РєРѕРјРЅР°С‚С‹" });
   }
 };
 
 const handleLeaveRoom = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -753,12 +780,12 @@ const handleLeaveRoom = async (req, res) => {
     const userId = (payload?.userId || "").toString().trim();
 
     if (!roomId || !userId) {
-      return sendJson(res, 400, { message: "roomId и userId обязательны" });
+      return sendJson(res, 400, { message: "roomId Рё userId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
     }
 
     const membership = await findMembership(roomId, userId);
     if (!membership) {
-      return sendJson(res, 404, { message: "Вы не состоите в этой комнате" });
+      return sendJson(res, 404, { message: "Р’С‹ РЅРµ СЃРѕСЃС‚РѕРёС‚Рµ РІ СЌС‚РѕР№ РєРѕРјРЅР°С‚Рµ" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -816,11 +843,11 @@ const handleLeaveRoom = async (req, res) => {
 
     return sendJson(res, 200, { ok: true });
   } catch (error) {
-    console.error("Ошибка выхода из комнаты:", error);
+    console.error("РћС€РёР±РєР° РІС‹С…РѕРґР° РёР· РєРѕРјРЅР°С‚С‹:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось выйти из комнаты" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹Р№С‚Рё РёР· РєРѕРјРЅР°С‚С‹" });
   }
 };
 
@@ -829,17 +856,17 @@ const roleOrder = { owner: 0, admin: 1, user: 2 };
 const handleGetRoomMembers = async (res, roomId, userId) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
   if (!roomId || !userId) {
-    return sendJson(res, 400, { message: "roomId и userId обязательны" });
+    return sendJson(res, 400, { message: "roomId Рё userId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
   }
 
   try {
     const requester = await findMembership(roomId, userId);
     if (!requester) {
-      return sendJson(res, 403, { message: "Нет доступа к комнате" });
+      return sendJson(res, 403, { message: "РќРµС‚ РґРѕСЃС‚СѓРїР° Рє РєРѕРјРЅР°С‚Рµ" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -861,15 +888,15 @@ const handleGetRoomMembers = async (res, roomId, userId) => {
 
     return sendJson(res, 200, { members });
   } catch (error) {
-    console.error("Ошибка загрузки участников комнаты:", error);
-    return sendJson(res, 500, { message: error.message || "Не удалось загрузить участников" });
+    console.error("РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё СѓС‡Р°СЃС‚РЅРёРєРѕРІ РєРѕРјРЅР°С‚С‹:", error);
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ СѓС‡Р°СЃС‚РЅРёРєРѕРІ" });
   }
 };
 
 const handleUpdateRoomMemberRole = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -882,21 +909,21 @@ const handleUpdateRoomMemberRole = async (req, res) => {
     const nextRole = role === "admin" ? "admin" : "user";
 
     if (!roomId || !actorId || !targetUserId) {
-      return sendJson(res, 400, { message: "roomId, actorId и targetUserId обязательны" });
+      return sendJson(res, 400, { message: "roomId, actorId Рё targetUserId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
     }
 
     const actorMembership = await findMembership(roomId, actorId);
     if (!actorMembership || !canManageRoom(actorMembership.role)) {
-      return sendJson(res, 403, { message: "Недостаточно прав для смены роли" });
+      return sendJson(res, 403, { message: "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ СЃРјРµРЅС‹ СЂРѕР»Рё" });
     }
 
     const targetMembership = await findMembership(roomId, targetUserId);
     if (!targetMembership) {
-      return sendJson(res, 404, { message: "Пользователь не состоит в комнате" });
+      return sendJson(res, 404, { message: "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ СЃРѕСЃС‚РѕРёС‚ РІ РєРѕРјРЅР°С‚Рµ" });
     }
 
     if (targetMembership.role === "owner") {
-      return sendJson(res, 403, { message: "Нельзя изменить роль owner" });
+      return sendJson(res, 403, { message: "РќРµР»СЊР·СЏ РёР·РјРµРЅРёС‚СЊ СЂРѕР»СЊ owner" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -912,18 +939,18 @@ const handleUpdateRoomMemberRole = async (req, res) => {
 
     return sendJson(res, 200, { ok: true, role: nextRole });
   } catch (error) {
-    console.error("Ошибка смены роли участника:", error);
+    console.error("РћС€РёР±РєР° СЃРјРµРЅС‹ СЂРѕР»Рё СѓС‡Р°СЃС‚РЅРёРєР°:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось изменить роль" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РёР·РјРµРЅРёС‚СЊ СЂРѕР»СЊ" });
   }
 };
 
 const handleKickRoomMember = async (req, res) => {
   if (!hasSupabaseConfig()) {
     return sendJson(res, 500, {
-      message: "Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY",
+      message: "Supabase РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. РЈРєР°Р¶РёС‚Рµ SUPABASE_URL Рё SUPABASE_SERVICE_ROLE_KEY",
     });
   }
 
@@ -934,24 +961,24 @@ const handleKickRoomMember = async (req, res) => {
     const targetUserId = (payload?.targetUserId || "").toString().trim();
 
     if (!roomId || !actorId || !targetUserId) {
-      return sendJson(res, 400, { message: "roomId, actorId и targetUserId обязательны" });
+      return sendJson(res, 400, { message: "roomId, actorId Рё targetUserId РѕР±СЏР·Р°С‚РµР»СЊРЅС‹" });
     }
 
     if (actorId === targetUserId) {
-      return sendJson(res, 400, { message: "Нельзя исключить себя. Используйте выход из комнаты." });
+      return sendJson(res, 400, { message: "РќРµР»СЊР·СЏ РёСЃРєР»СЋС‡РёС‚СЊ СЃРµР±СЏ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ РІС‹С…РѕРґ РёР· РєРѕРјРЅР°С‚С‹." });
     }
 
     const actorMembership = await findMembership(roomId, actorId);
     if (!actorMembership || !canManageRoom(actorMembership.role)) {
-      return sendJson(res, 403, { message: "Недостаточно прав для исключения" });
+      return sendJson(res, 403, { message: "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ РёСЃРєР»СЋС‡РµРЅРёСЏ" });
     }
 
     const targetMembership = await findMembership(roomId, targetUserId);
     if (!targetMembership) {
-      return sendJson(res, 404, { message: "Пользователь не состоит в комнате" });
+      return sendJson(res, 404, { message: "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ СЃРѕСЃС‚РѕРёС‚ РІ РєРѕРјРЅР°С‚Рµ" });
     }
     if (targetMembership.role === "owner") {
-      return sendJson(res, 403, { message: "Нельзя исключить owner" });
+      return sendJson(res, 403, { message: "РќРµР»СЊР·СЏ РёСЃРєР»СЋС‡РёС‚СЊ owner" });
     }
 
     const safeRoomId = encodeURIComponent(roomId);
@@ -966,11 +993,11 @@ const handleKickRoomMember = async (req, res) => {
 
     return sendJson(res, 200, { ok: true });
   } catch (error) {
-    console.error("Ошибка исключения участника:", error);
+    console.error("РћС€РёР±РєР° РёСЃРєР»СЋС‡РµРЅРёСЏ СѓС‡Р°СЃС‚РЅРёРєР°:", error);
     if (error.message === "Invalid JSON") {
-      return sendJson(res, 400, { message: "Некорректный JSON" });
+      return sendJson(res, 400, { message: "РќРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ JSON" });
     }
-    return sendJson(res, 500, { message: error.message || "Не удалось исключить пользователя" });
+    return sendJson(res, 500, { message: error.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РёСЃРєР»СЋС‡РёС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ" });
   }
 };
 
@@ -1087,7 +1114,7 @@ const serveStatic = async (req, res) => {
       return;
     }
 
-    console.error("Ошибка отдачи статического файла:", error);
+    console.error("РћС€РёР±РєР° РѕС‚РґР°С‡Рё СЃС‚Р°С‚РёС‡РµСЃРєРѕРіРѕ С„Р°Р№Р»Р°:", error);
     res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("500 Internal Server Error");
   }
@@ -1100,6 +1127,17 @@ export const requestHandler = async (req, res) => {
       requestUrl.pathname.length > 1
         ? requestUrl.pathname.replace(/\/+$/, "")
         : requestUrl.pathname;
+    const isApiLikePath =
+      pathname.startsWith("/api/") ||
+      pathname === "/menu" ||
+      pathname === "/register" ||
+      pathname === "/login" ||
+      pathname.startsWith("/rooms/");
+    const apiPath = pathname.startsWith("/api/")
+      ? pathname
+      : isApiLikePath
+        ? `/api${pathname}`
+        : pathname;
     const roomId = requestUrl.searchParams.get("roomId") || "";
     const userId = requestUrl.searchParams.get("userId") || "";
 
@@ -1125,56 +1163,55 @@ export const requestHandler = async (req, res) => {
       return handleSitemapXml(req, res);
     }
 
-    if (pathname.startsWith("/api/")) {
-      if (req.method === "GET" && pathname === "/api/menu") {
+    if (apiPath.startsWith("/api/")) {
+      if (req.method === "GET" && apiPath === "/api/menu") {
         return handleGetMenu(res, roomId, userId);
       }
-      if (req.method === "PUT" && pathname === "/api/menu") {
+      if (req.method === "PUT" && apiPath === "/api/menu") {
         return handleUpdateMenu(req, res, roomId, userId);
       }
-      if (req.method === "POST" && pathname === "/api/register") {
+      if (req.method === "POST" && apiPath === "/api/register") {
         return handleRegister(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/login") {
+      if (req.method === "POST" && apiPath === "/api/login") {
         return handleLogin(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/create") {
+      if (req.method === "POST" && apiPath === "/api/rooms/create") {
         return handleCreateRoom(req, res);
       }
-      if (req.method === "GET" && pathname === "/api/rooms/my") {
+      if (req.method === "GET" && apiPath === "/api/rooms/my") {
         return handleGetMyRooms(res, userId);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/invite") {
+      if (req.method === "POST" && apiPath === "/api/rooms/invite") {
         return handleInviteToRoom(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/join-by-code") {
+      if (req.method === "POST" && apiPath === "/api/rooms/join-by-code") {
         return handleJoinRoomByCode(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/rename") {
+      if (req.method === "POST" && apiPath === "/api/rooms/rename") {
         return handleRenameRoom(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/leave") {
+      if (req.method === "POST" && apiPath === "/api/rooms/leave") {
         return handleLeaveRoom(req, res);
       }
-      if (req.method === "GET" && pathname === "/api/rooms/members") {
+      if (req.method === "GET" && apiPath === "/api/rooms/members") {
         return handleGetRoomMembers(res, roomId, userId);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/member-role") {
+      if (req.method === "POST" && apiPath === "/api/rooms/member-role") {
         return handleUpdateRoomMemberRole(req, res);
       }
-      if (req.method === "POST" && pathname === "/api/rooms/kick") {
+      if (req.method === "POST" && apiPath === "/api/rooms/kick") {
         return handleKickRoomMember(req, res);
       }
-      return sendJson(res, 404, { message: "Неизвестный API маршрут" });
+      return sendJson(res, 404, { message: "РќРµРёР·РІРµСЃС‚РЅС‹Р№ API РјР°СЂС€СЂСѓС‚" });
     }
 
     await serveStatic(req, res);
   } catch (error) {
-    console.error("Необработанная ошибка:", error);
+    console.error("РќРµРѕР±СЂР°Р±РѕС‚Р°РЅРЅР°СЏ РѕС€РёР±РєР°:", error);
     if (!res.headersSent) {
       res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
     }
-    res.end(JSON.stringify({ message: "Внутренняя ошибка сервера" }));
+    res.end(JSON.stringify({ message: "Р’РЅСѓС‚СЂРµРЅРЅСЏСЏ РѕС€РёР±РєР° СЃРµСЂРІРµСЂР°" }));
   }
 };
-
