@@ -64,6 +64,24 @@ VITE_API_BASE_URL=https://api.example.com/api
 
 Если `VITE_API_BASE_URL` не задан, используется относительный путь `/api` (подходит только когда frontend и backend обслуживаются одним хостом).
 
+## Deploy на Vercel
+
+На Vercel backend работает через Functions, а не через постоянный `npm start`.
+
+1. Backend:
+   - `api-core.js` содержит общую API-логику;
+   - `api/[...route].js` проксирует все `/api/*` в `requestHandler`.
+2. Frontend:
+   - Vercel собирает Vite и отдаёт `dist`.
+3. Переменные окружения в Vercel Project Settings:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_USERS_TABLE`
+   - `VITE_API_BASE_URL=/api`
+   - `VITE_SITE_URL=https://quickcashier.ru` (опционально)
+4. SPA роутинг:
+   - `vercel.json` содержит rewrite для маршрутов frontend.
+
 ## API
 
 - `GET /api/menu` — получить меню
@@ -111,11 +129,14 @@ SQL для таблицы пользователей: `supabase/users.sql`
 
 ```
 Kassa/
+├── api/             # Vercel Functions entrypoints
+├── api-core.js      # общая API/SSR логика для Vercel и local server
 ├── data/            # данные меню
 ├── dist/            # production сборка
 ├── public/          # статические файлы
 ├── src/             # исходники React
-├── server.js        # backend сервер
+├── server.js        # локальный Node bootstrap (dev/self-host)
+├── vercel.json      # Vercel routing config
 ├── vite.config.js   # конфигурация Vite
 └── package.json
 ```
