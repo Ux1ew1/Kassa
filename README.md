@@ -1,6 +1,6 @@
 ﻿# Kassa React
 
-Веб-приложение кассы на React с админ‑панелью, локальным API сервером и авторизацией через Supabase.
+Веб-приложение кассы на React с админ‑панелью, API сервером и авторизацией через Supabase.
 
 ## Возможности
 
@@ -53,12 +53,6 @@ npm start
 
 Приложение будет доступно по адресу `http://localhost:3000`.
 
-## Android / Termux
-
-Подробные инструкции:
-- `TERMUX.md`
-- `quick-start-termux.md`
-
 ## API
 
 - `GET /api/menu` — получить меню
@@ -91,13 +85,11 @@ npm start
 - `PORT` — порт сервера (по умолчанию `3000`)
 - `PUBLIC_URL` — внешний URL, который выводится в логах
 - `VITE_SITE_URL` — публичный URL фронтенда для canonical/OG meta (например `https://kassa.example.com`)
-- `PREFERRED_INTERFACE` — предпочтительный сетевой интерфейс
-- `PREFERRED_INTERFACES` — список интерфейсов через запятую
 - `SUPABASE_URL` — URL проекта Supabase
 - `SUPABASE_SERVICE_ROLE_KEY` — service role key для server-side запросов
 - `SUPABASE_USERS_TABLE` — имя таблицы пользователей (по умолчанию `users`)
 
-Пример переменных: `.env.example`
+Пример размещения переменных: `.env`
 
 SQL для таблицы пользователей: `supabase/users.sql`
 

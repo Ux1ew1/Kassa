@@ -1,7 +1,6 @@
 ﻿import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import os from "node:os";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
@@ -36,32 +35,6 @@ const SUPABASE_URL = (process.env.SUPABASE_URL || "").trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const SUPABASE_USERS_TABLE = (process.env.SUPABASE_USERS_TABLE || "users").trim();
 
-const PREFERRED_INTERFACE = process.env.PREFERRED_INTERFACE || "rmnet_data2";
-const PREFERRED_INTERFACES = (process.env.PREFERRED_INTERFACES || "")
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
-const DEFAULT_INTERFACE_HINTS = [
-  "tailscale",
-  "zerotier",
-  "wireguard",
-  "openvpn",
-  "vpn",
-  "wg",
-  "tun",
-  "tap",
-  "utun",
-  "ppp",
-  "l2tp",
-  "pptp",
-  "rmnet",
-  "wlan",
-  "wi-fi",
-  "wifi",
-  "ethernet",
-  "en",
-  "eth",
-];
 
 const __filename = fileURLToPath(import.meta.url);
 const baseDir = path.dirname(__filename);
@@ -72,81 +45,6 @@ const publicDir = path.join(baseDir, "public");
 
 const DEFAULT_MENU = [];
 
-const getLanIp = () => {
-  const networks = os.networkInterfaces();
-  if (!networks) return null;
-
-  const pickAddress = (ifaceName) => {
-    const entries = networks[ifaceName];
-    if (!entries) return null;
-    const target = entries.find(
-      (item) =>
-        item &&
-        item.family === "IPv4" &&
-        !item.internal &&
-        item.address &&
-        !item.address.startsWith("169.254."),
-    );
-    return target?.address || null;
-  };
-
-  const normalize = (value) => value.toLowerCase();
-  const interfaceNames = Object.keys(networks);
-  const preferredHints = [
-    ...PREFERRED_INTERFACES,
-    PREFERRED_INTERFACE,
-    ...DEFAULT_INTERFACE_HINTS,
-  ].filter(Boolean);
-
-  for (const hint of preferredHints) {
-    const hintLower = normalize(hint);
-    const match = interfaceNames.find((name) => {
-      const nameLower = normalize(name);
-      return nameLower === hintLower || nameLower.includes(hintLower);
-    });
-    if (!match) continue;
-    const address = pickAddress(match);
-    if (address) return address;
-  }
-
-  for (const entries of Object.values(networks)) {
-    if (!entries) continue;
-    const target = entries.find(
-      (item) =>
-        item &&
-        item.family === "IPv4" &&
-        !item.internal &&
-        item.address &&
-        !item.address.startsWith("169.254."),
-    );
-    if (target?.address) return target.address;
-  }
-
-  return null;
-};
-
-const getAllLanIps = () => {
-  const networks = os.networkInterfaces();
-  if (!networks) return [];
-  const results = [];
-
-  for (const entries of Object.values(networks)) {
-    if (!entries) continue;
-    for (const entry of entries) {
-      if (
-        entry &&
-        entry.family === "IPv4" &&
-        !entry.internal &&
-        entry.address &&
-        !entry.address.startsWith("169.254.")
-      ) {
-        results.push(entry.address);
-      }
-    }
-  }
-
-  return [...new Set(results)];
-};
 
 const { readFile, writeFile } = fs.promises;
 
@@ -1294,17 +1192,8 @@ server.listen(PORT, HOST, async () => {
   }
 
   const publicUrl = (process.env.PUBLIC_URL || "").trim();
-  const lanIp = getLanIp();
-  const allIps = getAllLanIps();
-  const resolvedUrl = publicUrl || (lanIp ? `http://${lanIp}:${PORT}` : null);
-
-  if (resolvedUrl) {
-    console.log(`Публичный URL: ${resolvedUrl}`);
-  }
-
-  if (allIps.length > 1) {
-    console.log("Available IPv4 addresses:");
-    allIps.forEach((ip) => console.log(` - http://${ip}:${PORT}`));
+  if (publicUrl) {
+    console.log(`Публичный URL: ${publicUrl}`);
   }
 });
 
