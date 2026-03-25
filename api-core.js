@@ -287,18 +287,35 @@ const sendJson = (res, statusCode, payload) => {
   res.end(JSON.stringify(payload));
 };
 
-const parseRequestBody = async (req) => {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isUuid = (value) => UUID_PATTERN.test((value || "").toString().trim());
 
-  const raw = Buffer.concat(chunks).toString("utf-8");
-  if (!raw || raw.trim().length === 0) return {};
-
+const parseRawJson = (value) => {
+  const raw = value.toString().trim();
+  if (!raw) return {};
   try {
     return JSON.parse(raw);
   } catch {
     throw new Error("Invalid JSON");
   }
+};
+
+const parseRequestBody = async (req) => {
+  if (typeof req.body !== "undefined" && req.body !== null) {
+    if (typeof req.body === "object" && !Buffer.isBuffer(req.body)) {
+      return req.body;
+    }
+    if (Buffer.isBuffer(req.body) || typeof req.body === "string") {
+      return parseRawJson(req.body);
+    }
+  }
+
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+
+  if (chunks.length === 0) return {};
+  return parseRawJson(Buffer.concat(chunks).toString("utf-8"));
 };
 
 const handleGetMenu = async (res, roomId, userId) => {
@@ -496,6 +513,11 @@ const handleCreateRoom = async (req, res) => {
     if (!name || !userId) {
       return sendJson(res, 400, { message: "name и userId обязательны" });
     }
+    if (!isUuid(userId)) {
+      return sendJson(res, 400, {
+        message: "Некорректный userId. Выйдите из аккаунта и войдите снова.",
+      });
+    }
 
     const owner = await findUserById(userId);
     if (!owner) {
@@ -659,6 +681,11 @@ const handleJoinRoomByCode = async (req, res) => {
 
     if (!userId || !code) {
       return sendJson(res, 400, { message: "userId и code обязательны" });
+    }
+    if (!isUuid(userId)) {
+      return sendJson(res, 400, {
+        message: "Некорректный userId. Выйдите из аккаунта и войдите снова.",
+      });
     }
 
     const rows = await supabaseRequest(
@@ -1177,4 +1204,7 @@ export const requestHandler = async (req, res) => {
     res.end(JSON.stringify({ message: "Внутренняя ошибка сервера" }));
   }
 };
+
+
+
 
