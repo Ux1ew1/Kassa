@@ -1,17 +1,8 @@
 import { useMemo } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { normalizeCategory } from "../utils/categories";
 import MenuItem from "./MenuItem";
 import "./Menu.css";
-
-const normalizeCategory = (value) => {
-  const v = (value || "").toString().trim().toLowerCase();
-  if (["all", "все"].includes(v)) return "все";
-  if (["drink", "drinks", "напитки"].includes(v)) return "напитки";
-  if (["food", "еда"].includes(v)) return "еда";
-  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "алкоголь";
-  if (["other", "misc", "остальное", "другое"].includes(v)) return "остальное";
-  return "остальное";
-};
 
 function Menu({
   menuItems,
@@ -25,7 +16,9 @@ function Menu({
   const isEn = language === "en";
   const itemCounts = useMemo(() => {
     const counts = new Map();
-    cartItems.forEach((cartItem) => counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1));
+    cartItems.forEach((cartItem) =>
+      counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1),
+    );
     return counts;
   }, [cartItems]);
 
@@ -77,11 +70,15 @@ function Menu({
   return (
     <div className="menu">
       {filteredItems.map((item) => (
-        <MenuItem key={item.id} item={item} quantity={itemCounts.get(item.id) || 0} onAdd={onAddItem} />
+        <MenuItem
+          key={item.id}
+          item={item}
+          quantity={itemCounts.get(item.id) || 0}
+          onAdd={onAddItem}
+        />
       ))}
     </div>
   );
 }
 
 export default Menu;
-

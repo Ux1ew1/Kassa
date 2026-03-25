@@ -2,6 +2,7 @@
  * Main cashier page with menu, cart, and check management.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMenu } from "../hooks/useMenu";
 import {
   createRoom,
@@ -24,14 +25,12 @@ import SecretMenu from "../components/SecretMenu";
 import BottomBar from "../components/BottomBar";
 import ChangeModal from "../components/ChangeModal";
 import { useLanguage } from "../contexts/LanguageContext";
+import {
+  categoryLabel,
+  collectCategories,
+  normalizeCategory,
+} from "../utils/categories";
 import "./Kassa.css";
-
-/**
- * Base set of categories displayed on the page.
- * @type {string[]}
- */
-
-const BASE_CATEGORIES = [];
 const roleLabel = (role) => {
   if (role === "owner") return "👑 owner";
   if (role === "admin") return "🛠 admin";
@@ -45,40 +44,11 @@ const userBadge = (role) => {
 };
 
 /**
- * Normalizes a category label to a supported slug.
- * @param {string} value - Raw category value.
- * @returns {string} Normalized category slug.
- */
-const normalizeCategory = (value) => {
-  const v = (value || "").toString().trim().toLowerCase();
-  if (["all", "все"].includes(v)) return "все";
-  if (["drink", "drinks", "напитки"].includes(v)) return "напитки";
-  if (["food", "еда"].includes(v)) return "еда";
-  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "алкоголь";
-  if (["other", "misc", "остальное", "другое"].includes(v)) return "остальное";
-  return "остальное";
-};
-
-/**
- * Returns a display label for a category slug.
- * @param {string} slug - Category slug.
- * @returns {string} Display label.
- */
-const categoryLabel = (slug, isEn) => {
-  const map = {
-    напитки: isEn ? "Drinks" : "Напитки",
-    еда: isEn ? "Food" : "Еда",
-    алкоголь: isEn ? "Alcohol" : "Алкоголь",
-    остальное: isEn ? "Other" : "Остальное",
-  };
-  return map[slug] || slug;
-};
-
-/**
  * Cashier page component.
  * @returns {JSX.Element} Kassa page layout.
  */
 function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const isEn = language === "en";
   const tr = (ru, en) => (isEn ? en : ru);
@@ -121,8 +91,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
   const [membersLoading, setMembersLoading] = useState(false);
   const [membersError, setMembersError] = useState("");
   const [gesturesEnabled, setGesturesEnabled] = useState(true);
-  const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [activeCategory, setActiveCategory] = useState("");
+  const [coffeeDrawerCategory, setCoffeeDrawerCategory] = useState(() =>
+    normalizeCategory("drinks"),
+  );
   const [isMobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -148,24 +120,30 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
   });
   const userMenuRef = useRef(null);
 
-  const categories = useMemo(() => {
-    const detected = Array.from(
-      new Set(menuItems.map((item) => normalizeCategory(item.category))),
-    );
-
-    return [
-      ...BASE_CATEGORIES,
-      ...detected.filter(
-        (cat) => cat && cat !== "все" && !BASE_CATEGORIES.includes(cat),
-      ),
-    ];
-  }, [menuItems]);
+  const categories = useMemo(() => collectCategories(menuItems), [menuItems]);
 
   useEffect(() => {
     if (activeCategory && !categories.includes(activeCategory)) {
       setActiveCategory("");
     }
   }, [categories, activeCategory]);
+
+  useEffect(() => {
+    const defaultCoffeeCategory = normalizeCategory("drinks");
+    if (categories.length === 0) {
+      setCoffeeDrawerCategory(defaultCoffeeCategory);
+      return;
+    }
+
+    if (coffeeDrawerCategory && categories.includes(coffeeDrawerCategory)) {
+      return;
+    }
+
+    const fallbackCategory = categories.includes(defaultCoffeeCategory)
+      ? defaultCoffeeCategory
+      : categories[0];
+    setCoffeeDrawerCategory(fallbackCategory);
+  }, [categories, coffeeDrawerCategory]);
 
   useEffect(() => {
     const loadRooms = async () => {
@@ -182,7 +160,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
           onRoomChange(loadedRooms[0]);
         }
       } catch (error) {
-        setRoomError(error.message || (isEn ? "Failed to load rooms" : "Не удалось загрузить комнаты"));
+        setRoomError(
+          error.message ||
+            (isEn ? "Failed to load rooms" : "Не удалось загрузить комнаты"),
+        );
       } finally {
         setRoomsLoading(false);
       }
@@ -590,7 +571,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       const loadedMembers = await fetchRoomMembers(roomId, user.id);
       setMembers(loadedMembers);
     } catch (error) {
-      setMembersError(error.message || tr("Не удалось загрузить участников", "Failed to load members"));
+      setMembersError(
+        error.message ||
+          tr("Не удалось загрузить участников", "Failed to load members"),
+      );
       setMembers([]);
     } finally {
       setMembersLoading(false);
@@ -620,7 +604,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       const payload = await createRoom(nextName, user.id);
       const createdRoom = payload?.room;
       if (!createdRoom) {
-        throw new Error(tr("Не удалось создать комнату", "Failed to create room"));
+        throw new Error(
+          tr("Не удалось создать комнату", "Failed to create room"),
+        );
       }
       const nextRooms = [
         createdRoom,
@@ -633,7 +619,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       setRoomModalMode("manage");
       setRoomModalOpen(false);
     } catch (error) {
-      setRoomError(error.message || tr("Не удалось создать комнату", "Failed to create room"));
+      setRoomError(
+        error.message ||
+          tr("Не удалось создать комнату", "Failed to create room"),
+      );
       return;
     } finally {
       setRoomRequestPending(false);
@@ -650,7 +639,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       setRoomError("");
       const payload = await renameRoom(activeRoom.id, user.id, nextName);
       const updatedRoom = payload?.room;
-      if (!updatedRoom) throw new Error(tr("Не удалось изменить комнату", "Failed to update room"));
+      if (!updatedRoom)
+        throw new Error(
+          tr("Не удалось изменить комнату", "Failed to update room"),
+        );
 
       const loadedRooms = await fetchMyRooms(user.id);
       setRooms(loadedRooms);
@@ -660,7 +652,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       setRoomDraft(active.name);
       setIsEditingRoomName(false);
     } catch (error) {
-      setRoomError(error.message || tr("Не удалось изменить название комнаты", "Failed to rename room"));
+      setRoomError(
+        error.message ||
+          tr("Не удалось изменить название комнаты", "Failed to rename room"),
+      );
     } finally {
       setRoomRequestPending(false);
     }
@@ -680,7 +675,12 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
     const canInvite =
       activeRoom?.role === "owner" || activeRoom?.role === "admin";
     if (!canInvite) {
-      setInviteError(tr("Недостаточно прав для приглашения", "Insufficient permissions to invite"));
+      setInviteError(
+        tr(
+          "Недостаточно прав для приглашения",
+          "Insufficient permissions to invite",
+        ),
+      );
       return;
     }
     const login = inviteLogin.trim();
@@ -696,7 +696,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       setRooms(loadedRooms);
       await loadRoomMembers(activeRoom.id);
     } catch (error) {
-      setInviteError(error.message || tr("Не удалось пригласить пользователя", "Failed to invite user"));
+      setInviteError(
+        error.message ||
+          tr("Не удалось пригласить пользователя", "Failed to invite user"),
+      );
     } finally {
       setInviteActionType("");
       setRoomRequestPending(false);
@@ -713,7 +716,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       setInviteError("");
       const payload = await joinRoomByCode(user.id, code);
       const joinedRoom = payload?.room;
-      if (!joinedRoom) throw new Error(tr("Не удалось присоединиться к комнате", "Failed to join room"));
+      if (!joinedRoom)
+        throw new Error(
+          tr("Не удалось присоединиться к комнате", "Failed to join room"),
+        );
 
       const loadedRooms = await fetchMyRooms(user.id);
       setRooms(loadedRooms);
@@ -722,7 +728,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       onRoomChange(active);
       setInviteModalOpen(false);
     } catch (error) {
-      setInviteError(error.message || tr("Не удалось войти в комнату", "Failed to join room"));
+      setInviteError(
+        error.message ||
+          tr("Не удалось войти в комнату", "Failed to join room"),
+      );
     } finally {
       setInviteActionType("");
       setRoomRequestPending(false);
@@ -731,7 +740,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
 
   const handleLeaveRoom = async () => {
     if (!activeRoom?.id || !user?.id || roomRequestPending) return;
-    const confirmed = window.confirm(tr("Выйти из текущей комнаты?", "Leave current room?"));
+    const confirmed = window.confirm(
+      tr("Выйти из текущей комнаты?", "Leave current room?"),
+    );
     if (!confirmed) return;
     try {
       setUserMenuOpen(false);
@@ -744,7 +755,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       onRoomChange(loadedRooms[0] || null);
       await loadRoomMembers(loadedRooms[0]?.id);
     } catch (error) {
-      const message = error.message || tr("Не удалось выйти из комнаты", "Failed to leave room");
+      const message =
+        error.message ||
+        tr("Не удалось выйти из комнаты", "Failed to leave room");
       setRoomError(message);
       window.alert(message);
     } finally {
@@ -755,6 +768,12 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
   const canManageCurrentRoom =
     activeRoom?.id &&
     (activeRoom?.role === "owner" || activeRoom?.role === "admin");
+  const canOpenRoomSettings = canManageCurrentRoom;
+
+  const handleOpenRoomSettings = () => {
+    if (!canOpenRoomSettings) return;
+    navigate("/admin");
+  };
 
   const handleUpdateMemberRole = async (memberUserId, role) => {
     if (!activeRoom?.id || !user?.id || roomRequestPending) return;
@@ -771,7 +790,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
         onRoomChange(updatedActive);
       }
     } catch (error) {
-      setMembersError(error.message || tr("Не удалось обновить роль", "Failed to update role"));
+      setMembersError(
+        error.message ||
+          tr("Не удалось обновить роль", "Failed to update role"),
+      );
     } finally {
       setRoomRequestPending(false);
     }
@@ -781,7 +803,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
     if (!activeRoom?.id || !user?.id || roomRequestPending) return;
     const confirmed = window.confirm(
       memberLogin
-        ? tr(`Исключить пользователя ${memberLogin} из комнаты?`, `Kick ${memberLogin} from room?`)
+        ? tr(
+            `Исключить пользователя ${memberLogin} из комнаты?`,
+            `Kick ${memberLogin} from room?`,
+          )
         : tr("Исключить пользователя из комнаты?", "Kick user from room?"),
     );
     if (!confirmed) return;
@@ -790,7 +815,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
       await kickRoomMember(activeRoom.id, user.id, memberUserId);
       await loadRoomMembers(activeRoom.id);
     } catch (error) {
-      setMembersError(error.message || tr("Не удалось исключить пользователя", "Failed to kick user"));
+      setMembersError(
+        error.message ||
+          tr("Не удалось исключить пользователя", "Failed to kick user"),
+      );
     } finally {
       setRoomRequestPending(false);
     }
@@ -802,18 +830,19 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
     loadRoomMembers(activeRoom.id);
   }, [isRoomModalOpen, roomModalMode, activeRoom?.id, user?.id]);
 
+  const shouldLowerHeaderZIndex =
+    isSecretMenuOpen || isCoffeeMenuOpen || (!isDesktop && isCartDrawerOpen);
+
   return (
     <div
-      className={`container${lowPerformanceMode ? " container--lite" : ""}${
+      className={`container${
         isDesktop ? " container--desktop kassa-desktop" : ""
       }`}
     >
-      <div className="app-header">
-        <h1
-          className="app-header__logo"
-        >
-          ~\(≧▽≦)/~
-        </h1>
+      <div
+        className={`app-header${shouldLowerHeaderZIndex ? " app-header--z0" : ""}`}
+      >
+        <h1 className="app-header__logo">Kassa</h1>
         <div className="app-header__right">
           {isDesktop ? (
             <>
@@ -849,11 +878,11 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                     <button
                       type="button"
                       className="app-header__user-menu-item"
-                      onClick={handleOpenRoomModal}
+                      onClick={() => handleOpenInviteModal("join")}
                       role="menuitem"
                       disabled={roomRequestPending}
                     >
-                      {tr("Комната", "Room")}
+                      {tr("Присоединиться к комнате", "Join room")}
                     </button>
                     <button
                       type="button"
@@ -905,21 +934,23 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                 <button
                   className="app-header__room-button"
                   type="button"
-                  onClick={() => handleOpenInviteModal("join")}
-                  aria-label={tr("Присоединиться к комнате", "Join room")}
-                  disabled={roomRequestPending}
-                >
-                  {tr("Присоединиться", "Join")}
-                </button>
-                <button
-                  className="app-header__room-button"
-                  type="button"
                   onClick={handleOpenRoomModal}
                   aria-label={tr("Комната", "Room")}
                   disabled={roomRequestPending}
                 >
                   {tr("Комната", "Room")}
                 </button>
+                {canOpenRoomSettings ? (
+                  <button
+                    className="app-header__room-button"
+                    type="button"
+                    onClick={handleOpenRoomSettings}
+                    aria-label={tr("настройка комнаты", "Room settings")}
+                    disabled={roomRequestPending}
+                  >
+                    {tr("настройка комнаты", "Room settings")}
+                  </button>
+                ) : null}
               </div>
             </>
           ) : (
@@ -944,7 +975,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                     {`${userBadge(activeRoom?.role)}${user?.login || (isEn ? "Guest" : "Гость")}`}
                   </div>
                   <div className="app-header__mobile-room">
-                    {activeRoom?.name ? activeRoom.name : tr("Комната не выбрана", "No room selected")}
+                    {activeRoom?.name
+                      ? activeRoom.name
+                      : tr("Комната не выбрана", "No room selected")}
                   </div>
                   <div className="app-header__mobile-actions">
                     <button
@@ -971,6 +1004,16 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                     >
                       {tr("Пригласить", "Invite")}
                     </button>
+                    {canOpenRoomSettings ? (
+                      <button
+                        type="button"
+                        className="app-header__mobile-item"
+                        onClick={handleOpenRoomSettings}
+                        disabled={roomRequestPending}
+                      >
+                        {tr("настройка комнаты", "Room settings")}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       className="app-header__mobile-item"
@@ -1002,7 +1045,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                       {tr("Выйти", "Sign out")}
                     </button>
                   </div>
-                  <div className="app-header__mobile-version">{tr("Версия 3", "Version 3")}</div>
+                  <div className="app-header__mobile-version">
+                    {tr("Версия 3", "Version 3")}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -1014,7 +1059,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
           <>
             <aside className="desktop-column desktop-column--left">
               <div className="desktop-panel desktop-panel--cart">
-                <div className="desktop-panel__title">{tr("Корзина", "Cart")}</div>
+                <div className="desktop-panel__title">
+                  {tr("Корзина", "Cart")}
+                </div>
                 <Cart
                   items={activeCheck?.items || []}
                   onRemove={removeItemFromCheck}
@@ -1058,7 +1105,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
               {!activeRoom?.id ? (
                 <div className="menu room-empty">
                   <div className="menu-placeholder room-empty__text">
-                    {tr("Меню пустое. Создайте комнату, чтобы продолжить.", "Menu is empty. Create or join a room to continue.")}
+                    {tr(
+                      "Меню пустое. Создайте комнату, чтобы продолжить.",
+                      "Menu is empty. Create or join a room to continue.",
+                    )}
                   </div>
                   <button
                     className="room-empty__button"
@@ -1096,7 +1146,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   )}
                   {loading ? (
                     <div className="menu">
-                      <div className="menu-placeholder">{tr("Загрузка меню...", "Loading menu...")}</div>
+                      <div className="menu-placeholder">
+                        {tr("Загрузка меню...", "Loading menu...")}
+                      </div>
                     </div>
                   ) : (
                     <Menu
@@ -1120,6 +1172,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   checks={checks}
                   activeCheckId={activeCheckId}
                   onToggleFulfilled={toggleItemsFulfilled}
+                  availableCategories={categories}
+                  selectedCategory={coffeeDrawerCategory}
+                  onCategoryChange={setCoffeeDrawerCategory}
+                  showSwipeHint={!isDesktop}
                   variant="panel"
                 />
               )}
@@ -1132,6 +1188,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                 checks={checks}
                 activeCheckId={activeCheckId}
                 onToggleFulfilled={toggleItemsFulfilled}
+                availableCategories={categories}
+                selectedCategory={coffeeDrawerCategory}
+                onCategoryChange={setCoffeeDrawerCategory}
+                showSwipeHint={!isDesktop}
                 variant="overlay"
               />
             )}
@@ -1175,7 +1235,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
             {!activeRoom?.id ? (
               <div className="menu room-empty">
                 <div className="menu-placeholder room-empty__text">
-                  {tr("Меню пустое. Создайте комнату, чтобы продолжить.", "Menu is empty. Create or join a room to continue.")}
+                  {tr(
+                    "Меню пустое. Создайте комнату, чтобы продолжить.",
+                    "Menu is empty. Create or join a room to continue.",
+                  )}
                 </div>
                 <button
                   className="room-empty__button"
@@ -1214,7 +1277,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
 
                 {loading ? (
                   <div className="menu">
-                    <div className="menu-placeholder">{tr("Загрузка меню...", "Loading menu...")}</div>
+                    <div className="menu-placeholder">
+                      {tr("Загрузка меню...", "Loading menu...")}
+                    </div>
                   </div>
                 ) : (
                   <Menu
@@ -1247,20 +1312,29 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
               }`}
             >
               <div className="cart-drawer__header">
-                <span className="cart-drawer__title">{tr("Корзина товаров", "Cart items")}</span>
+                <div className="cart-drawer__head-text">
+                  <span className="cart-drawer__title">
+                    {tr("Корзина товаров", "Cart items")}
+                  </span>
+                </div>
                 <button
                   className="cart-drawer__close"
                   type="button"
                   onClick={handleToggleCartDrawer}
                   aria-label={tr("Корзина товаров", "Cart items")}
                 >
-                  x
+                  ×
                 </button>
               </div>
               <Cart
                 items={activeCheck?.items || []}
                 onRemove={removeItemFromCheck}
                 onToggleFulfilled={toggleItemsFulfilled}
+                showEmptyHint={!isDesktop}
+                emptyHintText={tr(
+                  "Это меню можно открыть свайпом вправо",
+                  "This menu can be opened with a swipe right",
+                )}
               />
             </div>
             {isCartDrawerOpen && (
@@ -1275,6 +1349,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
               checks={checks}
               activeCheckId={activeCheckId}
               onToggleFulfilled={toggleItemsFulfilled}
+              availableCategories={categories}
+              selectedCategory={coffeeDrawerCategory}
+              onCategoryChange={setCoffeeDrawerCategory}
+              showSwipeHint={!isDesktop}
             />
           </>
         )}
@@ -1285,10 +1363,6 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
         showGestures={!isDesktop}
         gesturesEnabled={gesturesEnabled}
         onToggleGestures={() => setGesturesEnabled((prev) => !prev)}
-        lowPerformanceMode={lowPerformanceMode}
-        onToggleLowPerformanceMode={() =>
-          setLowPerformanceMode((prev) => !prev)
-        }
       />
       <ChangeModal
         isOpen={isChangeModalOpen}
@@ -1310,7 +1384,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
           >
             <div className="room-modal__header">
               <h2 className="room-modal__title">
-                {roomModalMode === "create" ? tr("Создать комнату", "Create room") : tr("Комнаты", "Rooms")}
+                {roomModalMode === "create"
+                  ? tr("Создать комнату", "Create room")
+                  : tr("Комнаты", "Rooms")}
               </h2>
               <button
                 type="button"
@@ -1333,7 +1409,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   type="text"
                   value={roomDraft}
                   onChange={(event) => setRoomDraft(event.target.value)}
-                  placeholder={tr("Например: VIP 1", "For example: VIP 1")}
+                  placeholder={tr(
+                    "Например: Кофейня",
+                    "For example: Coffee house",
+                  )}
                   autoFocus
                   disabled={roomRequestPending}
                 />
@@ -1360,12 +1439,17 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
             ) : (
               <>
                 {roomsLoading ? (
-                  <div className="room-modal__note">{tr("Загрузка комнат...", "Loading rooms...")}</div>
+                  <div className="room-modal__note">
+                    {tr("Загрузка комнат...", "Loading rooms...")}
+                  </div>
                 ) : (
                   <div className="room-list">
                     {rooms.length === 0 ? (
                       <div className="room-modal__note">
-                        {tr("Вы пока не состоите ни в одной комнате.", "You are not a member of any rooms yet.")}
+                        {tr(
+                          "Вы пока не состоите ни в одной комнате.",
+                          "You are not a member of any rooms yet.",
+                        )}
                       </div>
                     ) : (
                       rooms.map((room) => (
@@ -1388,7 +1472,9 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                 )}
 
                 <div className="room-modal__divider" />
-                <div className="room-modal__subtitle">{tr("Участники комнаты", "Room members")}</div>
+                <div className="room-modal__subtitle">
+                  {tr("Участники комнаты", "Room members")}
+                </div>
                 {members.length === 0 && membersLoading ? (
                   <div
                     className="member-list member-list--skeleton"
@@ -1452,7 +1538,12 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                                     roomRequestPending || isOwner || isSelf
                                   }
                                   title={
-                                    isSelf ? tr("Нельзя исключить самого себя", "You cannot kick yourself") : ""
+                                    isSelf
+                                      ? tr(
+                                          "Нельзя исключить самого себя",
+                                          "You cannot kick yourself",
+                                        )
+                                      : ""
                                   }
                                 >
                                   {tr("Кик", "Kick")}
@@ -1485,13 +1576,14 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   <>
                     <div className="room-modal__divider" />
                     <div className="room-modal__subtitle">
-                      {tr("Короткий ID комнаты:", "Room short ID:")}{" "}
+                      {tr("ID комнаты:", "Room ID:")}{" "}
                       <strong>{activeRoom?.code || "—"}</strong>
                     </div>
-                    <div className="room-modal__subtitle">{tr("Название комнаты", "Room name")}</div>
                     <div className="room-modal__room-name-row">
                       <span className="room-modal__room-name">
-                        {activeRoom?.name || "—"}
+                        {`${tr("Название комнаты", "Room name")}: ${
+                          activeRoom?.name || "—"
+                        }`}
                       </span>
                       {canManageCurrentRoom ? (
                         <button
@@ -1503,10 +1595,11 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                           }}
                           disabled={roomRequestPending}
                         >
-                          {isEditingRoomName ? tr("Скрыть", "Hide") : tr("Редактировать", "Edit")}
+                          {isEditingRoomName ? tr("x", "x") : tr("✏️", "✏️")}
                         </button>
                       ) : null}
                     </div>
+
                     {isEditingRoomName && canManageCurrentRoom ? (
                       <>
                         <input
@@ -1514,7 +1607,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                           type="text"
                           value={roomDraft}
                           onChange={(event) => setRoomDraft(event.target.value)}
-                          placeholder={tr("Например: VIP 1", "For example: VIP 1")}
+                          placeholder={tr(
+                            "Например: Кофейня",
+                            "For example: Coffee house",
+                          )}
                           autoFocus
                           disabled={roomRequestPending}
                         />
@@ -1535,7 +1631,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   </>
                 ) : (
                   <div className="room-modal__note">
-                    {tr("Активная комната не выбрана.", "No active room selected.")}
+                    {tr(
+                      "Активная комната не выбрана.",
+                      "No active room selected.",
+                    )}
                   </div>
                 )}
               </>
@@ -1579,7 +1678,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   </div>
                 ) : (
                   <div className="room-modal__note">
-                    {tr("Текущая комната не выбрана.", "No current room selected.")}
+                    {tr(
+                      "Текущая комната не выбрана.",
+                      "No current room selected.",
+                    )}
                   </div>
                 )}
                 {canManageCurrentRoom ? (
@@ -1624,7 +1726,10 @@ function Kassa({ user, onLogout, activeRoom, onRoomChange }) {
                   </>
                 ) : (
                   <div className="room-modal__note">
-                    {tr("Для приглашения нужны права admin или owner.", "Admin or owner role is required to invite.")}
+                    {tr(
+                      "Для приглашения нужны права admin или owner.",
+                      "Admin or owner role is required to invite.",
+                    )}
                   </div>
                 )}
               </>

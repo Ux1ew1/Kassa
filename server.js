@@ -30,6 +30,7 @@ loadDotEnv();
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT) || 3000;
+const DEFAULT_PUBLIC_URL = "https://quickcashier.ru";
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").trim();
 const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
@@ -252,7 +253,32 @@ const writeMenuData = async (data) => {
 
 const hasSupabaseConfig = () => Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const normalizeLogin = (value) => (value || "").toString().trim().toLowerCase();
+const REGISTER_LOGIN_MIN_LENGTH = 3;
+const REGISTER_LOGIN_MAX_LENGTH = 24;
+const REGISTER_PASSWORD_MIN_LENGTH = 6;
+const REGISTER_PASSWORD_MAX_LENGTH = 72;
+const REGISTER_LOGIN_PATTERN = /^[a-z0-9._-]+$/i;
 const hashPassword = (password, salt) => crypto.scryptSync(password, salt, 64).toString("hex");
+const validateRegisterCredentials = (login, password) => {
+  if (!login) return "Логин обязателен";
+  if (login.length < REGISTER_LOGIN_MIN_LENGTH) {
+    return `Логин должен содержать минимум ${REGISTER_LOGIN_MIN_LENGTH} символа`;
+  }
+  if (login.length > REGISTER_LOGIN_MAX_LENGTH) {
+    return `Логин должен содержать не более ${REGISTER_LOGIN_MAX_LENGTH} символов`;
+  }
+  if (!REGISTER_LOGIN_PATTERN.test(login)) {
+    return "Логин может содержать только буквы, цифры, точку, подчёркивание и дефис";
+  }
+  if (!password) return "Пароль обязателен";
+  if (password.length < REGISTER_PASSWORD_MIN_LENGTH) {
+    return `Пароль должен содержать минимум ${REGISTER_PASSWORD_MIN_LENGTH} символов`;
+  }
+  if (password.length > REGISTER_PASSWORD_MAX_LENGTH) {
+    return `Пароль должен содержать не более ${REGISTER_PASSWORD_MAX_LENGTH} символов`;
+  }
+  return null;
+};
 
 const verifyPassword = (password, salt, expectedHash) => {
   const actual = Buffer.from(hashPassword(password, salt), "hex");
@@ -484,12 +510,9 @@ const handleRegister = async (req, res) => {
     const payload = await parseRequestBody(req);
     const login = normalizeLogin(payload?.login);
     const password = (payload?.password || "").toString().trim();
-
-    if (login.length < 3) {
-      return sendJson(res, 400, { message: "Логин должен содержать минимум 3 символа" });
-    }
-    if (password.length < 4) {
-      return sendJson(res, 400, { message: "Пароль должен содержать минимум 4 символа" });
+    const validationError = validateRegisterCredentials(login, password);
+    if (validationError) {
+      return sendJson(res, 400, { message: validationError });
     }
 
     const existingUser = await findUserByLogin(login);
@@ -1063,6 +1086,57 @@ const dirExists = async (dirPath) => {
   }
 };
 
+const getPublicBaseUrl = (req) => {
+  const configured = (process.env.PUBLIC_URL || DEFAULT_PUBLIC_URL).trim();
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  const forwardedProto = (req.headers["x-forwarded-proto"] || "").toString().split(",")[0].trim();
+  const forwardedHost = (req.headers["x-forwarded-host"] || "").toString().split(",")[0].trim();
+  const host = forwardedHost || (req.headers.host || `localhost:${PORT}`).toString().trim();
+  const protocol = forwardedProto || "http";
+
+  return `${protocol}://${host}`.replace(/\/+$/, "");
+};
+
+const handleRobotsTxt = (req, res) => {
+  const baseUrl = getPublicBaseUrl(req);
+  const payload = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    "Disallow: /admin",
+    `Sitemap: ${baseUrl}/sitemap.xml`,
+  ].join("\n");
+
+  res.writeHead(200, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "public, max-age=3600",
+  });
+  res.end(payload);
+};
+
+const handleSitemapXml = (req, res) => {
+  const baseUrl = getPublicBaseUrl(req);
+  const now = new Date().toISOString();
+  const payload = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`;
+
+  res.writeHead(200, {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": "public, max-age=3600",
+  });
+  res.end(payload);
+};
+
 const serveStatic = async (req, res) => {
   try {
     const urlPath = decodeURIComponent(req.url.split("?")[0]);
@@ -1144,6 +1218,14 @@ const requestHandler = async (req, res) => {
     if (pathname === "/favicon.ico") {
       res.writeHead(204);
       return res.end();
+    }
+
+    if (req.method === "GET" && pathname === "/robots.txt") {
+      return handleRobotsTxt(req, res);
+    }
+
+    if (req.method === "GET" && pathname === "/sitemap.xml") {
+      return handleSitemapXml(req, res);
     }
 
     if (pathname.startsWith("/api/")) {

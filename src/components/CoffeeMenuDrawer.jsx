@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { categoryLabel, normalizeCategory } from "../utils/categories";
 import "./CoffeeMenuDrawer.css";
 
 const COFFEE_KEYWORDS = [
@@ -24,18 +25,8 @@ function isCoffeeItem(name = "") {
   return COFFEE_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
-function getCoffeeLetter(name = "") {
-  const normalized = name.toLowerCase();
-  if (normalized.includes("капуч") || normalized.includes("capp")) return "C";
-  if (normalized.includes("амер") || normalized.includes("americano"))
-    return "A";
-  if (normalized.includes("эспресс") || normalized.includes("espresso"))
-    return "E";
-  if (normalized.includes("латт") || normalized.includes("latte")) return "L";
-  if (normalized.includes("раф")) return "R";
-  if (normalized.includes("макиато") || normalized.includes("macchiato"))
-    return "M";
-  const firstLetter = normalized.trim().charAt(0);
+function getItemLetter(name = "") {
+  const firstLetter = name.trim().charAt(0);
   return firstLetter ? firstLetter.toUpperCase() : "C";
 }
 
@@ -45,36 +36,75 @@ function CoffeeMenuDrawer({
   checks = [],
   activeCheckId,
   onToggleFulfilled,
+  availableCategories = [],
+  selectedCategory = "",
+  onCategoryChange,
+  showSwipeHint = false,
   variant = "overlay",
 }) {
   const { language } = useLanguage();
   const isEn = language === "en";
-  const preparedChecks = useMemo(
-    () =>
-      checks
-        .map((check) => {
-          const withIndex = (check.items || []).map((item, index) => ({
-            ...item,
-            index,
-          }));
-          const coffeeItems = withIndex.filter((item) =>
-            isCoffeeItem(item?.name || ""),
-          );
-          return {
-            id: check.id,
-            hasCoffee: coffeeItems.length > 0,
-            squareItems: coffeeItems.map((item) => ({
-              key: `${check.id}-${item.index}`,
-              name: item.name,
-              letter: getCoffeeLetter(item.name),
-              fulfilled: Boolean(item.fulfilled),
-              index: item.index,
-            })),
-          };
-        })
-        .filter((check) => check.hasCoffee),
-    [checks],
-  );
+  const [isCategorySelectOpen, setCategorySelectOpen] = useState(false);
+  const normalizedSelectedCategory = normalizeCategory(selectedCategory);
+
+  const categoryOptions = useMemo(() => {
+    const unique = new Set();
+    availableCategories.forEach((category) => {
+      const normalized = normalizeCategory(category);
+      if (normalized) unique.add(normalized);
+    });
+    return Array.from(unique);
+  }, [availableCategories]);
+
+  useEffect(() => {
+    if (!open) {
+      setCategorySelectOpen(false);
+    }
+  }, [open]);
+
+  const preparedChecks = useMemo(() => {
+    const selectedDrinksCategory = normalizeCategory("drinks");
+
+    const isItemFromSelectedCategory = (item) => {
+      if (!normalizedSelectedCategory) {
+        return isCoffeeItem(item?.name || "");
+      }
+
+      const itemCategory = normalizeCategory(item?.category);
+      if (itemCategory) {
+        return itemCategory === normalizedSelectedCategory;
+      }
+
+      return (
+        normalizedSelectedCategory === selectedDrinksCategory &&
+        isCoffeeItem(item?.name || "")
+      );
+    };
+
+    return checks
+      .map((check) => {
+        const withIndex = (check.items || []).map((item, index) => ({
+          ...item,
+          index,
+        }));
+        const matchingItems = withIndex.filter((item) =>
+          isItemFromSelectedCategory(item),
+        );
+
+        return {
+          id: check.id,
+          hasItems: matchingItems.length > 0,
+          squareItems: matchingItems.map((item) => ({
+            key: `${check.id}-${item.index}`,
+            name: item.name,
+            letter: getItemLetter(item.name),
+            fulfilled: Boolean(item.fulfilled),
+            index: item.index,
+          })),
+        };
+      })
+      .filter((check) => check.hasItems);
+  }, [checks, normalizedSelectedCategory]);
 
   if (!open) return null;
 
@@ -88,36 +118,73 @@ function CoffeeMenuDrawer({
       onClick={(event) => event.stopPropagation()}
     >
       <div className="coffee-menu-header">
-        <div>
+        <div className="coffee-menu-header__title-wrap">
           <div className="coffee-menu-title">
             {isEn ? "Coffee items" : "Кофейные позиции"}
           </div>
           <div className="coffee-menu-subtitle">
-            {preparedChecks.length > 0
-              ? isEn
-                ? "Coffee grouped by checks"
-                : "Дублируем кофе по каждому чеку"
-              : isEn
-                ? "No checks yet"
-                : "Чеки отсутствуют"}
+            {isEn ? "Category:" : "Категория:"}{" "}
+            {categoryLabel(normalizedSelectedCategory, isEn)}
           </div>
         </div>
-        <button
-          className="coffee-menu-close"
-          type="button"
-          onClick={onClose}
-          aria-label={isEn ? "Close menu" : "Закрыть меню"}
-        >
-          ✕
-        </button>
+
+        <div className="coffee-menu-header__actions">
+          <button
+            className="coffee-menu-category-toggle"
+            type="button"
+            onClick={() => setCategorySelectOpen((prev) => !prev)}
+            aria-expanded={isCategorySelectOpen}
+            disabled={categoryOptions.length === 0}
+            aria-label={
+              isEn ? "Change category" : "Изменить выбранную категорию"
+            }
+          >
+            ✏️
+          </button>
+          <button
+            className="coffee-menu-close"
+            type="button"
+            onClick={onClose}
+            aria-label={isEn ? "Close menu" : "Закрыть меню"}
+          >
+            ×
+          </button>
+        </div>
       </div>
+
+      {isCategorySelectOpen && (
+        <div className="coffee-menu-category-picker">
+          <select
+            className="coffee-menu-category-select"
+            value={normalizedSelectedCategory || categoryOptions[0] || ""}
+            onChange={(event) => {
+              onCategoryChange?.(event.target.value);
+              setCategorySelectOpen(false);
+            }}
+            aria-label={isEn ? "Category selector" : "Выбор категории"}
+          >
+            {categoryOptions.map((normalizedCategory) => (
+              <option key={normalizedCategory} value={normalizedCategory}>
+                {categoryLabel(normalizedCategory, isEn)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="coffee-menu-list">
         {preparedChecks.length === 0 && (
           <div className="coffee-menu-empty">
             {isEn
-              ? "All drinks from the coffee category will be displayed here"
-              : `Здесь будут отображаться все напитки из категории "кофе"`}
+              ? "Items from the selected category will be displayed here"
+              : "Здесь будут отображаться товары из выбранной категории"}
+            {showSwipeHint && (
+              <div className="coffee-menu-swipe-hint">
+                {isEn
+                  ? "This menu can be opened with a swipe left"
+                  : "Это меню можно открыть свайпом влево"}
+              </div>
+            )}
           </div>
         )}
 
@@ -136,7 +203,7 @@ function CoffeeMenuDrawer({
             <div className="coffee-menu-squares">
               {check.squareItems.length === 0 ? (
                 <span className="coffee-menu-empty-inline">
-                  {isEn ? "No coffee" : "Кофе нет"}
+                  {isEn ? "No items" : "Товаров нет"}
                 </span>
               ) : (
                 check.squareItems.map((item) => (

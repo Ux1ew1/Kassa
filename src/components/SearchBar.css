@@ -1,48 +1,35 @@
-.search-container {
+﻿.search-container {
   position: relative;
-  padding: 12px 4px;
-  background-color: var(--color-app-bg);
+  padding: 10px 4px;
   box-sizing: border-box;
-  transition: transform 0.2s ease;
+  z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 42px 12px 14px;
-  font-size: 16px;
+  height: 42px;
+  padding: 0 42px 0 14px;
+  font-size: 14px;
   border: 1px solid var(--color-input-border);
-  border-radius: 8px;
-  background-color: var(--color-input-bg);
+  border-radius: var(--radius-control);
+  background-color: var(--color-card-solid);
   color: var(--color-text-primary);
   outline: none;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
+    border-color var(--transition-default),
+    box-shadow var(--transition-default),
+    background-color var(--transition-default);
   box-sizing: border-box;
   touch-action: manipulation;
-  box-shadow: 0 8px 16px var(--color-shadow);
 }
 
 .search-input:focus {
-  border-color: var(--color-border);
-  box-shadow:
-    0 12px 24px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-color: color-mix(in srgb, var(--color-border) 70%, var(--color-input-border));
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .search-input--active {
-  background-color: color-mix(
-    in srgb,
-    var(--color-button-alt-bg) 24%,
-    transparent
-  );
-  border-color: color-mix(
-    in srgb,
-    var(--color-button-alt-bg) 56%,
-    var(--color-input-border)
-  );
-  animation: search-active-glow 1.9s ease-in-out infinite;
+  background-color: var(--color-card-solid);
 }
 
 .search-input::placeholder {
@@ -52,64 +39,33 @@
 .search-clear-button {
   position: absolute;
   top: 50%;
-  right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
-  border-radius: 50%;
+  right: 11px;
   transform: translateY(-50%);
-  transition: color 0.2s ease, transform 0.15s ease, background-color 0.2s ease;
-  touch-action: manipulation;
+  --ui-btn-width: 28px;
+  --ui-btn-min-width: 28px;
+  --ui-btn-height: 28px;
+  --ui-btn-padding-x: 0;
+  --ui-btn-font-size: 16px;
+  --ui-btn-radius: 50%;
+  --ui-btn-bg: transparent;
+  --ui-btn-bg-hover: var(--color-surface-2);
+  --ui-btn-color: var(--color-text-muted);
+  --ui-btn-border-color: transparent;
+  --ui-btn-shadow: none;
+  --ui-btn-shadow-hover: none;
 }
 
 .search-clear-button:hover {
   color: var(--color-text-primary);
-  background-color: var(--color-chip-bg);
-  transform: translateY(-50%) scale(1.05);
+  transform: translateY(-50%);
 }
 
 .search-clear-button:active {
-  transform: translateY(-50%) scale(0.94);
-}
-
-@keyframes search-active-glow {
-  0%,
-  100% {
-    box-shadow:
-      0 10px 20px var(--color-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  }
-  50% {
-    box-shadow:
-      0 14px 28px var(--color-shadow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.24);
-  }
+  transform: translateY(-50%) scale(0.95);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .search-input--active {
-    animation: none;
-  }
-
-  .search-clear-button:hover,
   .search-clear-button:active {
     transform: translateY(-50%);
-  }
-}
-
-@supports (-webkit-touch-callout: none) {
-  .search-input--active {
-    animation: none;
   }
 }

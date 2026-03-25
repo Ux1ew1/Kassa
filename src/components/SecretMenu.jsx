@@ -14,8 +14,6 @@ import { useCurrency } from "../contexts/CurrencyContext";
  * @param {boolean} props.gesturesEnabled - Gestures enabled flag.
  * @param {Function} props.onToggleGestures - Toggle gestures handler.
  * @param {boolean} props.showGestures - Show gestures section flag.
- * @param {boolean} props.lowPerformanceMode - Low performance mode flag.
- * @param {Function} props.onToggleLowPerformanceMode - Toggle low performance handler.
  * @returns {JSX.Element|null} Secret menu overlay or null.
  */
 function SecretMenu({
@@ -24,13 +22,12 @@ function SecretMenu({
   showGestures,
   gesturesEnabled,
   onToggleGestures,
-  lowPerformanceMode,
-  onToggleLowPerformanceMode,
 }) {
   const { theme, toggleTheme } = useTheme();
-  const { language, toggleLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const { currency, currencies, setCurrencyCode } = useCurrency();
   const isEn = language === "en";
+  const isDarkTheme = theme === "dark";
 
   if (!open) {
     return null;
@@ -44,9 +41,8 @@ function SecretMenu({
       >
         <div className="secret-menu-header">
           <div>
-            <div className="secret-menu-title">{isEn ? "Settings" : "Настройки"}</div>
-            <div className="secret-menu-caption">
-              {isEn ? "Barista settings" : "Настройки для бариста"}
+            <div className="secret-menu-title">
+              {isEn ? "Settings" : "Настройки"}
             </div>
           </div>
           <button
@@ -63,36 +59,52 @@ function SecretMenu({
           <div className="secret-menu-section-title">
             {isEn ? "App theme" : "Тема приложения"}
           </div>
-          <button
-            type="button"
-            className="secret-menu-theme-toggle"
-            onClick={toggleTheme}
-            aria-label={isEn ? "Switch theme" : "Сменить тему"}
-            title={isEn ? "Switch theme" : "Сменить тему"}
-          >
-            {theme === "dark"
-              ? isEn
-                ? "☀️ Light theme"
-                : "☀️ Светлая тема"
-              : isEn
-                ? "🌙 Dark theme"
-                : "🌙 Тёмная тема"}
-          </button>
+          <label className="secret-menu-switch">
+            <span className="secret-menu-switch__label">
+              {isDarkTheme
+                ? isEn
+                  ? "Dark mode"
+                  : "Тёмная тема"
+                : isEn
+                  ? "Light mode"
+                  : "Светлая тема"}
+            </span>
+            <input
+              type="checkbox"
+              checked={isDarkTheme}
+              onChange={toggleTheme}
+              aria-label={isEn ? "Switch theme" : "Сменить тему"}
+            />
+            <span className="secret-menu-switch__ui" aria-hidden="true" />
+          </label>
         </div>
 
         <div className="secret-menu-section">
           <div className="secret-menu-section-title">
             {isEn ? "Language" : "Язык"}
           </div>
-          <button
-            type="button"
-            className="secret-menu-theme-toggle"
-            onClick={toggleLanguage}
-            aria-label={isEn ? "Switch language" : "Сменить язык"}
-            title={isEn ? "Switch language" : "Сменить язык"}
+          <div
+            className="secret-menu-lang-buttons"
+            role="group"
+            aria-label={isEn ? "Language" : "Язык"}
           >
-            {isEn ? "Русский" : "English"}
-          </button>
+            <button
+              type="button"
+              className={`secret-menu-lang-button${language === "ru" ? " secret-menu-lang-button--active" : ""}`}
+              onClick={() => setLanguage("ru")}
+              aria-pressed={language === "ru"}
+            >
+              RU
+            </button>
+            <button
+              type="button"
+              className={`secret-menu-lang-button${language === "en" ? " secret-menu-lang-button--active" : ""}`}
+              onClick={() => setLanguage("en")}
+              aria-pressed={language === "en"}
+            >
+              EN
+            </button>
+          </div>
         </div>
 
         <div className="secret-menu-section">
@@ -130,32 +142,6 @@ function SecretMenu({
             </label>
           </div>
         ) : null}
-
-        <div className="secret-menu-section">
-          <div className="secret-menu-section-title">
-            {isEn ? "Interface" : "Интерфейс"}
-          </div>
-          <label className="secret-menu-toggle">
-            <span>
-              {isEn ? "Simplified interface mode" : "Упрощённый вид интерфейса"}
-            </span>
-            <input
-              type="checkbox"
-              checked={lowPerformanceMode}
-              onChange={onToggleLowPerformanceMode}
-              aria-label={
-                isEn ? "Simplified interface mode" : "Упрощённый вид интерфейса"
-              }
-            />
-            <span className="secret-menu-toggle-ui" aria-hidden="true" />
-          </label>
-        </div>
-
-        <div className="secret-menu-actions">
-          <a href="/admin" className="secret-menu-link">
-            {isEn ? "Open admin panel" : "Перейти в админ-панель"}
-          </a>
-        </div>
       </div>
     </div>
   );

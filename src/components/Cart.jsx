@@ -1,4 +1,4 @@
-import { useLanguage } from "../contexts/LanguageContext";
+﻿import { useLanguage } from "../contexts/LanguageContext";
 import { useCurrency } from "../contexts/CurrencyContext";
 import "./Cart.css";
 
@@ -31,7 +31,13 @@ function groupCartItems(items = []) {
   return groups;
 }
 
-function Cart({ items, onRemove, onToggleFulfilled }) {
+function Cart({
+  items,
+  onRemove,
+  onToggleFulfilled,
+  showEmptyHint = false,
+  emptyHintText = "",
+}) {
   const { language } = useLanguage();
   const { formatCurrency } = useCurrency();
   const isEn = language === "en";
@@ -40,6 +46,9 @@ function Cart({ items, onRemove, onToggleFulfilled }) {
     return (
       <div className="cart">
         <div className="cart-empty">{isEn ? "Cart is empty" : "Корзина пуста"}</div>
+        {showEmptyHint && emptyHintText ? (
+          <div className="cart-empty-hint">{emptyHintText}</div>
+        ) : null}
       </div>
     );
   }

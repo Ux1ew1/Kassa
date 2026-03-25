@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import Kassa from './pages/Kassa'
 import Admin from './pages/Admin'
 import Register from './pages/Register'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { CurrencyProvider } from './contexts/CurrencyContext'
+import { useSeo } from './hooks/useSeo'
 
 const AUTH_STORAGE_KEY = 'kassa_user'
 const ROOM_STORAGE_KEY = 'kassa_active_room'
@@ -40,6 +41,45 @@ const getStoredRoom = () => {
   } catch {
     return null
   }
+}
+
+function AppRoutes({ isAuthed, canManageMenu, user, handleLogout, activeRoom, handleRoomChange, handleRegistered }) {
+  const location = useLocation()
+
+  useSeo({
+    pathname: location.pathname,
+    isAuthed,
+  })
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          isAuthed ? (
+            <Kassa
+              user={user}
+              onLogout={handleLogout}
+              activeRoom={activeRoom}
+              onRoomChange={handleRoomChange}
+            />
+          ) : (
+            <Register onRegistered={handleRegistered} />
+          )
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          isAuthed && canManageMenu ? (
+            <Admin user={user} activeRoom={activeRoom} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+    </Routes>
+  )
 }
 
 /**
@@ -83,33 +123,15 @@ function App() {
     <LanguageProvider>
       <CurrencyProvider>
         <BrowserRouter>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                isAuthed ? (
-                  <Kassa
-                    user={user}
-                    onLogout={handleLogout}
-                    activeRoom={activeRoom}
-                    onRoomChange={handleRoomChange}
-                  />
-                ) : (
-                  <Register onRegistered={handleRegistered} />
-                )
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                isAuthed && canManageMenu ? (
-                  <Admin user={user} activeRoom={activeRoom} />
-                ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-          </Routes>
+          <AppRoutes
+            isAuthed={isAuthed}
+            canManageMenu={canManageMenu}
+            user={user}
+            handleLogout={handleLogout}
+            activeRoom={activeRoom}
+            handleRoomChange={handleRoomChange}
+            handleRegistered={handleRegistered}
+          />
         </BrowserRouter>
       </CurrencyProvider>
     </LanguageProvider>

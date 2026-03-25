@@ -90,6 +90,7 @@ npm start
 - `HOST` — хост сервера (по умолчанию `0.0.0.0`)
 - `PORT` — порт сервера (по умолчанию `3000`)
 - `PUBLIC_URL` — внешний URL, который выводится в логах
+- `VITE_SITE_URL` — публичный URL фронтенда для canonical/OG meta (например `https://kassa.example.com`)
 - `PREFERRED_INTERFACE` — предпочтительный сетевой интерфейс
 - `PREFERRED_INTERFACES` — список интерфейсов через запятую
 - `SUPABASE_URL` — URL проекта Supabase

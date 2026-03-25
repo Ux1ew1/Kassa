@@ -1,125 +1,291 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { categoryLabel, normalizeCategory } from "../utils/categories";
 import "./ItemModal.css";
 
-const normalizeCategory = (value) => {
-  const v = (value || "").toString().trim().toLowerCase();
-  if (["all", "все"].includes(v)) return "все";
-  if (["drink", "drinks", "напитки"].includes(v)) return "напитки";
-  if (["food", "еда"].includes(v)) return "еда";
-  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "алкоголь";
-  if (["other", "misc", "остальное", "другое"].includes(v)) return "остальное";
-  return "остальное";
-};
+const CUSTOM_CATEGORY_VALUE = "__custom__";
+const FALLBACK_CATEGORY = "остальное";
+const DEFAULT_CATEGORIES = ["напитки", "еда", "алкоголь", FALLBACK_CATEGORY];
 
-function ItemModal({ isOpen, mode, item, onSave, onClose }) {
+function ItemModal({
+  isOpen,
+  mode,
+  item,
+  onSave,
+  onClose,
+  onDeleteCategory,
+  existingCategories = [],
+}) {
   const { language } = useLanguage();
   const isEn = language === "en";
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("остальное");
+  const [category, setCategory] = useState(FALLBACK_CATEGORY);
+  const [customCategory, setCustomCategory] = useState("");
   const [show, setShow] = useState(true);
+  const [isDeletingCategory, setDeletingCategory] = useState(false);
 
-  const categoryOptions = useMemo(
-    () => [
-      { value: "напитки", label: isEn ? "Drinks" : "Напитки" },
-      { value: "еда", label: isEn ? "Food" : "Еда" },
-      { value: "алкоголь", label: isEn ? "Alcohol" : "Алкоголь" },
-      { value: "остальное", label: isEn ? "Other" : "Остальное" },
-    ],
-    [isEn],
+  const categoryOptions = useMemo(() => {
+    const uniqueExisting = Array.from(new Set(existingCategories)).filter(
+      (value) => value && !DEFAULT_CATEGORIES.includes(value),
+    );
+
+    return [
+      ...DEFAULT_CATEGORIES.map((value) => ({
+        value,
+        label: categoryLabel(value, isEn),
+      })),
+      ...uniqueExisting.map((value) => ({
+        value,
+        label: value,
+      })),
+    ];
+  }, [existingCategories, isEn]);
+
+  const isRemovableCategory = useMemo(
+    () =>
+      category &&
+      category !== CUSTOM_CATEGORY_VALUE &&
+      !DEFAULT_CATEGORIES.includes(category),
+    [category],
   );
 
   useEffect(() => {
     if (!isOpen) return;
+
+    const handleEsc = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.body.classList.add("drawer-open");
+    window.addEventListener("keydown", handleEsc);
+
     if (mode === "edit" && item) {
+      const normalizedCategory = normalizeCategory(item.category) || FALLBACK_CATEGORY;
+      const hasOption = categoryOptions.some(
+        (option) => option.value === normalizedCategory,
+      );
+
       setName(item.name || "");
       setPrice(item.price?.toString() || "");
-      setCategory(normalizeCategory(item.category));
+      setCategory(hasOption ? normalizedCategory : CUSTOM_CATEGORY_VALUE);
+      setCustomCategory(hasOption ? "" : normalizedCategory);
       setShow(item.show !== undefined ? item.show : true);
-      return;
+      setDeletingCategory(false);
+    } else {
+      setName("");
+      setPrice("");
+      setCategory(FALLBACK_CATEGORY);
+      setCustomCategory("");
+      setShow(true);
+      setDeletingCategory(false);
     }
-    setName("");
-    setPrice("");
-    setCategory("остальное");
-    setShow(true);
-  }, [isOpen, mode, item]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    return () => {
+      document.body.classList.remove("drawer-open");
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isOpen, mode, item, categoryOptions, onClose]);
+
+  const handleDeleteCategory = async () => {
+    if (!isRemovableCategory || !onDeleteCategory || isDeletingCategory) return;
+    const confirmed = confirm(
+      isEn
+        ? `Delete category "${category}"? All items in this category will be moved to "Other".`
+        : `Удалить категорию "${category}"? Все позиции будут перенесены в "Остальное".`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingCategory(true);
+      await onDeleteCategory(category);
+      setCategory(FALLBACK_CATEGORY);
+      setCustomCategory("");
+    } catch (error) {
+      alert(error?.message || (isEn ? "Failed to delete category" : "Не удалось удалить категорию"));
+    } finally {
+      setDeletingCategory(false);
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
     const priceNum = parseFloat(price);
+    const nextCategory =
+      category === CUSTOM_CATEGORY_VALUE
+        ? normalizeCategory(customCategory)
+        : normalizeCategory(category);
+
     if (!name.trim() || Number.isNaN(priceNum) || priceNum < 0) {
       alert(isEn ? "Please enter valid values" : "Введите корректные данные");
       return;
     }
-    onSave({ name: name.trim(), price: priceNum, show, category: normalizeCategory(category) });
+
+    if (!nextCategory) {
+      alert(isEn ? "Enter a category name" : "Введите название категории");
+      return;
+    }
+
+    onSave({
+      name: name.trim(),
+      price: priceNum,
+      show,
+      category: nextCategory,
+    });
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>{mode === "edit" ? (isEn ? "Edit item" : "Редактирование позиции") : isEn ? "New item" : "Новая позиция"}</h3>
-        <form onSubmit={handleSubmit}>
-          <span className="modal-label">{isEn ? "Name" : "Название"}</span>
-          <input
-            type="text"
-            className="modal-input"
-            placeholder={isEn ? "Name" : "Название"}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            autoFocus
-          />
-          <span className="modal-label">{isEn ? "Price" : "Стоимость"}</span>
-          <input
-            type="number"
-            className="modal-input"
-            placeholder={isEn ? "Price" : "Цена"}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            required
-          />
-          <label className="modal-label" htmlFor="category">
-            {isEn ? "Category" : "Категория"}
-          </label>
-          <select
-            id="category"
-            className="modal-input"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+    <div className="item-drawer-overlay" onClick={onClose}>
+      <aside
+        className="item-drawer"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="item-drawer-title"
+      >
+        <div className="item-drawer__header">
+          <h3 id="item-drawer-title">
+            {mode === "edit"
+              ? isEn
+                ? "Edit item"
+                : "Редактирование"
+              : isEn
+                ? "New item"
+                : "Новая позиция"}
+          </h3>
+          <button
+            type="button"
+            className="item-drawer__close"
+            onClick={onClose}
+            aria-label={isEn ? "Close" : "Закрыть"}
           >
-            {categoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <label className="modal-checkbox">
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="item-drawer__form">
+          <div className="item-drawer__scroll">
+            <label className="item-drawer__label" htmlFor="item-name">
+              {isEn ? "Name" : "Название"}
+            </label>
             <input
-              type="checkbox"
-              checked={show}
-              onChange={(e) => setShow(e.target.checked)}
+              id="item-name"
+              type="text"
+              className="item-drawer__input"
+              placeholder={isEn ? "Name" : "Название"}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              autoFocus
             />
-            {isEn ? "Visible" : "Активна"}
-          </label>
-          <div className="modal-actions">
-            <button type="submit" className="modal-button">
+
+            <label className="item-drawer__label" htmlFor="item-price">
+              {isEn ? "Price" : "Цена"}
+            </label>
+            <input
+              id="item-price"
+              type="number"
+              className="item-drawer__input"
+              placeholder={isEn ? "Price" : "Цена"}
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              required
+            />
+
+            <span className="item-drawer__label">{isEn ? "Category" : "Категория"}</span>
+            <div
+              className="item-drawer__category-grid"
+              role="radiogroup"
+              aria-label={isEn ? "Category" : "Категория"}
+            >
+              {categoryOptions.map((option) => {
+                const selected = category === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`item-drawer__chip${selected ? " item-drawer__chip--active" : ""}`}
+                    onClick={() => setCategory(option.value)}
+                    role="radio"
+                    aria-checked={selected}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                className={`item-drawer__chip${
+                  category === CUSTOM_CATEGORY_VALUE ? " item-drawer__chip--active" : ""
+                }`}
+                onClick={() => setCategory(CUSTOM_CATEGORY_VALUE)}
+                role="radio"
+                aria-checked={category === CUSTOM_CATEGORY_VALUE}
+              >
+                {isEn ? "+ new category" : "+ новая категория"}
+              </button>
+            </div>
+
+            {category === CUSTOM_CATEGORY_VALUE && (
+              <input
+                type="text"
+                className="item-drawer__input"
+                placeholder={isEn ? "Category name" : "Название категории"}
+                value={customCategory}
+                onChange={(event) => setCustomCategory(event.target.value)}
+                maxLength={40}
+              />
+            )}
+
+            {isRemovableCategory && (
+              <button
+                type="button"
+                className="item-drawer__delete-category"
+                onClick={handleDeleteCategory}
+                disabled={isDeletingCategory}
+              >
+                {isDeletingCategory
+                  ? isEn
+                    ? "Deleting category..."
+                    : "Удаление категории..."
+                  : isEn
+                    ? "Delete selected category"
+                    : "Удалить выбранную категорию"}
+              </button>
+            )}
+
+            <label className="item-drawer__checkbox">
+              <input
+                type="checkbox"
+                checked={show}
+                onChange={(event) => setShow(event.target.checked)}
+              />
+              {isEn ? "Visible" : "Показывать в меню"}
+            </label>
+          </div>
+
+          <div className="item-drawer__footer">
+            <button type="submit" className="item-drawer__button item-drawer__button--primary">
               {isEn ? "Save" : "Сохранить"}
             </button>
-            <button type="button" className="modal-button modal-button--secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="item-drawer__button item-drawer__button--secondary"
+              onClick={onClose}
+            >
               {isEn ? "Cancel" : "Отмена"}
             </button>
           </div>
         </form>
-      </div>
+      </aside>
     </div>
   );
 }
 
 export default ItemModal;
-

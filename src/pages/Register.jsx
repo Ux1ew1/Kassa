@@ -3,6 +3,12 @@ import { loginUser, registerUser } from "../utils/api";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./Register.css";
 
+const LOGIN_MIN_LENGTH = 3;
+const LOGIN_MAX_LENGTH = 24;
+const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MAX_LENGTH = 72;
+const LOGIN_PATTERN = /^[a-z0-9._-]+$/i;
+
 function Register({ onRegistered }) {
   const { language } = useLanguage();
   const isEn = language === "en";
@@ -12,16 +18,62 @@ function Register({ onRegistered }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const getRegisterValidationError = (nextLogin, nextPassword) => {
+    if (!nextLogin) {
+      return isEn ? "Login is required" : "Логин обязателен";
+    }
+    if (nextLogin.length < LOGIN_MIN_LENGTH) {
+      return isEn
+        ? `Login must be at least ${LOGIN_MIN_LENGTH} characters`
+        : `Логин должен быть не короче ${LOGIN_MIN_LENGTH} символов`;
+    }
+    if (nextLogin.length > LOGIN_MAX_LENGTH) {
+      return isEn
+        ? `Login must be no longer than ${LOGIN_MAX_LENGTH} characters`
+        : `Логин должен быть не длиннее ${LOGIN_MAX_LENGTH} символов`;
+    }
+    if (!LOGIN_PATTERN.test(nextLogin)) {
+      return isEn
+        ? "Login can contain only letters, numbers, dot, underscore and hyphen"
+        : "Логин может содержать только буквы, цифры, точку, подчёркивание и дефис";
+    }
+    if (!nextPassword) {
+      return isEn ? "Password is required" : "Пароль обязателен";
+    }
+    if (nextPassword.length < PASSWORD_MIN_LENGTH) {
+      return isEn
+        ? `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
+        : `Пароль должен быть не короче ${PASSWORD_MIN_LENGTH} символов`;
+    }
+    if (nextPassword.length > PASSWORD_MAX_LENGTH) {
+      return isEn
+        ? `Password must be no longer than ${PASSWORD_MAX_LENGTH} characters`
+        : `Пароль должен быть не длиннее ${PASSWORD_MAX_LENGTH} символов`;
+    }
+    return "";
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+
+    const normalizedLogin = login.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+    if (mode === "register") {
+      const validationError = getRegisterValidationError(normalizedLogin, normalizedPassword);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       const payload =
         mode === "register"
-          ? await registerUser(login, password)
-          : await loginUser(login, password);
+          ? await registerUser(normalizedLogin, normalizedPassword)
+          : await loginUser(normalizedLogin, normalizedPassword);
       onRegistered(payload.user);
     } catch (submitError) {
       setError(
@@ -99,7 +151,8 @@ function Register({ onRegistered }) {
           value={login}
           onChange={(event) => setLogin(event.target.value)}
           required
-          minLength={3}
+          minLength={LOGIN_MIN_LENGTH}
+          maxLength={LOGIN_MAX_LENGTH}
         />
 
         <label className="register-label" htmlFor="password">
@@ -113,8 +166,16 @@ function Register({ onRegistered }) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
-          minLength={4}
+          minLength={mode === "register" ? PASSWORD_MIN_LENGTH : 4}
+          maxLength={PASSWORD_MAX_LENGTH}
         />
+        {mode === "register" ? (
+          <p className="register-hint">
+            {isEn
+              ? `Login: ${LOGIN_MIN_LENGTH}-${LOGIN_MAX_LENGTH} chars, letters/numbers/._-. Password: ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} chars.`
+              : `Логин: ${LOGIN_MIN_LENGTH}-${LOGIN_MAX_LENGTH} символов, буквы/цифры/._-. Пароль: ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} символов.`}
+          </p>
+        ) : null}
 
         {error ? <p className="register-error">{error}</p> : null}
 
@@ -141,4 +202,3 @@ function Register({ onRegistered }) {
 }
 
 export default Register;
-

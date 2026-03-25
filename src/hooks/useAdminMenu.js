@@ -3,6 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
+import { normalizeCategory } from '../utils/categories'
 
 /**
  * React hook for managing menu items from the admin panel.
@@ -15,6 +16,7 @@ import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
  *  updateItem: Function,
  *  deleteItem: Function,
  *  toggleItem: Function,
+ *  removeCategory: Function,
  *  reloadMenu: Function
  * }}
  */
@@ -177,6 +179,28 @@ export function useAdminMenu(roomId, userId) {
     await updateItem(id, { show: !item.show })
   }
 
+  /**
+   * Replaces a category for all menu items.
+   * @param {string} categoryToRemove - Category to replace.
+   * @param {string} fallbackCategory - New category value.
+   * @returns {Promise<void>}
+   */
+  const removeCategory = async (categoryToRemove, fallbackCategory = 'остальное') => {
+    const source = normalizeCategory(categoryToRemove)
+    const target = normalizeCategory(fallbackCategory) || 'остальное'
+    if (!source || source === target) return
+
+    let hasChanges = false
+    const newMenu = menu.map((item) => {
+      if (normalizeCategory(item.category) !== source) return item
+      hasChanges = true
+      return { ...item, category: target }
+    })
+
+    if (!hasChanges) return
+    await persistChanges(newMenu, activeOrder)
+  }
+
   return {
     menu,
     activeOrder,
@@ -186,6 +210,7 @@ export function useAdminMenu(roomId, userId) {
     updateItem,
     deleteItem,
     toggleItem,
+    removeCategory,
     reloadMenu: loadMenu,
   }
 }

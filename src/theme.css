@@ -1,96 +1,116 @@
 :root {
   color-scheme: light;
 
-  --color-app-bg: #e3eef7;
-  --color-panel: #b3cfe5;
-  --color-panel-strong: #1a3d63;
-  --color-card: #b3cfe5;
-  --color-card-strong: #4a7fa7;
+  --color-app-bg: #eef4f8;
+  --color-panel: #e3edf5;
+  --color-panel-strong: #17324d;
+  --color-card: rgba(255, 255, 255, 0.72);
+  --color-card-solid: #f7fbff;
+  --color-card-strong: rgba(255, 255, 255, 0.86);
+  --color-surface-2: rgba(255, 255, 255, 0.65);
+  --color-surface-3: rgba(232, 241, 248, 0.95);
 
-  --color-text-primary: #0a1931;
-  --color-text-secondary: #1a3d63;
-  --color-text-muted: rgba(10, 25, 49, 0.65);
-  --color-border: #4a7fa7;
-  --color-divider: rgba(10, 25, 49, 0.18);
+  --color-text-primary: #16324a;
+  --color-text-secondary: #5f7a92;
+  --color-text-muted: rgba(95, 122, 146, 0.82);
+  --color-border: #2f6bff;
+  --color-divider: rgba(120, 154, 186, 0.22);
+  --color-focus-ring: rgba(47, 107, 255, 0.35);
 
-  --color-input-bg: #f6fafd;
-  --color-input-border: #4a7fa7;
-  --color-placeholder: rgba(10, 25, 49, 0.55);
+  --color-input-bg: rgba(255, 255, 255, 0.88);
+  --color-input-border: rgba(120, 154, 186, 0.4);
+  --color-placeholder: rgba(95, 122, 146, 0.9);
 
-  --color-button-bg: #4a7fa7;
-  --color-button-bg-hover: #1a3d63;
-  --color-button-text: #f6fafd;
-  --color-button-alt-bg: #0a1931;
-  --color-button-alt-text: #f6fafd;
+  --color-button-bg: #2f6bff;
+  --color-button-bg-hover: #2457d6;
+  --color-button-text: #f8fbff;
+  --color-button-alt-bg: #17324d;
+  --color-button-alt-text: #f8fbff;
 
-  --color-chip-bg: rgba(26, 61, 99, 0.16);
-  --color-chip-text: #0a1931;
+  --color-chip-bg: rgba(47, 107, 255, 0.1);
+  --color-chip-text: #1f4e9f;
 
-  --color-overlay-strong: rgba(10, 25, 49, 0.6);
-  --color-overlay-soft: rgba(10, 25, 49, 0.35);
-  --color-shadow: rgba(10, 25, 49, 0.22);
+  --color-overlay-strong: rgba(22, 50, 74, 0.52);
+  --color-overlay-soft: rgba(22, 50, 74, 0.34);
+  --color-shadow: rgba(60, 94, 126, 0.16);
 
-  --color-danger: #d64242;
-  --color-danger-hover: #b83030;
+  --color-success: #2ebd85;
+  --color-warning: #f2b94b;
+  --color-danger: #f06565;
+  --color-danger-hover: #dc5151;
 
-  /* Glass design tuning */
-  --glass-blur: 16px;
+  --glass-blur: 12px;
   --glass-saturate: 120%;
-  --glass-contrast: 105%;
+  --glass-contrast: 102%;
+  --glass-noise-opacity: 0;
+  --glass-noise-url: none;
 
-  --glass-mix-panel: 70%;
-  --glass-mix-panel-soft: 78%;
-  --glass-mix-button: 40%;
-  --glass-mix-button-hover: 55%;
-  --glass-mix-button-alt: 40%;
-  --glass-mix-input: 70%;
+  --radius-container: 20px;
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
 
-  --glass-shadow-sm: 0 8px 18px var(--color-shadow);
-  --glass-shadow-md: 0 10px 22px var(--color-shadow);
-  --glass-shadow-lg: 0 12px 26px var(--color-shadow);
-  --glass-shadow-xl: 0 14px 30px var(--color-shadow);
+  --transition-fast: 160ms ease;
+  --transition-default: 200ms ease;
+  --transition-slow: 240ms ease;
 
-  --glass-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  --glass-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --glass-shadow-sm: 0 6px 14px var(--color-shadow);
+  --glass-shadow-md: 0 10px 24px var(--color-shadow);
+  --glass-shadow-lg: 0 16px 34px rgba(60, 94, 126, 0.2);
+  --glass-shadow-xl: 0 22px 44px rgba(60, 94, 126, 0.2);
 
-  --glass-highlight: rgba(255, 255, 255, 0.08);
-  --glass-shadow-tint: rgba(0, 0, 0, 0.08);
-  --glass-linear-1: rgba(255, 255, 255, 0.05);
-  --glass-linear-2: rgba(255, 255, 255, 0.02);
+  --glass-inset-strong: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  --glass-inset-soft: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+
+  --glass-highlight: rgba(255, 255, 255, 0.4);
+  --glass-shadow-tint: rgba(54, 82, 108, 0.08);
+  --glass-linear-1: rgba(255, 255, 255, 0.56);
+  --glass-linear-2: rgba(255, 255, 255, 0.15);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-app-bg: #1e1e1e;
-  --color-panel: #2c2c2c;
-  --color-panel-strong: #4f4f4f;
-  --color-card: #2c2c2c;
-  --color-card-strong: #4f4f4f;
+  --color-app-bg: #101b26;
+  --color-panel: #152736;
+  --color-panel-strong: #0f1f2f;
+  --color-card: rgba(20, 37, 51, 0.78);
+  --color-card-solid: #1a2f42;
+  --color-card-strong: rgba(27, 48, 66, 0.92);
+  --color-surface-2: rgba(31, 55, 74, 0.78);
+  --color-surface-3: rgba(17, 31, 44, 0.92);
 
-  --color-text-primary: #eeeeee;
-  --color-text-secondary: #cccccc;
-  --color-text-muted: #888888;
-  --color-border: #4f4f4f;
-  --color-divider: rgba(255, 255, 255, 0.12);
+  --color-text-primary: #e5f1fb;
+  --color-text-secondary: #a9c0d8;
+  --color-text-muted: rgba(169, 192, 216, 0.82);
+  --color-border: #5f8dff;
+  --color-divider: rgba(150, 183, 214, 0.28);
+  --color-focus-ring: rgba(95, 141, 255, 0.45);
 
-  --color-input-bg: #2c2c2c;
-  --color-input-border: #4f4f4f;
-  --color-placeholder: #888888;
+  --color-input-bg: rgba(24, 45, 62, 0.92);
+  --color-input-border: rgba(121, 157, 191, 0.5);
+  --color-placeholder: rgba(168, 194, 218, 0.86);
 
-  --color-button-bg: #6c757d;
-  --color-button-bg-hover: #868e96;
-  --color-button-text: #f6fafd;
-  --color-button-alt-bg: #eeeeee;
-  --color-button-alt-text: #2c2c2c;
+  --color-button-bg: #4b7bff;
+  --color-button-bg-hover: #3f6de5;
+  --color-button-text: #f4f8ff;
+  --color-button-alt-bg: #223f5c;
+  --color-button-alt-text: #f4f8ff;
 
-  --color-chip-bg: rgba(255, 255, 255, 0.08);
-  --color-chip-text: #ffffff;
+  --color-chip-bg: rgba(95, 141, 255, 0.2);
+  --color-chip-text: #d8e6ff;
 
-  --color-overlay-strong: rgba(0, 0, 0, 0.75);
-  --color-overlay-soft: rgba(0, 0, 0, 0.35);
-  --color-shadow: rgba(0, 0, 0, 0.35);
+  --color-overlay-strong: rgba(7, 15, 23, 0.72);
+  --color-overlay-soft: rgba(7, 15, 23, 0.46);
+  --color-shadow: rgba(2, 7, 13, 0.45);
 
-  --color-danger: #ff4444;
-  --color-danger-hover: #cc0000;
+  --color-success: #3acb95;
+  --color-warning: #f5be5d;
+  --color-danger: #ff7d7d;
+  --color-danger-hover: #ee6666;
+
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-shadow-tint: rgba(0, 0, 0, 0.26);
+  --glass-linear-1: rgba(255, 255, 255, 0.08);
+  --glass-linear-2: rgba(255, 255, 255, 0.02);
 }

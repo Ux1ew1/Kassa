@@ -3,6 +3,9 @@ import { useCurrency } from "../contexts/CurrencyContext";
 
 function MenuItem({ item, quantity = 0, onAdd }) {
   const { formatCurrency } = useCurrency();
+  const isSelected = quantity > 0;
+  const isMuted = item?.show === false;
+
   const handleClick = () => {
     onAdd(item);
     if (navigator.vibrate) navigator.vibrate(15);
@@ -10,9 +13,12 @@ function MenuItem({ item, quantity = 0, onAdd }) {
 
   return (
     <div
-      className="item"
+      className={`item${isSelected ? " item--selected" : ""}${
+        isMuted ? " item--muted" : ""
+      }`}
       role="button"
       tabIndex={0}
+      aria-pressed={isSelected}
       onClick={handleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
