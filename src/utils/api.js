@@ -1,4 +1,23 @@
-const API_BASE = "/api";
+const rawApiBase = (import.meta.env.VITE_API_BASE_URL || "/api").trim();
+const API_BASE = rawApiBase.replace(/\/+$/, "") || "/api";
+
+const buildApiUrl = (path) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${normalizedPath}`;
+};
+
+async function apiRequest(path, options = {}, fallbackMessage = "Request failed") {
+  let response;
+  try {
+    response = await fetch(buildApiUrl(path), options);
+  } catch {
+    throw new Error("API server is unavailable. Check VITE_API_BASE_URL and backend status.");
+  }
+
+  const payload = await safeJson(response);
+  if (!response.ok) throw new Error(payload?.message || fallbackMessage);
+  return payload;
+}
 
 export async function safeJson(response) {
   try {
@@ -9,11 +28,11 @@ export async function safeJson(response) {
 }
 
 export async function fetchMenu(roomId, userId) {
-  const response = await fetch(
-    `${API_BASE}/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
+  const payload = await apiRequest(
+    `/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
+    {},
+    "Failed to load menu",
   );
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to load menu");
 
   const items = Array.isArray(payload?.items)
     ? payload.items
@@ -27,132 +46,141 @@ export async function fetchMenu(roomId, userId) {
 }
 
 export async function saveMenu(roomId, userId, items, activeOrder) {
-  const response = await fetch(
-    `${API_BASE}/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
+  return apiRequest(
+    `/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items, activeOrder }),
     },
+    "Failed to save menu",
   );
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to save menu");
-  return payload;
 }
 
 export async function registerUser(login, password) {
-  const response = await fetch(`${API_BASE}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to register");
-  return payload;
+  return apiRequest(
+    "/register",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login, password }),
+    },
+    "Failed to register",
+  );
 }
 
 export async function loginUser(login, password) {
-  const response = await fetch(`${API_BASE}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to sign in");
-  return payload;
+  return apiRequest(
+    "/login",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login, password }),
+    },
+    "Failed to sign in",
+  );
 }
 
 export async function createRoom(name, userId) {
-  const response = await fetch(`${API_BASE}/rooms/create`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, userId }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to create room");
-  return payload;
+  return apiRequest(
+    "/rooms/create",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, userId }),
+    },
+    "Failed to create room",
+  );
 }
 
 export async function fetchMyRooms(userId) {
-  const response = await fetch(`${API_BASE}/rooms/my?userId=${encodeURIComponent(userId)}`);
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to load rooms");
+  const payload = await apiRequest(
+    `/rooms/my?userId=${encodeURIComponent(userId)}`,
+    {},
+    "Failed to load rooms",
+  );
   return Array.isArray(payload?.rooms) ? payload.rooms : [];
 }
 
 export async function inviteToRoom(roomId, inviterId, login, role = "user") {
-  const response = await fetch(`${API_BASE}/rooms/invite`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId, inviterId, login, role }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to invite user");
-  return payload;
+  return apiRequest(
+    "/rooms/invite",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId, inviterId, login, role }),
+    },
+    "Failed to invite user",
+  );
 }
 
 export async function joinRoomByCode(userId, code) {
-  const response = await fetch(`${API_BASE}/rooms/join-by-code`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, code }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to join room");
-  return payload;
+  return apiRequest(
+    "/rooms/join-by-code",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, code }),
+    },
+    "Failed to join room",
+  );
 }
 
 export async function renameRoom(roomId, actorId, name) {
-  const response = await fetch(`${API_BASE}/rooms/rename`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId, actorId, name }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to rename room");
-  return payload;
+  return apiRequest(
+    "/rooms/rename",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId, actorId, name }),
+    },
+    "Failed to rename room",
+  );
 }
 
 export async function leaveRoom(roomId, userId) {
-  const response = await fetch(`${API_BASE}/rooms/leave`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId, userId }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to leave room");
-  return payload;
+  return apiRequest(
+    "/rooms/leave",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId, userId }),
+    },
+    "Failed to leave room",
+  );
 }
 
 export async function fetchRoomMembers(roomId, userId) {
-  const response = await fetch(
-    `${API_BASE}/rooms/members?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
+  const payload = await apiRequest(
+    `/rooms/members?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
+    {},
+    "Failed to load room members",
   );
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to load room members");
   return Array.isArray(payload?.members) ? payload.members : [];
 }
 
 export async function updateRoomMemberRole(roomId, actorId, targetUserId, role) {
-  const response = await fetch(`${API_BASE}/rooms/member-role`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId, actorId, targetUserId, role }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to update role");
-  return payload;
+  return apiRequest(
+    "/rooms/member-role",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId, actorId, targetUserId, role }),
+    },
+    "Failed to update role",
+  );
 }
 
 export async function kickRoomMember(roomId, actorId, targetUserId) {
-  const response = await fetch(`${API_BASE}/rooms/kick`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId, actorId, targetUserId }),
-  });
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || "Failed to kick user");
-  return payload;
+  return apiRequest(
+    "/rooms/kick",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId, actorId, targetUserId }),
+    },
+    "Failed to kick user",
+  );
 }
 
 export function formatPrice(price) {
@@ -169,4 +197,3 @@ export function validateMenuItem(item) {
     item.price >= 0
   );
 }
-

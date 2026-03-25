@@ -53,6 +53,17 @@ npm start
 
 Приложение будет доступно по адресу `http://localhost:3000`.
 
+### Вариант: frontend и API на разных хостах
+
+Если фронтенд размещён отдельно (например, static hosting), API должен быть доступен по внешнему URL.
+
+Для фронтенда задайте переменную окружения при сборке:
+```bash
+VITE_API_BASE_URL=https://api.example.com/api
+```
+
+Если `VITE_API_BASE_URL` не задан, используется относительный путь `/api` (подходит только когда frontend и backend обслуживаются одним хостом).
+
 ## API
 
 - `GET /api/menu` — получить меню
@@ -90,6 +101,9 @@ npm start
 - `SUPABASE_USERS_TABLE` — имя таблицы пользователей (по умолчанию `users`)
 
 Пример размещения переменных: `.env`
+
+Для сборки frontend также можно задать:
+- `VITE_API_BASE_URL` — базовый URL API (например `https://api.example.com/api`)
 
 SQL для таблицы пользователей: `supabase/users.sql`
 
