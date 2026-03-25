@@ -1,36 +1,9 @@
-﻿/**
- * Menu list component with ordering and filtering.
- */
 import { useMemo } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { normalizeCategory } from "../utils/categories";
 import MenuItem from "./MenuItem";
 import "./Menu.css";
 
-/**
- * Normalizes a category label to a supported slug.
- * @param {string} value - Raw category value.
- * @returns {string} Normalized slug.
- */
-const normalizeCategory = (value) => {
-  const v = (value || "").toString().trim().toLowerCase();
-  if (["all", "все"].includes(v)) return "все";
-  if (["drink", "drinks", "напитки"].includes(v)) return "напитки";
-  if (["food", "еда"].includes(v)) return "еда";
-  if (["alcohol", "alcoholic", "алкоголь"].includes(v)) return "алкоголь";
-  if (["other", "misc", "остальное", "другое"].includes(v)) return "остальное";
-  return "остальное";
-};
-
-/**
- * Renders menu items list.
- * @param {Object} props - Component props.
- * @param {Array} props.menuItems - Menu items.
- * @param {Array} props.activeOrder - Preferred order of visible items.
- * @param {string} props.searchQuery - Search query.
- * @param {string} [props.activeCategory] - Active category slug.
- * @param {Array} [props.cartItems] - Items from active check.
- * @param {Function} props.onAddItem - Add item handler.
- * @returns {JSX.Element} Menu list.
- */
 function Menu({
   menuItems,
   activeOrder,
@@ -39,12 +12,13 @@ function Menu({
   cartItems = [],
   onAddItem,
 }) {
-  // Подсчитываем количество каждого товара в активном чеке
+  const { language } = useLanguage();
+  const isEn = language === "en";
   const itemCounts = useMemo(() => {
     const counts = new Map();
-    cartItems.forEach((cartItem) => {
-      counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1);
-    });
+    cartItems.forEach((cartItem) =>
+      counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1),
+    );
     return counts;
   }, [cartItems]);
 
@@ -54,7 +28,6 @@ function Menu({
     const seen = new Set();
     const orderedVisibleItems = [];
 
-    // Р”РѕР±Р°РІР»СЏРµРј СЌР»РµРјРµРЅС‚С‹ РІ РїРѕСЂСЏРґРєРµ activeOrder
     activeOrder.forEach((id) => {
       const item = itemsById.get(id);
       if (item && item.show && !seen.has(id)) {
@@ -63,7 +36,6 @@ function Menu({
       }
     });
 
-    // Р”РѕР±Р°РІР»СЏРµРј РѕСЃС‚Р°Р»СЊРЅС‹Рµ РІРёРґРёРјС‹Рµ СЌР»РµРЅС‚С‹
     menuItems.forEach((item) => {
       if (item.show && !seen.has(item.id)) {
         orderedVisibleItems.push(item);
@@ -71,13 +43,10 @@ function Menu({
       }
     });
 
-    // Р¤РёР»СЊС‚СЂСѓРµРј РїРѕ РєР°С‚РµРіРѕСЂРёРё Рё РїРѕРёСЃРєСѓ
     return orderedVisibleItems.filter((item) => {
       const itemCategory = normalizeCategory(item.category);
-      const matchesCategory =
-        !activeCategory || itemCategory === activeCategory;
-      const matchesSearch =
-        query === "" || item.name.toLowerCase().includes(query);
+      const matchesCategory = !activeCategory || itemCategory === activeCategory;
+      const matchesSearch = query === "" || item.name.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
   }, [menuItems, activeOrder, searchQuery, activeCategory]);
@@ -86,7 +55,13 @@ function Menu({
     return (
       <div className="menu">
         <div className="menu-placeholder">
-          {searchQuery ? "Товары не найдены" : "Нет доступных товаров."}
+          {searchQuery
+            ? isEn
+              ? "No items found"
+              : "Товары не найдены"
+            : isEn
+              ? "No available items."
+              : "Нет доступных товаров."}
         </div>
       </div>
     );

@@ -3,6 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
+import { normalizeCategory } from '../utils/categories'
 
 /**
  * React hook for managing menu items from the admin panel.
@@ -15,18 +16,25 @@ import { fetchMenu, saveMenu, validateMenuItem } from '../utils/api'
  *  updateItem: Function,
  *  deleteItem: Function,
  *  toggleItem: Function,
+ *  removeCategory: Function,
  *  reloadMenu: Function
  * }}
  */
-export function useAdminMenu() {
+export function useAdminMenu(roomId, userId) {
   const [menu, setMenu] = useState([])
   const [activeOrder, setActiveOrder] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!roomId || !userId) {
+      setMenu([])
+      setActiveOrder([])
+      setLoading(false)
+      return
+    }
     loadMenu()
-  }, [])
+  }, [roomId, userId])
 
   /**
    * Fetches menu data from the API and updates local state.
@@ -36,7 +44,7 @@ export function useAdminMenu() {
     setLoading(true)
     setError(null)
     try {
-      const { items, activeOrder: order } = await fetchMenu()
+      const { items, activeOrder: order } = await fetchMenu(roomId, userId)
       setMenu(items)
       setActiveOrder(order)
     } catch (err) {
@@ -86,7 +94,7 @@ export function useAdminMenu() {
   const persistChanges = async (newMenu, newOrder) => {
     const consistentOrder = ensureActiveOrderConsistency(newMenu, newOrder)
     try {
-      await saveMenu(newMenu, consistentOrder)
+      await saveMenu(roomId, userId, newMenu, consistentOrder)
       setMenu(newMenu)
       setActiveOrder(consistentOrder)
     } catch (err) {
@@ -171,6 +179,28 @@ export function useAdminMenu() {
     await updateItem(id, { show: !item.show })
   }
 
+  /**
+   * Replaces a category for all menu items.
+   * @param {string} categoryToRemove - Category to replace.
+   * @param {string} fallbackCategory - New category value.
+   * @returns {Promise<void>}
+   */
+  const removeCategory = async (categoryToRemove, fallbackCategory = 'остальное') => {
+    const source = normalizeCategory(categoryToRemove)
+    const target = normalizeCategory(fallbackCategory) || 'остальное'
+    if (!source || source === target) return
+
+    let hasChanges = false
+    const newMenu = menu.map((item) => {
+      if (normalizeCategory(item.category) !== source) return item
+      hasChanges = true
+      return { ...item, category: target }
+    })
+
+    if (!hasChanges) return
+    await persistChanges(newMenu, activeOrder)
+  }
+
   return {
     menu,
     activeOrder,
@@ -180,6 +210,7 @@ export function useAdminMenu() {
     updateItem,
     deleteItem,
     toggleItem,
+    removeCategory,
     reloadMenu: loadMenu,
   }
 }

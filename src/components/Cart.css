@@ -1,4 +1,4 @@
-.cart {
+﻿.cart {
   color: var(--color-text-primary);
 }
 
@@ -8,56 +8,65 @@
   color: var(--color-text-muted);
 }
 
+.cart-empty-hint {
+  margin-top: -8px;
+  padding: 0 12px 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
 .cart__item {
-  font-size: 20px;
+  font-size: 17px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 4px;
+  padding: 10px 8px;
   position: relative;
   overflow: hidden;
-  background-color: var(--color-card);
-  margin: 4px 0;
-  border-radius: 8px;
+  background: var(--color-card-solid);
+  margin: 6px 0;
+  border-radius: var(--radius-control);
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    opacity 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.2s ease;
   border: 1px solid var(--color-divider);
-  box-shadow: 0 8px 16px var(--color-shadow);
-}
-
-.cart__item::before {
-  content: none;
+  transition:
+    background-color var(--transition-default),
+    border-color var(--transition-default),
+    opacity var(--transition-default),
+    transform var(--transition-fast),
+    box-shadow var(--transition-default);
 }
 
 .cart__item-container {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding-right: 20px;
+  padding-right: 16px;
   gap: 16px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cart__item-name {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .cart__item-name span {
-  max-width: 200px;
+  min-width: 0;
+  max-width: 100%;
+  display: inline-block;
   overflow: hidden;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .cart__item-qty {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--color-text-muted);
 }
 
@@ -66,20 +75,22 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  flex: 0 0 auto;
 }
 
 .cart__item-price-total {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 15px;
 }
 
 .cart__item-price-each {
-  font-size: 16px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
 .cart__item--fulfilled {
-  opacity: 0.45;
-  background-color: color-mix(in srgb, var(--color-button-alt-bg) 20%, transparent);
+  opacity: 0.62;
+  background-color: var(--color-surface-3);
 }
 
 .cart__item--fulfilled .cart__item-name span:first-child {
@@ -89,7 +100,8 @@
 
 .cart__item:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px var(--color-shadow);
+  border-color: color-mix(in srgb, var(--color-border) 45%, var(--color-divider));
+  box-shadow: var(--glass-shadow-sm);
 }
 
 .cart__item:active {
@@ -97,41 +109,35 @@
 }
 
 .cart__item:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-button-alt-bg) 55%, transparent);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
 }
 
-:root[data-theme="dark"] .cart-drawer .cart__item {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
 .remove-item {
-  background: color-mix(in srgb, var(--color-danger) 80%, transparent);
-  color: var(--color-button-text);
-  border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
-  min-width: 44px;
-  min-height: 44px;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  --ui-btn-width: 30px;
+  --ui-btn-height: 30px;
+  --ui-btn-min-width: 30px;
+  --ui-btn-padding-x: 0;
+  --ui-btn-radius: 9px;
+  --ui-btn-bg: color-mix(in srgb, var(--color-danger) 14%, #fff);
+  --ui-btn-bg-hover: color-mix(in srgb, var(--color-danger) 20%, #fff);
+  --ui-btn-color: var(--color-danger-hover);
+  --ui-btn-border-color: color-mix(in srgb, var(--color-danger) 52%, var(--color-divider));
+  --ui-btn-shadow: none;
+  --ui-btn-shadow-hover: none;
+  font-size: 12px;
+  line-height: 1;
 }
 
-.remove-item:hover {
-  background: color-mix(in srgb, var(--color-danger-hover) 85%, transparent);
-  transform: scale(1.04);
-}
-
-.remove-item:active {
-  transform: scale(0.96);
+:root[data-theme="dark"] .remove-item {
+  --ui-btn-bg: color-mix(in srgb, var(--color-danger) 24%, transparent);
+  --ui-btn-bg-hover: color-mix(in srgb, var(--color-danger) 32%, transparent);
+  --ui-btn-color: #ffd1d1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cart__item:hover,
-  .cart__item:active,
-  .remove-item:hover,
-  .remove-item:active {
+  .cart__item:active {
     transform: none;
   }
 }

@@ -1,17 +1,10 @@
-﻿/**
- * Cart component for displaying items in the active check.
- */
-import { formatPrice } from '../utils/api'
-import './Cart.css'
+﻿import { useLanguage } from "../contexts/LanguageContext";
+import { useCurrency } from "../contexts/CurrencyContext";
+import "./Cart.css";
 
-/**
- * Groups cart items by menu item id.
- * @param {Array} [items=[]] - Cart items.
- * @returns {Array} Grouped items with totals and indices.
- */
 function groupCartItems(items = []) {
-  const groups = []
-  const map = new Map()
+  const groups = [];
+  const map = new Map();
 
   items.forEach((item, index) => {
     if (!map.has(item.id)) {
@@ -23,64 +16,61 @@ function groupCartItems(items = []) {
         totalPrice: 0,
         indices: [],
         fulfilledCount: 0,
-      }
-      map.set(item.id, group)
-      groups.push(group)
+      };
+      map.set(item.id, group);
+      groups.push(group);
     }
 
-    const group = map.get(item.id)
-    group.quantity += 1
-    group.totalPrice += item.price
-    group.indices.push(index)
-    if (item.fulfilled) {
-      group.fulfilledCount += 1
-    }
-  })
+    const group = map.get(item.id);
+    group.quantity += 1;
+    group.totalPrice += item.price;
+    group.indices.push(index);
+    if (item.fulfilled) group.fulfilledCount += 1;
+  });
 
-  return groups
+  return groups;
 }
 
-/**
- * Renders the cart contents.
- * @param {Object} props - Component props.
- * @param {Array} props.items - Cart items.
- * @param {Function} [props.onRemove] - Remove handler by index.
- * @param {Function} [props.onToggleFulfilled] - Toggle fulfilled handler.
- * @returns {JSX.Element} Cart list.
- */
-function Cart({ items, onRemove, onToggleFulfilled }) {
+function Cart({
+  items,
+  onRemove,
+  onToggleFulfilled,
+  showEmptyHint = false,
+  emptyHintText = "",
+}) {
+  const { language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const isEn = language === "en";
+
   if (items.length === 0) {
     return (
       <div className="cart">
-        <div className="cart-empty">Корзина пуста</div>
+        <div className="cart-empty">{isEn ? "Cart is empty" : "Корзина пуста"}</div>
+        {showEmptyHint && emptyHintText ? (
+          <div className="cart-empty-hint">{emptyHintText}</div>
+        ) : null}
       </div>
-    )
+    );
   }
 
-  const groupedItems = groupCartItems(items)
+  const groupedItems = groupCartItems(items);
 
   return (
     <div className="cart">
       {groupedItems.map((item) => {
-        const isFulfilled = item.quantity > 0 && item.fulfilledCount === item.quantity
+        const isFulfilled = item.quantity > 0 && item.fulfilledCount === item.quantity;
 
         return (
           <div
             key={item.id}
-            className={`cart__item${isFulfilled ? ' cart__item--fulfilled' : ''}`}
+            className={`cart__item${isFulfilled ? " cart__item--fulfilled" : ""}`}
             role="button"
             tabIndex={0}
-            onClick={() => {
-              if (typeof onToggleFulfilled === 'function') {
-                onToggleFulfilled(item.indices, !isFulfilled)
-              }
-            }}
+            onClick={() => onToggleFulfilled?.(item.indices, !isFulfilled)}
             onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                if (typeof onToggleFulfilled === 'function') {
-                  onToggleFulfilled(item.indices, !isFulfilled)
-                }
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onToggleFulfilled?.(item.indices, !isFulfilled);
               }
             }}
           >
@@ -90,9 +80,11 @@ function Cart({ items, onRemove, onToggleFulfilled }) {
                 <span className="cart__item-qty">x{item.quantity}</span>
               </div>
               <div className="cart__item-price">
-                <span className="cart__item-price-total">{formatPrice(item.totalPrice)}</span>
+                <span className="cart__item-price-total">{formatCurrency(item.totalPrice)}</span>
                 {item.quantity > 1 && (
-                  <span className="cart__item-price-each">{formatPrice(item.price)} за шт.</span>
+                  <span className="cart__item-price-each">
+                    {formatCurrency(item.price)} {isEn ? "each" : "за шт."}
+                  </span>
                 )}
               </div>
             </div>
@@ -100,25 +92,21 @@ function Cart({ items, onRemove, onToggleFulfilled }) {
               className="remove-item"
               type="button"
               onClick={(event) => {
-                event.stopPropagation()
-                if (typeof onRemove === 'function' && item.indices.length > 0) {
-                  const indexToRemove = item.indices[item.indices.length - 1]
-                  onRemove(indexToRemove)
+                event.stopPropagation();
+                if (typeof onRemove === "function" && item.indices.length > 0) {
+                  onRemove(item.indices[item.indices.length - 1]);
                 }
-                if (navigator.vibrate) {
-                  navigator.vibrate(15)
-                }
+                if (navigator.vibrate) navigator.vibrate(15);
               }}
-              aria-label="Удалить товар"
+              aria-label={isEn ? "Remove item" : "Удалить товар"}
             >
               ✕
             </button>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
- 
-export default Cart
 
+export default Cart;

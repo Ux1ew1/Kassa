@@ -5,24 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import "./ChecksList.css";
 
 /**
- * Renders the checks list with create/complete actions.
+ * Renders the checks list for switching active check.
  * @param {Object} props - Component props.
  * @param {Array} props.checks - Checks list.
  * @param {number} props.activeCheckId - Active check id.
  * @param {Function} props.onCheckChange - Handler for selecting a check.
- * @param {Function} props.onCreateNew - Handler for creating a new check.
- * @param {Function} [props.onCompleteActiveCheck] - Handler for completing active check.
  * @returns {JSX.Element} Checks list.
  */
-function ChecksList({
-  checks,
-  activeCheckId,
-  onCheckChange,
-  onCreateNew,
-  onCompleteActiveCheck,
-}) {
-  const lastTapRef = useRef({ id: null, time: 0 });
+function ChecksList({ checks, activeCheckId, onCheckChange }) {
   const checksRef = useRef(null);
+  const prevChecksCountRef = useRef(0);
   const [showRightIndicator, setShowRightIndicator] = useState(false);
 
   useEffect(() => {
@@ -62,23 +54,25 @@ function ChecksList({
     };
   }, [checks.length]);
 
-  const handleTap = (checkId) => {
-    const now = Date.now();
-    const { id, time } = lastTapRef.current;
-
-    if (
-      id === checkId &&
-      now - time < 320 &&
-      checkId === activeCheckId &&
-      typeof onCompleteActiveCheck === "function"
-    ) {
-      onCompleteActiveCheck();
-      lastTapRef.current = { id: null, time: 0 };
+  useEffect(() => {
+    const container = checksRef.current;
+    if (!container) {
+      prevChecksCountRef.current = checks.length;
       return;
     }
 
-    lastTapRef.current = { id: checkId, time: now };
-  };
+    const hasNewCheck = checks.length > prevChecksCountRef.current;
+    const hasHorizontalOverflow = container.scrollWidth - container.clientWidth > 1;
+
+    if (hasNewCheck && hasHorizontalOverflow) {
+      container.scrollTo({
+        left: container.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+
+    prevChecksCountRef.current = checks.length;
+  }, [checks.length]);
 
   return (
     <div className="top__checks">
@@ -97,26 +91,10 @@ function ChecksList({
               checked={check.id === activeCheckId}
               onChange={(e) => onCheckChange(parseInt(e.target.value, 10))}
             />
-            <label
-              htmlFor={`check-${check.id}`}
-              onDoubleClick={() => {
-                if (
-                  check.id === activeCheckId &&
-                  typeof onCompleteActiveCheck === "function"
-                ) {
-                  onCompleteActiveCheck();
-                }
-              }}
-              onTouchEnd={() => handleTap(check.id)}
-            >
-              {check.id}
-            </label>
+            <label htmlFor={`check-${check.id}`}>{check.id}</label>
           </div>
         ))}
       </div>
-      <button className="newCheck" onClick={onCreateNew} aria-label="Новый чек">
-        +
-      </button>
     </div>
   );
 }

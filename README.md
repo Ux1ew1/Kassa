@@ -1,6 +1,6 @@
 ﻿# Kassa React
 
-Веб-приложение кассы на React с админ‑панелью и локальным API сервером для хранения меню.
+Веб-приложение кассы на React с админ‑панелью, API сервером и авторизацией через Supabase.
 
 ## Возможности
 
@@ -10,6 +10,7 @@
 - Админ‑панель для управления позициями
 - Сохранение чеков в localStorage
 - Меню хранится в `data/menu.json`
+- Регистрация/вход пользователей через Supabase
 
 ## Стек
 
@@ -52,16 +53,23 @@ npm start
 
 Приложение будет доступно по адресу `http://localhost:3000`.
 
-## Android / Termux
-
-Подробные инструкции:
-- `TERMUX.md`
-- `quick-start-termux.md`
-
 ## API
 
 - `GET /api/menu` — получить меню
 - `PUT /api/menu` — сохранить меню
+- `POST /api/register` — регистрация пользователя
+- `POST /api/login` — вход пользователя
+- `POST /api/rooms/create` — создать комнату (creator получает роль `owner`)
+- `GET /api/rooms/my?userId=...` — список комнат пользователя с ролями
+- `POST /api/rooms/invite` — добавить пользователя в комнату по логину (role: `user`/`admin`)
+- `POST /api/rooms/join-by-code` — войти в комнату по короткому ID
+- `POST /api/rooms/rename` — изменить название комнаты (`owner/admin`)
+- `POST /api/rooms/leave` — выйти из комнаты (кроме `owner`)
+- `GET /api/rooms/members?roomId=...&userId=...` — список участников комнаты (с ролями)
+- `POST /api/rooms/member-role` — сменить роль участника (`owner/admin` only; owner не меняется)
+- `POST /api/rooms/kick` — исключить участника (`owner/admin` only; owner не кикается)
+- `GET /api/menu?roomId=...&userId=...` — меню выбранной комнаты
+- `PUT /api/menu?roomId=...&userId=...` — обновление меню комнаты (только `owner`/`admin`)
 
 Ожидаемый формат:
 ```json
@@ -76,8 +84,14 @@ npm start
 - `HOST` — хост сервера (по умолчанию `0.0.0.0`)
 - `PORT` — порт сервера (по умолчанию `3000`)
 - `PUBLIC_URL` — внешний URL, который выводится в логах
-- `PREFERRED_INTERFACE` — предпочтительный сетевой интерфейс
-- `PREFERRED_INTERFACES` — список интерфейсов через запятую
+- `VITE_SITE_URL` — публичный URL фронтенда для canonical/OG meta (например `https://kassa.example.com`)
+- `SUPABASE_URL` — URL проекта Supabase
+- `SUPABASE_SERVICE_ROLE_KEY` — service role key для server-side запросов
+- `SUPABASE_USERS_TABLE` — имя таблицы пользователей (по умолчанию `users`)
+
+Пример размещения переменных: `.env`
+
+SQL для таблицы пользователей: `supabase/users.sql`
 
 ## Структура проекта
 

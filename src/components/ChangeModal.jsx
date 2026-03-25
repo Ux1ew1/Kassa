@@ -1,42 +1,25 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useCurrency } from "../contexts/CurrencyContext";
 import "./ChangeModal.css";
 
-/**
- * Change calculation modal.
- * @param {Object} props - Component props.
- * @param {boolean} props.isOpen - Whether modal is open.
- * @param {number} props.price - Current check price.
- * @param {number} [props.currentChange=0] - Current stored change.
- * @param {Function} props.onClose - Close handler.
- * @param {Function} props.onConfirm - Confirm handler.
- * @returns {JSX.Element|null} Modal or null.
- */
-function ChangeModal({
-  isOpen,
-  price = 0,
-  currentChange = 0,
-  onClose,
-  onConfirm,
-}) {
+function ChangeModal({ isOpen, price = 0, currentChange = 0, onClose, onConfirm }) {
+  const { language } = useLanguage();
+  const { formatCurrency } = useCurrency();
+  const isEn = language === "en";
   const [given, setGiven] = useState("");
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
-
     setGiven("");
 
     const handleEsc = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
 
     document.addEventListener("keydown", handleEsc);
-    const focusTimer = window.setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
-
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", handleEsc);
@@ -53,7 +36,6 @@ function ChangeModal({
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!canConfirm) return;
-
     onConfirm(safeGiven);
   };
 
@@ -69,12 +51,12 @@ function ChangeModal({
         aria-labelledby="change-modal-title"
       >
         <div className="change-modal__header">
-          <h3 id="change-modal-title">Сдача</h3>
+          <h3 id="change-modal-title">{isEn ? "Change" : "Сдача"}</h3>
           <button
             type="button"
             className="change-modal__close"
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={isEn ? "Close" : "Закрыть"}
           >
             x
           </button>
@@ -82,7 +64,7 @@ function ChangeModal({
 
         <form onSubmit={handleSubmit} className="change-modal__form">
           <label htmlFor="given-amount" className="change-modal__label">
-            Сумма сдачи
+            {isEn ? "Amount received" : "Сумма сдачи"}
           </label>
           <input
             id="given-amount"
@@ -99,17 +81,17 @@ function ChangeModal({
           />
 
           <div className="change-modal__summary">
-            <p>К оплате: {price || 0} Руб</p>
-            <p>Внесено: {safeGiven} Руб</p>
-            <p>Сдача: {changeAmount} Руб</p>
+            <p>{isEn ? "To pay" : "К оплате"}: {formatCurrency(price || 0)}</p>
+            <p>{isEn ? "Received" : "Внесено"}: {formatCurrency(safeGiven)}</p>
+            <p>{isEn ? "Change" : "Сдача"}: {formatCurrency(changeAmount)}</p>
             {missingAmount > 0 && (
               <p className="change-modal__warning">
-                Не хватает: {missingAmount} Руб
+                {isEn ? "Missing" : "Не хватает"}: {formatCurrency(missingAmount)}
               </p>
             )}
             {currentChange > 0 && (
               <p className="change-modal__muted">
-                Текущая сдача в чеке: {currentChange} Руб
+                {isEn ? "Current check change" : "Текущая сдача в чеке"}: {formatCurrency(currentChange)}
               </p>
             )}
           </div>
@@ -120,14 +102,14 @@ function ChangeModal({
               className="change-modal__button change-modal__button--primary"
               disabled={!canConfirm}
             >
-              Подтвердить
+              {isEn ? "Confirm" : "Подтвердить"}
             </button>
             <button
               type="button"
               className="change-modal__button change-modal__button--secondary"
               onClick={onClose}
             >
-              Отмена
+              {isEn ? "Cancel" : "Отмена"}
             </button>
           </div>
         </form>

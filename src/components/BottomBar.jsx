@@ -1,61 +1,73 @@
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useCurrency } from "../contexts/CurrencyContext";
 import "./BottomBar.css";
 
-/**
- * Bottom controls showing check totals and actions.
- */
-import "./BottomBar.css";
-
-function BottomBar({ activeCheck, onComplete, onAmount }) {
+function BottomBar({ activeCheck, onComplete, onAmount, isDesktop = false }) {
+  const { language } = useLanguage();
+  const { currency, formatCurrency } = useCurrency();
+  const isEn = language === "en";
   const barRef = useRef(null);
   const sentinelRef = useRef(null);
   const [isStuck, setIsStuck] = useState(false);
+  const currencyIcon = {
+    RUB: "₽",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    CNY: "¥",
+    KZT: "₸",
+    INR: "₹",
+  }[currency.code] || currency.code;
 
   useEffect(() => {
+    if (isDesktop) {
+      setIsStuck(false);
+      return undefined;
+    }
+
     const sentinel = sentinelRef.current;
     if (!sentinel) return undefined;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsStuck(entry.isIntersecting);
-      },
+      ([entry]) => setIsStuck(entry.isIntersecting),
       { root: null, threshold: 1 },
     );
 
     observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [isDesktop]);
 
   return (
     <>
-      <div className={`bottom${isStuck ? " bottom--stuck" : ""}`} ref={barRef}>
+      <div
+        className={`bottom${isStuck ? " bottom--stuck" : ""}${
+          isDesktop ? " bottom--desktop" : ""
+        }`}
+        ref={barRef}
+      >
         <button
           className="done-button"
           onClick={onComplete}
-        aria-label="Завершить чек"
-      >
-        ✓
-      </button>
-      <span className="price">Цена: {activeCheck?.price || 0} руб.</span>
-      <span className="amount">Сдача: {activeCheck?.change || 0} руб.</span>
-      <button
-        className="amountButton"
-        onClick={onAmount}
-        aria-label="Ввести сумму"
-      >
-        <svg
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+          aria-label={isEn ? "Complete check" : "Завершить чек"}
         >
-          <path d="M8 21h2v-3h6v-2h-6v-2h4.5c2.757 0 5-2.243 5-5s-2.243-5-5-5H9a1 1 0 0 0-1 1v7H5v2h3v2H5v2h3v3zm2-15h4.5c1.654 0 3 1.346 3 3s-1.346 3-3 3H10V6z" />
-        </svg>
-          </button>
+          ✓
+        </button>
+        <span className="price">
+          {isEn ? "Price" : "Цена"}: {formatCurrency(activeCheck?.price || 0)}
+        </span>
+        <span className="amount">
+          {isEn ? "Change" : "Сдача"}: {formatCurrency(activeCheck?.change || 0)}
+        </span>
+        <button
+          className="amountButton"
+          onClick={onAmount}
+          aria-label={isEn ? "Enter amount" : "Ввести сумму"}
+        >
+          <span aria-hidden="true">{currencyIcon}</span>
+        </button>
       </div>
-      <div className="bottom-sentinel" ref={sentinelRef} aria-hidden="true" />
+      {!isDesktop && <div className="bottom-sentinel" ref={sentinelRef} aria-hidden="true" />}
     </>
   );
 }
