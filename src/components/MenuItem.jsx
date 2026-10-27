@@ -1,24 +1,29 @@
+﻿/**
+ * Menu item card component.
+ */
 import "./MenuItem.css";
-import { useCurrency } from "../contexts/CurrencyContext";
 
+/**
+ * Renders a single menu item card.
+ * @param {Object} props - Component props.
+ * @param {{id: number|string, name: string, price: number}} props.item - Menu item.
+ * @param {number} [props.quantity=0] - Count of item in cart.
+ * @param {Function} props.onAdd - Add handler.
+ * @returns {JSX.Element} Menu item card.
+ */
 function MenuItem({ item, quantity = 0, onAdd }) {
-  const { formatCurrency } = useCurrency();
-  const isSelected = quantity > 0;
-  const isMuted = item?.show === false;
-
   const handleClick = () => {
     onAdd(item);
-    if (navigator.vibrate) navigator.vibrate(15);
+    if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
   };
 
   return (
     <div
-      className={`item${isSelected ? " item--selected" : ""}${
-        isMuted ? " item--muted" : ""
-      }`}
+      className="item"
       role="button"
       tabIndex={0}
-      aria-pressed={isSelected}
       onClick={handleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -29,7 +34,7 @@ function MenuItem({ item, quantity = 0, onAdd }) {
     >
       <span className="item-name">{item.name}</span>
       <div className="item-footer">
-        <span className="item-price">{formatCurrency(item.price)}</span>
+        <span className="item-price">{item.price} руб.</span>
         {quantity > 0 && <span className="item-quantity">x{quantity}</span>}
       </div>
     </div>

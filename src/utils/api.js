@@ -1,23 +1,8 @@
-const rawApiBase = (import.meta.env.VITE_API_BASE_URL || "/api").trim();
-const API_BASE = rawApiBase.replace(/\/+$/, "") || "/api";
+/**
+ * @file API utilities for interacting with the backend.
+ */
 
-const buildApiUrl = (path) => {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE}${normalizedPath}`;
-};
-
-async function apiRequest(path, options = {}, fallbackMessage = "Request failed") {
-  let response;
-  try {
-    response = await fetch(buildApiUrl(path), options);
-  } catch {
-    throw new Error("API server is unavailable. Check VITE_API_BASE_URL and backend status.");
-  }
-
-  const payload = await safeJson(response);
-  if (!response.ok) throw new Error(payload?.message || fallbackMessage);
-  return payload;
-}
+const API_BASE = "/api";
 
 export async function safeJson(response) {
   try {
@@ -27,164 +12,122 @@ export async function safeJson(response) {
   }
 }
 
-export async function fetchMenu(roomId, userId) {
-  const payload = await apiRequest(
-    `/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
-    {},
-    "Failed to load menu",
-  );
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, options);
+  const payload = await safeJson(response);
 
-  const items = Array.isArray(payload?.items)
-    ? payload.items
-    : Array.isArray(payload?.menu)
-      ? payload.menu
-      : [];
-  const activeOrder = Array.isArray(payload?.activeOrder)
-    ? payload.activeOrder
-    : items.filter((item) => item.show).map((item) => item.id);
-  return { items, activeOrder };
+  if (!response.ok) {
+    throw new Error(payload?.message || "Не удалось выполнить запрос");
+  }
+
+  return payload;
 }
 
-export async function saveMenu(roomId, userId, items, activeOrder) {
-  return apiRequest(
-    `/menu?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, activeOrder }),
-    },
-    "Failed to save menu",
-  );
+function normalizeActiveMenuPayload(payload) {
+  const activeMenu = payload?.activeMenu || null;
+  const items = Array.isArray(activeMenu?.items)
+    ? activeMenu.items
+    : Array.isArray(payload?.items)
+      ? payload.items
+      : Array.isArray(payload?.menu)
+        ? payload.menu
+        : [];
+
+  const activeOrder = Array.isArray(activeMenu?.activeOrder)
+    ? activeMenu.activeOrder
+    : Array.isArray(payload?.activeOrder)
+      ? payload.activeOrder
+      : items.filter((item) => item.show).map((item) => item.id);
+
+  return {
+    items,
+    activeOrder,
+    activeMenu,
+    activeMenuId: payload?.activeMenuId || activeMenu?.id || "main",
+    menus: Array.isArray(payload?.menus) ? payload.menus : [],
+  };
 }
 
-export async function registerUser(login, password) {
-  return apiRequest(
-    "/register",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
-    },
-    "Failed to register",
-  );
+export async function fetchMenu() {
+  const payload = await requestJson(`${API_BASE}/menu`);
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function loginUser(login, password) {
-  return apiRequest(
-    "/login",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
-    },
-    "Failed to sign in",
-  );
+export async function saveMenu(items, activeOrder) {
+  return requestJson(`${API_BASE}/menu`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, activeOrder }),
+  });
 }
 
-export async function createRoom(name, userId) {
-  return apiRequest(
-    "/rooms/create",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, userId }),
-    },
-    "Failed to create room",
-  );
+export async function fetchMenus() {
+  const payload = await requestJson(`${API_BASE}/menus`);
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function fetchMyRooms(userId) {
-  const payload = await apiRequest(
-    `/rooms/my?userId=${encodeURIComponent(userId)}`,
-    {},
-    "Failed to load rooms",
-  );
-  return Array.isArray(payload?.rooms) ? payload.rooms : [];
+export async function createMenu(name) {
+  const payload = await requestJson(`${API_BASE}/menus`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function inviteToRoom(roomId, inviterId, login, role = "user") {
-  return apiRequest(
-    "/rooms/invite",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId, inviterId, login, role }),
-    },
-    "Failed to invite user",
-  );
+export async function updateMenu(menuId, data) {
+  const payload = await requestJson(`${API_BASE}/menus/${encodeURIComponent(menuId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function joinRoomByCode(userId, code) {
-  return apiRequest(
-    "/rooms/join-by-code",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, code }),
-    },
-    "Failed to join room",
-  );
+export async function deleteMenu(menuId) {
+  const payload = await requestJson(`${API_BASE}/menus/${encodeURIComponent(menuId)}`, {
+    method: "DELETE",
+  });
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function renameRoom(roomId, actorId, name) {
-  return apiRequest(
-    "/rooms/rename",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId, actorId, name }),
-    },
-    "Failed to rename room",
+export async function activateMenu(menuId) {
+  const payload = await requestJson(
+    `${API_BASE}/menus/${encodeURIComponent(menuId)}/activate`,
+    { method: "POST" },
   );
+  return normalizeActiveMenuPayload(payload);
 }
 
-export async function leaveRoom(roomId, userId) {
-  return apiRequest(
-    "/rooms/leave",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId, userId }),
-    },
-    "Failed to leave room",
-  );
+export async function importMenuPhoto(imageData, targetMenuId = null) {
+  const payload = await requestJson(`${API_BASE}/menus/import-photo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageData, commit: false, targetMenuId }),
+  });
+  return payload.preview;
 }
 
-export async function fetchRoomMembers(roomId, userId) {
-  const payload = await apiRequest(
-    `/rooms/members?roomId=${encodeURIComponent(roomId)}&userId=${encodeURIComponent(userId)}`,
-    {},
-    "Failed to load room members",
-  );
-  return Array.isArray(payload?.members) ? payload.members : [];
-}
-
-export async function updateRoomMemberRole(roomId, actorId, targetUserId, role) {
-  return apiRequest(
-    "/rooms/member-role",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId, actorId, targetUserId, role }),
-    },
-    "Failed to update role",
-  );
-}
-
-export async function kickRoomMember(roomId, actorId, targetUserId) {
-  return apiRequest(
-    "/rooms/kick",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId, actorId, targetUserId }),
-    },
-    "Failed to kick user",
-  );
+export async function createImportedMenu(preview, options = {}) {
+  const payload = await requestJson(`${API_BASE}/menus/import-photo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      commit: true,
+      mode: options.mode || "create",
+      targetMenuId: options.targetMenuId || null,
+      menuName: preview?.menuName,
+      items: options.items || preview?.items,
+    }),
+  });
+  return {
+    ...normalizeActiveMenuPayload(payload),
+    mergeResult: payload?.mergeResult || null,
+  };
 }
 
 export function formatPrice(price) {
-  return `${price} ₽`;
+  return `${price} руб.`;
 }
 
 export function validateMenuItem(item) {

@@ -56,13 +56,7 @@ export function useChecks() {
             ...check,
             items: [
               ...check.items,
-              {
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                category: item.category,
-                fulfilled: false,
-              },
+              { id: item.id, name: item.name, price: item.price, fulfilled: false },
             ],
             price: check.price + item.price,
           }

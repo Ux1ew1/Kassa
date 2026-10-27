@@ -1,57 +1,43 @@
-﻿import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminMenu } from "../hooks/useAdminMenu";
-import { useLanguage } from "../contexts/LanguageContext";
 import AdminMenuList from "../components/AdminMenuList";
+import AiImportModal from "../components/AiImportModal";
 import ItemModal from "../components/ItemModal";
-import {
-  categoryLabel,
-  collectCategories,
-  normalizeCategory,
-} from "../utils/categories";
+import { searchMenu } from "../utils/search";
 import "./Admin.css";
 
-const ALL_FILTER = "__all__";
-
-function Admin({ user, activeRoom }) {
-  const { language } = useLanguage();
-  const isEn = language === "en";
+function Admin() {
   const {
+    menus,
+    activeMenuId,
+    selectedMenuId,
+    selectedMenu,
     menu,
     loading,
     addItem,
     updateItem,
     deleteItem,
     toggleItem,
-    removeCategory,
-  } = useAdminMenu(activeRoom?.id, user?.id);
+    addMenu,
+    removeSelectedMenu,
+    renameSelectedMenu,
+    importPhotoAsMenu,
+    createMenuFromImportPreview,
+    selectMenu,
+  } = useAdminMenu();
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState(ALL_FILTER);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [menuName, setMenuName] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
   const [editingItem, setEditingItem] = useState(null);
 
-  const tr = (ru, en) => (isEn ? en : ru);
-  const existingCategories = useMemo(() => collectCategories(menu), [menu]);
+  useEffect(() => {
+    setMenuName(selectedMenu?.name || "");
+  }, [selectedMenu?.name]);
 
-  const filteredMenu = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-
-    return menu.filter((item) => {
-      const matchesQuery = item.name.toLowerCase().includes(normalizedQuery);
-      if (!matchesQuery) return false;
-
-      const matchesCategory =
-        categoryFilter === ALL_FILTER ||
-        normalizeCategory(item.category) === categoryFilter;
-      if (!matchesCategory) return false;
-
-      if (statusFilter === "active") return Boolean(item.show);
-      if (statusFilter === "hidden") return !item.show;
-      return true;
-    });
-  }, [menu, searchQuery, categoryFilter, statusFilter]);
+  const filteredMenu = searchMenu(menu, searchQuery);
 
   const handleAdd = () => {
     setModalMode("add");
@@ -75,16 +61,17 @@ function Admin({ user, activeRoom }) {
       setModalOpen(false);
       setEditingItem(null);
     } catch (error) {
-      alert(error.message || tr("Не удалось сохранить позицию", "Failed to save item"));
+      alert(error.message || "Не удалось сохранить позицию");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm(tr("Удалить позицию?", "Delete this item?"))) return;
-    try {
-      await deleteItem(id);
-    } catch (error) {
-      alert(error.message || tr("Не удалось удалить позицию", "Failed to delete item"));
+    if (confirm("Удалить позицию?")) {
+      try {
+        await deleteItem(id);
+      } catch (error) {
+        alert(error.message || "Не удалось удалить позицию");
+      }
     }
   };
 
@@ -92,144 +79,166 @@ function Admin({ user, activeRoom }) {
     try {
       await toggleItem(id);
     } catch (error) {
-      alert(error.message || tr("Не удалось обновить позицию", "Failed to update item"));
+      alert(error.message || "Не удалось обновить позицию");
     }
   };
 
-  const handleDeleteCategory = async (category) => {
-    await removeCategory(category, "остальное");
+  const handleCreateMenu = async () => {
+    try {
+      await addMenu();
+      setSearchQuery("");
+    } catch (error) {
+      alert(error.message || "Не удалось создать меню");
+    }
+  };
+
+  const handleDeleteMenu = async () => {
+    if (!selectedMenuId) return;
+    if (confirm("Удалить выбранное меню?")) {
+      try {
+        await removeSelectedMenu();
+        setSearchQuery("");
+      } catch (error) {
+        alert(error.message || "Не удалось удалить меню");
+      }
+    }
+  };
+
+  const handleRenameMenu = async () => {
+    try {
+      await renameSelectedMenu(menuName);
+    } catch (error) {
+      alert(error.message || "Не удалось переименовать меню");
+    }
   };
 
   return (
     <div className="admin-container">
       <header className="admin-header">
-        <div className="admin-header__main">
-          <h1 className="admin-header__title">{tr("Админ-панель", "Admin panel")}</h1>
-          <p className="admin-header__subtitle">
-            {tr("Управление меню и видимостью позиций", "Menu and visibility management")}
-          </p>
-        </div>
+        <h1 className="admin-header__title">Админ-панель</h1>
         <div className="admin-header__actions">
           <Link to="/" className="admin-link">
-            {tr("Назад к кассе", "Back to cashier")}
+            К кассе
           </Link>
         </div>
       </header>
 
-      {!activeRoom?.id ? (
-        <main>
-          <div className="admin-placeholder">
-            {tr("Выберите комнату на главном экране.", "Choose a room on the main screen.")}
-          </div>
-        </main>
-      ) : (
-        <>
-          <section className="admin-toolbar" aria-label={tr("Панель управления", "Control toolbar")}> 
-            <div className="admin-toolbar__row admin-toolbar__row--search">
-              <div className="admin-search">
-                <input
-                  type="text"
-                  className="admin-search-input"
-                  placeholder={tr("Поиск по названию...", "Search by name...")}
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    className="admin-search-clear"
-                    onClick={() => setSearchQuery("")}
-                    aria-label={tr("Очистить поиск", "Clear search")}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            </div>
+      <main>
+        <section className="admin-menu-switcher" aria-label="Рабочие меню">
+          <div className="admin-menu-switcher__grid">
+            <label className="admin-field" htmlFor="menu-select">
+              <span className="admin-field__label">Рабочее меню</span>
+              <select
+                id="menu-select"
+                className="admin-input admin-menu-select"
+                value={selectedMenuId || ""}
+                onChange={(event) => selectMenu(event.target.value)}
+                disabled={loading || menus.length === 0}
+              >
+                {menus.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                    {item.id === activeMenuId ? " (активное)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-            <div className="admin-toolbar__row admin-toolbar__row--categories" role="tablist" aria-label={tr("Категории", "Categories")}>
-              <button
-                type="button"
-                className={`admin-pill${categoryFilter === ALL_FILTER ? " admin-pill--active" : ""}`}
-                onClick={() => setCategoryFilter(ALL_FILTER)}
-              >
-                {tr("Все", "All")}
-              </button>
-              {existingCategories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  className={`admin-pill${categoryFilter === category ? " admin-pill--active" : ""}`}
-                  onClick={() => setCategoryFilter(category)}
-                >
-                  {categoryLabel(category, isEn)}
-                </button>
-              ))}
-            </div>
-
-            <div className="admin-toolbar__row admin-toolbar__row--status" role="tablist" aria-label={tr("Статус", "Status")}>
-              <button
-                type="button"
-                className={`admin-status-tab${statusFilter === "all" ? " admin-status-tab--active" : ""}`}
-                onClick={() => setStatusFilter("all")}
-              >
-                {tr("Все", "All")}
-              </button>
-              <button
-                type="button"
-                className={`admin-status-tab${statusFilter === "active" ? " admin-status-tab--active" : ""}`}
-                onClick={() => setStatusFilter("active")}
-              >
-                {tr("Активные", "Active")}
-              </button>
-              <button
-                type="button"
-                className={`admin-status-tab${statusFilter === "hidden" ? " admin-status-tab--active" : ""}`}
-                onClick={() => setStatusFilter("hidden")}
-              >
-                {tr("Скрытые", "Hidden")}
-              </button>
-            </div>
-
-            <div className="admin-toolbar__row admin-toolbar__row--actions">
-              <button
-                className="admin-add-button"
-                onClick={handleAdd}
-                aria-label={tr("Добавить позицию", "Add item")}
-              >
-                {tr("Добавить позицию", "Add item")}
-              </button>
-            </div>
-          </section>
-
-          <main>
-            {loading ? (
-              <div className="admin-menu">
-                <div className="admin-placeholder">{tr("Загрузка меню...", "Loading menu...")}</div>
-              </div>
-            ) : (
-              <AdminMenuList
-                items={filteredMenu}
-                onToggle={handleToggle}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+            <label className="admin-field" htmlFor="menu-name">
+              <span className="admin-field__label">Название меню</span>
+              <input
+                id="menu-name"
+                type="text"
+                className="admin-input admin-menu-name"
+                value={menuName}
+                onChange={(event) => setMenuName(event.target.value)}
+                placeholder="Название меню"
               />
+            </label>
+          </div>
+
+          <div className="admin-menu-switcher__actions">
+            <button type="button" className="admin-action-button" onClick={handleRenameMenu}>
+              Переименовать
+            </button>
+            <button type="button" className="admin-action-button" onClick={handleCreateMenu}>
+              Создать меню
+            </button>
+            <button
+              type="button"
+              className="admin-action-button admin-action-button--danger"
+              onClick={handleDeleteMenu}
+              disabled={menus.length <= 1}
+            >
+              Удалить меню
+            </button>
+            <button
+              type="button"
+              className="admin-action-button admin-action-button--accent"
+              onClick={() => setImportModalOpen(true)}
+            >
+              Меню через ИИ
+            </button>
+          </div>
+        </section>
+
+        <div className="admin-controls">
+          <div className="admin-search">
+            <input
+              type="text"
+              className="admin-input admin-search-input"
+              placeholder="Поиск по названию..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="admin-search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="Очистить поиск"
+              >
+                ×
+              </button>
             )}
-          </main>
-        </>
-      )}
+          </div>
+          <button className="admin-add-button" onClick={handleAdd}>
+            Добавить позицию
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="admin-menu">
+            <div className="admin-placeholder">Загрузка меню...</div>
+          </div>
+        ) : (
+          <AdminMenuList
+            items={filteredMenu}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </main>
 
       <ItemModal
         isOpen={modalOpen}
         mode={modalMode}
         item={editingItem}
-        existingCategories={existingCategories}
-        onDeleteCategory={handleDeleteCategory}
         onSave={handleSave}
         onClose={() => {
           setModalOpen(false);
           setEditingItem(null);
         }}
+      />
+
+      <AiImportModal
+        isOpen={importModalOpen}
+        menus={menus}
+        selectedMenuId={selectedMenuId}
+        onClose={() => setImportModalOpen(false)}
+        onRecognize={importPhotoAsMenu}
+        onCreate={createMenuFromImportPreview}
       />
     </div>
   );
