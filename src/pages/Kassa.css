@@ -1,3 +1,5 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle · copy: verbatim · posture: Committed · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, preserve familiar cashier navigation */
 .container {
   position: relative;
   max-width: 425px;
@@ -88,7 +90,7 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 6px 2px;
+  padding: 12px 8px 4px;
 }
 
 .category-button {
@@ -116,15 +118,15 @@ h1 {
   border-color: var(--color-button-alt-bg);
   box-shadow:
     0 12px 24px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    inset 0 1px 0 var(--color-surface-detail-42);
   animation: category-pop 0.22s ease;
 }
 
 .category-button:hover {
-  transform: translateY(-1px) scale(1.03);
+  transform: none;
   box-shadow:
     0 14px 26px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    inset 0 1px 0 var(--color-surface-detail-47);
 }
 
 .category-button:active {
@@ -141,11 +143,11 @@ h1 {
   --top-bg: var(--color-panel);
   --top-btn-bg: color-mix(in srgb, var(--color-button-bg) 82%, transparent);
   --top-btn-bg-hover: var(--color-button-bg-hover);
-  --top-btn-bg-active: color-mix(in srgb, var(--color-button-bg-hover) 78%, #000);
+  --top-btn-bg-active: color-mix(in srgb, var(--color-button-bg-hover) 78%, var(--color-surface-detail-33));
   --top-btn-border: var(--color-divider);
   --top-btn-text: var(--color-button-text);
-  --top-btn-shadow: 0 6px 14px rgba(10, 25, 49, 0.26);
-  --top-btn-shadow-hover: 0 8px 18px rgba(10, 25, 49, 0.3);
+  --top-btn-shadow: 0 6px 14px var(--color-surface-detail-48);
+  --top-btn-shadow-hover: 0 8px 18px var(--color-surface-detail-49);
 
   display: flex;
   flex-wrap: wrap;
@@ -163,11 +165,11 @@ h1 {
 }
 
 :root[data-theme="dark"] .top {
-  --top-bg: #252525;
-  --top-btn-bg: #303030;
-  --top-btn-bg-hover: #3a3a3a;
-  --top-btn-bg-active: #454545;
-  --top-btn-border: rgba(255, 255, 255, 0.14);
+  --top-bg: var(--color-surface-detail-50);
+  --top-btn-bg: var(--color-surface-detail-51);
+  --top-btn-bg-hover: var(--color-surface-detail-52);
+  --top-btn-bg-active: var(--color-surface-detail-53);
+  --top-btn-border: var(--color-surface-detail-54);
   --top-btn-text: var(--color-text-primary);
   --top-btn-shadow: none;
   --top-btn-shadow-hover: none;
@@ -258,22 +260,20 @@ button {
   overflow: hidden;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.18),
-    rgba(255, 255, 255, 0.06)
+    var(--color-surface-detail-40),
+    var(--color-surface-detail-41)
   );
   color: var(--color-text-primary);
   box-shadow:
     6px 0 14px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 var(--color-surface-detail-26);
   padding: 16px 12px;
-  transition:
-    left 0.25s ease,
-    box-shadow 0.25s ease;
+  transition: box-shadow 0.25s ease;
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  border-right: 1px solid var(--color-surface-detail-42);
   backdrop-filter: blur(18px) saturate(120%) contrast(105%);
   -webkit-backdrop-filter: blur(18px) saturate(120%) contrast(105%);
 }
@@ -287,14 +287,14 @@ button {
   background-image:
     radial-gradient(
       120% 90% at 30% 12%,
-      rgba(255, 255, 255, 0.1),
+      var(--color-surface-detail-22),
       transparent 55%
     ),
-    radial-gradient(120% 90% at 75% 88%, rgba(0, 0, 0, 0.1), transparent 60%),
+    radial-gradient(120% 90% at 75% 88%, var(--color-surface-detail-43), transparent 60%),
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.06),
-      rgba(255, 255, 255, 0.02)
+      var(--color-surface-detail-41),
+      var(--glass-linear-2)
     ),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E");
   opacity: 0.65;
@@ -304,7 +304,7 @@ button {
   left: 0;
   box-shadow:
     10px 0 24px var(--color-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    inset 0 1px 0 var(--color-surface-detail-42);
 }
 
 .cart-drawer__header {

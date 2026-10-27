@@ -1,3 +1,5 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle · copy: verbatim · posture: Committed · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, preserve familiar cashier navigation */
 .bottom {
   --bottom-offset: calc(env(safe-area-inset-bottom) + 12px);
   --bottom-padding-x: 12px;
@@ -8,7 +10,7 @@
   --bottom-bg: var(--color-panel-strong);
   --bottom-shadow:
     0 -10px 24px color-mix(in srgb, var(--color-shadow) 70%, transparent),
-    0 6px 18px rgba(0, 0, 0, 0.18), 0 18px 36px rgba(0, 0, 0, 0.22),
+    0 6px 18px var(--color-surface-detail-20), 0 18px 36px var(--color-surface-detail-21),
     var(--glass-inset-strong);
   --bottom-backdrop-blur: calc(var(--glass-blur) - 12px);
   --bottom-backdrop-saturate: var(--glass-saturate);
@@ -32,7 +34,7 @@
   --bottom-noise-layer: var(--glass-noise-url);
   --bottom-action-bg: var(--color-button-alt-bg);
   --bottom-action-text: var(--color-button-alt-text);
-  --bottom-action-padding: 7px;
+  --bottom-action-padding: 8px;
   --bottom-action-icon: 24px;
   --bottom-text-size: 16px;
   --bottom-text-weight: 500;
@@ -68,8 +70,6 @@
   width: var(--bottom-width);
   animation: bottom-float-in 0.28s ease both;
   transition:
-    width 0.25s ease,
-    margin 0.25s ease,
     transform 0.25s ease,
     border-radius 0.25s ease,
     box-shadow 0.25s ease,
@@ -129,7 +129,7 @@
 
 .bottom-sentinel {
   height: 1px;
-  margin-top: 1px;
+  margin-top: 0px;
   opacity: 0;
   pointer-events: none;
 }

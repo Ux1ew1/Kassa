@@ -307,8 +307,8 @@ function AiImportModal({ isOpen, menus = [], selectedMenuId, onClose, onRecogniz
       >
         <div className="ai-modal__header">
           <div>
-            <span className="ai-modal__eyebrow">Импорт по фото</span>
             <h3 id="ai-import-title">Меню через ИИ</h3>
+            <span className="ai-modal__eyebrow">Импорт по фото</span>
             <p>ИИ распознает позиции, а вы проверите итог перед сохранением.</p>
           </div>
           <button type="button" className="ai-modal__close" onClick={onClose} aria-label="Закрыть">
@@ -446,8 +446,8 @@ function AiImportModal({ isOpen, menus = [], selectedMenuId, onClose, onRecogniz
           <div className="ai-modal__preview">
             <div className="ai-modal__preview-header">
               <div>
-                <span className="ai-modal__eyebrow">Проверка перед сохранением</span>
                 <h4>{mode === "append" ? preview.targetMenuName : preview.menuName}</h4>
+                <span className="ai-modal__eyebrow">Проверка перед сохранением</span>
               </div>
               <span className="ai-modal__count">{selectedCount} из {previewItems.length}</span>
             </div>

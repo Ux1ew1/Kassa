@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { syncInitialTheme } from './hooks/useTheme'
 import './index.css'
+import './hallmark/restyle.css'
 
 syncInitialTheme()
 

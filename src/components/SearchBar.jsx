@@ -43,6 +43,7 @@ function SearchBar({ value = "", onSearch }) {
         type="text"
         className={`search-input${hasValue ? " search-input--active" : ""}`}
         placeholder="Поиск товаров..."
+        aria-label="Поиск товаров"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

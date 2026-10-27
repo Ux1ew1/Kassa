@@ -1,3 +1,5 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle · copy: verbatim · posture: Committed · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, preserve familiar cashier navigation */
 .change-modal {
   position: fixed;
   inset: 0;
@@ -6,7 +8,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-surface-detail-23);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
@@ -21,12 +23,12 @@
   --change-modal-border: color-mix(
     in srgb,
     var(--color-divider) 68%,
-    rgba(255, 255, 255, 0.34)
+    var(--color-surface-detail-24)
   );
   --change-modal-shadow:
     0 14px 32px color-mix(in srgb, var(--color-shadow) 60%, transparent),
-    0 8px 24px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 8px 24px var(--color-surface-detail-25),
+    0 0 0 1px var(--color-surface-detail-26),
     var(--glass-inset-strong);
 
   position: relative;
@@ -35,7 +37,7 @@
   border-radius: 18px;
   border: 1px solid var(--change-modal-border);
   background-color: var(--change-modal-bg);
-  color: #f4f8ff;
+  color: var(--color-surface-detail-27);
   box-shadow: var(--change-modal-shadow);
   backdrop-filter: blur(calc(var(--glass-blur) - 12px)) saturate(var(--glass-saturate))
     contrast(var(--glass-contrast));
@@ -69,7 +71,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 14px 0;
+  padding: 16px 16px 0;
 }
 
 .change-modal__header h3 {
@@ -94,40 +96,42 @@
 .change-modal__form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 14px;
+  gap: 12px;
+  padding: 12px 16px 16px;
 }
 
 .change-modal__label {
   font-size: 13px;
-  color: rgba(244, 248, 255, 0.82);
+  color: var(--color-surface-detail-28);
 }
 
 .change-modal__input {
   width: 100%;
   box-sizing: border-box;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--color-input-border) 80%, rgba(255, 255, 255, 0.32));
+  border: 1px solid color-mix(in srgb, var(--color-input-border) 80%, var(--color-surface-detail-29));
   background: color-mix(in srgb, var(--color-input-bg) 68%, transparent);
   color: var(--color-text-primary);
   font-size: 16px;
   outline: none;
 }
 
-.change-modal__input:focus {
-  border-color: color-mix(in srgb, var(--color-border) 84%, rgba(255, 255, 255, 0.46));
+.change-modal__input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -3px;
+  border-color: color-mix(in srgb, var(--color-border) 84%, var(--color-surface-detail-30));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-button-alt-bg) 35%, transparent);
 }
 
 .change-modal__summary {
   border: 1px solid var(--color-divider);
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   background: color-mix(in srgb, var(--color-panel) 28%, transparent);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .change-modal__summary p {
@@ -136,17 +140,17 @@
 }
 
 .change-modal__warning {
-  color: #ff6363;
+  color: var(--color-surface-detail-31);
   font-weight: 600;
 }
 
 .change-modal__muted {
-  color: rgba(244, 248, 255, 0.7);
+  color: var(--color-surface-detail-32);
 }
 
 .change-modal__actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
@@ -155,7 +159,7 @@
   width: auto;
   min-width: 120px;
   min-height: 42px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 10px;
   font-size: 14px;
 }
