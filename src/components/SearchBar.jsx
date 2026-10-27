@@ -1,13 +1,30 @@
-import { useLanguage } from "../contexts/LanguageContext";
+﻿/**
+ * Search input component for filtering menu items.
+ */
 import "./SearchBar.css";
 
+/**
+ * Renders a search input with clear action.
+ * @param {Object} props - Component props.
+ * @param {string} [props.value=""] - Current value.
+ * @param {Function} props.onSearch - Change handler.
+ * @returns {JSX.Element} Search bar.
+ */
 function SearchBar({ value = "", onSearch }) {
-  const { language } = useLanguage();
-  const isEn = language === "en";
   const hasValue = value.trim().length > 0;
 
-  const handleChange = (e) => onSearch?.(e.target.value);
-  const handleClear = () => onSearch?.("");
+  const handleChange = (e) => {
+    const nextValue = e.target.value;
+    if (typeof onSearch === "function") {
+      onSearch(nextValue);
+    }
+  };
+
+  const handleClear = () => {
+    if (typeof onSearch === "function") {
+      onSearch("");
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -17,11 +34,15 @@ function SearchBar({ value = "", onSearch }) {
   };
 
   return (
-    <div className={`search-container${hasValue ? " search-container--active" : ""}`}>
+    <div
+      className={`search-container${
+        hasValue ? " search-container--active" : ""
+      }`}
+    >
       <input
         type="text"
         className={`search-input${hasValue ? " search-input--active" : ""}`}
-        placeholder={isEn ? "Search items..." : "Поиск товаров..."}
+        placeholder="Поиск товаров..."
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -31,7 +52,7 @@ function SearchBar({ value = "", onSearch }) {
           type="button"
           className="search-clear-button"
           onClick={handleClear}
-          aria-label={isEn ? "Clear search" : "Очистить поиск"}
+          aria-label="Очистить поиск"
         >
           ✕
         </button>
@@ -41,4 +62,3 @@ function SearchBar({ value = "", onSearch }) {
 }
 
 export default SearchBar;
-

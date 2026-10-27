@@ -11,6 +11,15 @@ node_modules
 dist
 dist-ssr
 *.local
+config.local.json
+.env
+.env.*
+!.env.example
+node_modules.bin-*
+graphify-out/
+.hallmark/before/
+.hallmark/after/
+.hallmark/screenshots/
 
 # Editor directories and files
 .vscode/*

@@ -1,14 +1,656 @@
 {
-  "items": [
+  "menus": [
     {
-      "id": 1,
-      "name": "11",
-      "price": 11,
-      "show": true,
-      "category": "остальное"
+      "id": "main",
+      "name": "Основное меню",
+      "items": [
+        {
+          "id": 1,
+          "name": "Брускетта с сёмгой",
+          "price": 200,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 2,
+          "name": "Пицца в ассортименте",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 8,
+          "name": "Пирожок с мясом",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 12,
+          "name": "Тирамису с лимоном",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 13,
+          "name": "Тирамису классический",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 14,
+          "name": "Кекс",
+          "price": 100,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 15,
+          "name": "Меренга",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 19,
+          "name": "Эспрессо",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 20,
+          "name": "Американо",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 21,
+          "name": "Капучино",
+          "price": 200,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 22,
+          "name": "Кофе 3 в 1",
+          "price": 50,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 23,
+          "name": "Чай чёрный",
+          "price": 50,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 24,
+          "name": "Чай зелёный",
+          "price": 50,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 25,
+          "name": "Сок 0.2",
+          "price": 100,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 26,
+          "name": "Сок 0.3",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 27,
+          "name": "Вода",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 28,
+          "name": "Вода с газом",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 29,
+          "name": "Пирог ветчина сыр",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 30,
+          "name": "Эклер ваниль",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 31,
+          "name": "Эклер шоколад",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 32,
+          "name": "Три шоколада мини",
+          "price": 150,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 33,
+          "name": "Трюфель мини",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 34,
+          "name": "Тропик мини",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 36,
+          "name": "Сникерс мини",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 37,
+          "name": "Чизкейк",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 38,
+          "name": "Эстерхази",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 40,
+          "name": "Вишня мини",
+          "price": 150,
+          "show": false,
+          "category": "остальное"
+        },
+        {
+          "id": 51,
+          "name": "Вишня шоколад",
+          "price": 250,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 52,
+          "name": "Салат",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 53,
+          "name": "Бутер с ростбифом",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 55,
+          "name": "Стакан",
+          "price": 50,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 56,
+          "name": "Нарезка с колбасой",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 57,
+          "name": "Нарезка с сыром",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 62,
+          "name": "Шампанское Брют бл.сх",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 63,
+          "name": "Шампанское Дольче бл.псл",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 64,
+          "name": "Водка",
+          "price": 150,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 65,
+          "name": "Виски Джим Бим",
+          "price": 450,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 66,
+          "name": "Коньяк три",
+          "price": 250,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 67,
+          "name": "Коньяк пять",
+          "price": 270,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 68,
+          "name": "Лезгинка три",
+          "price": 250,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 69,
+          "name": "Пирожное тирамису",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 70,
+          "name": "Мороженое",
+          "price": 100,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 71,
+          "name": "Вино белое полусухое",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 72,
+          "name": "Вино белое полусладкое",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 73,
+          "name": "Вино красное сухое",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 74,
+          "name": "Вино красное полусладкое",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 75,
+          "name": "Вино игристое белое сухое Брют",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 76,
+          "name": "Вино игристое белое полусладкое Дольче",
+          "price": 300,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 77,
+          "name": "Лезгинка три",
+          "price": 250,
+          "show": true,
+          "category": "алкоголь"
+        },
+        {
+          "id": 78,
+          "name": "Пирожное морковное",
+          "price": 200,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 79,
+          "name": "Пирожок с яйцом",
+          "price": 80,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 80,
+          "name": "Пирожок с капустой",
+          "price": 80,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 81,
+          "name": "Бутылка коняк",
+          "price": 2250,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 82,
+          "name": "Бутылка шампанское",
+          "price": 2450,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 83,
+          "name": "Бутылка вино",
+          "price": 2200,
+          "show": true,
+          "category": "остальное"
+        },
+        {
+          "id": 84,
+          "name": "Манго шоколад",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 85,
+          "name": "Черника",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 86,
+          "name": "Бутылка вино",
+          "price": 2250,
+          "show": true,
+          "category": "алкоголь"
+        }
+      ],
+      "activeOrder": [
+        1,
+        2,
+        8,
+        12,
+        13,
+        14,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        33,
+        34,
+        36,
+        37,
+        38,
+        51,
+        53,
+        55,
+        56,
+        57,
+        64,
+        65,
+        66,
+        67,
+        15,
+        52,
+        68,
+        69,
+        62,
+        63,
+        32,
+        70,
+        71,
+        72,
+        73,
+        75,
+        76,
+        77,
+        74,
+        25,
+        79,
+        80,
+        81,
+        82,
+        83,
+        78,
+        84,
+        85,
+        86
+      ],
+      "createdAt": "2026-05-21T20:45:20.703Z",
+      "updatedAt": "2026-10-27T08:35:24.931Z"
+    },
+    {
+      "id": "menu_msa1bx7h_hlldie",
+      "name": "Меню",
+      "items": [
+        {
+          "id": 1,
+          "name": "Салат из свежих овощей",
+          "price": 450,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 2,
+          "name": "Салат Греческий",
+          "price": 500,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 3,
+          "name": "Салат с курицей",
+          "price": 500,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 4,
+          "name": "Пицца в ассортименте",
+          "price": 150,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 5,
+          "name": "Наггетсы",
+          "price": 350,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 6,
+          "name": "Картофель фри",
+          "price": 250,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 7,
+          "name": "Судак в темпуре",
+          "price": 300,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 8,
+          "name": "Шашлык из свинины",
+          "price": 300,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 9,
+          "name": "Курица терияки с жареными овощами",
+          "price": 600,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 10,
+          "name": "Лазанья",
+          "price": 500,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 11,
+          "name": "Пирожное три шоколада",
+          "price": 270,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 12,
+          "name": "Малина - шоколад",
+          "price": 270,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 13,
+          "name": "Чизкейк",
+          "price": 270,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 14,
+          "name": "Эстерхази",
+          "price": 270,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 15,
+          "name": "Черничный",
+          "price": 270,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 16,
+          "name": "Мороженое в ассортименте",
+          "price": 110,
+          "show": true,
+          "category": "еда"
+        },
+        {
+          "id": 17,
+          "name": "Кофе заварной эспрессо, американо",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 18,
+          "name": "Кофе заварной капучино",
+          "price": 200,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 19,
+          "name": "Чай черный/зеленый заварной",
+          "price": 200,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 20,
+          "name": "Сок 0,3 ПЭТ",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        },
+        {
+          "id": 21,
+          "name": "Вода Бона Аква 0,5",
+          "price": 150,
+          "show": true,
+          "category": "напитки"
+        }
+      ],
+      "activeOrder": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "createdAt": "2026-08-01T07:13:33.149Z",
+      "updatedAt": "2026-10-27T08:35:24.931Z"
     }
   ],
-  "activeOrder": [
-    1
-  ]
+  "activeMenuId": "menu_msa1bx7h_hlldie"
 }

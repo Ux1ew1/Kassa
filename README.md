@@ -1,16 +1,16 @@
 ﻿# Kassa React
 
-Веб-приложение кассы на React с админ‑панелью, API сервером и авторизацией через Supabase.
+Веб-приложение кассы на React с админ‑панелью и локальным API сервером для хранения меню.
 
 ## Возможности
 
 - Просмотр меню и добавление товаров в чек
 - Несколько чеков, подсчет суммы и сдачи
 - Поиск по меню и фильтрация по категориям
-- Админ‑панель для управления позициями
+- Админ‑панель для управления рабочими меню и позициями
+- Импорт нового меню по фото через Polza AI
 - Сохранение чеков в localStorage
-- Меню хранится в `data/menu.json`
-- Регистрация/вход пользователей через Supabase
+- Меню хранятся в `data/menu.json`
 
 ## Стек
 
@@ -53,54 +53,24 @@ npm start
 
 Приложение будет доступно по адресу `http://localhost:3000`.
 
-### Вариант: frontend и API на разных хостах
+## Android / Termux
 
-Если фронтенд размещён отдельно (например, static hosting), API должен быть доступен по внешнему URL.
-
-Для фронтенда задайте переменную окружения при сборке:
-```bash
-VITE_API_BASE_URL=https://api.example.com/api
-```
-
-Если `VITE_API_BASE_URL` не задан, используется относительный путь `/api` (подходит только когда frontend и backend обслуживаются одним хостом).
-
-## Deploy на Vercel
-
-На Vercel backend работает через Functions, а не через постоянный `npm start`.
-
-1. Backend:
-   - `api-core.js` содержит общую API-логику;
-   - `api/[...route].js` проксирует все `/api/*` в `requestHandler`.
-2. Frontend:
-   - Vercel собирает Vite и отдаёт `dist`.
-3. Переменные окружения в Vercel Project Settings:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `SUPABASE_USERS_TABLE`
-   - `VITE_API_BASE_URL=/api`
-   - `VITE_SITE_URL=https://quickcashier.ru` (опционально)
-4. SPA роутинг:
-   - `vercel.json` содержит rewrite для маршрутов frontend.
+Подробные инструкции:
+- `TERMUX.md`
+- `quick-start-termux.md`
 
 ## API
 
-- `GET /api/menu` — получить меню
-- `PUT /api/menu` — сохранить меню
-- `POST /api/register` — регистрация пользователя
-- `POST /api/login` — вход пользователя
-- `POST /api/rooms/create` — создать комнату (creator получает роль `owner`)
-- `GET /api/rooms/my?userId=...` — список комнат пользователя с ролями
-- `POST /api/rooms/invite` — добавить пользователя в комнату по логину (role: `user`/`admin`)
-- `POST /api/rooms/join-by-code` — войти в комнату по короткому ID
-- `POST /api/rooms/rename` — изменить название комнаты (`owner/admin`)
-- `POST /api/rooms/leave` — выйти из комнаты (кроме `owner`)
-- `GET /api/rooms/members?roomId=...&userId=...` — список участников комнаты (с ролями)
-- `POST /api/rooms/member-role` — сменить роль участника (`owner/admin` only; owner не меняется)
-- `POST /api/rooms/kick` — исключить участника (`owner/admin` only; owner не кикается)
-- `GET /api/menu?roomId=...&userId=...` — меню выбранной комнаты
-- `PUT /api/menu?roomId=...&userId=...` — обновление меню комнаты (только `owner`/`admin`)
+- `GET /api/menu` — получить активное меню
+- `PUT /api/menu` — сохранить активное меню
+- `GET /api/menus` — получить список меню и активное меню
+- `POST /api/menus` — создать новое меню
+- `PUT /api/menus/:id` — обновить меню
+- `DELETE /api/menus/:id` — удалить меню
+- `POST /api/menus/:id/activate` — сделать меню активным
+- `POST /api/menus/import-photo` — распознать фото меню или создать меню из предпросмотра
 
-Ожидаемый формат:
+Формат активного меню:
 ```json
 {
   "items": [{"id": 1, "name": "...", "price": 0, "show": true, "category": "напитки"}],
@@ -108,35 +78,34 @@ VITE_API_BASE_URL=https://api.example.com/api
 }
 ```
 
+Для импорта по фото создайте локальный файл `config.local.json` по примеру
+`config.example.json`:
+
+```json
+{
+  "polzaAiApiKey": "ваш_ключ_polza_ai"
+}
+```
+
+Файл `config.local.json` не коммитится, потому что добавлен в `.gitignore`.
+
 ## Переменные окружения сервера
 
 - `HOST` — хост сервера (по умолчанию `0.0.0.0`)
 - `PORT` — порт сервера (по умолчанию `3000`)
 - `PUBLIC_URL` — внешний URL, который выводится в логах
-- `VITE_SITE_URL` — публичный URL фронтенда для canonical/OG meta (например `https://kassa.example.com`)
-- `SUPABASE_URL` — URL проекта Supabase
-- `SUPABASE_SERVICE_ROLE_KEY` — service role key для server-side запросов
-- `SUPABASE_USERS_TABLE` — имя таблицы пользователей (по умолчанию `users`)
-
-Пример размещения переменных: `.env`
-
-Для сборки frontend также можно задать:
-- `VITE_API_BASE_URL` — базовый URL API (например `https://api.example.com/api`)
-
-SQL для таблицы пользователей: `supabase/users.sql`
+- `PREFERRED_INTERFACE` — предпочтительный сетевой интерфейс
+- `PREFERRED_INTERFACES` — список интерфейсов через запятую
 
 ## Структура проекта
 
 ```
 Kassa/
-├── api/             # Vercel Functions entrypoints
-├── api-core.js      # общая API/SSR логика для Vercel и local server
 ├── data/            # данные меню
 ├── dist/            # production сборка
 ├── public/          # статические файлы
 ├── src/             # исходники React
-├── server.js        # локальный Node bootstrap (dev/self-host)
-├── vercel.json      # Vercel routing config
+├── server.js        # backend сервер
 ├── vite.config.js   # конфигурация Vite
 └── package.json
 ```
