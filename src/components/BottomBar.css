@@ -5,7 +5,11 @@
   --bottom-radius: 20px;
   --bottom-border-color: var(--color-divider);
   --bottom-text-color: var(--color-button-text);
-  --bottom-bg: var(--color-panel-strong);
+  --bottom-bg: color-mix(
+    in srgb,
+    var(--color-panel-strong) calc(var(--glass-mix-panel) * 0.65),
+    transparent
+  );
   --bottom-shadow:
     0 -10px 24px color-mix(in srgb, var(--color-shadow) 70%, transparent),
     0 6px 18px rgba(0, 0, 0, 0.18), 0 18px 36px rgba(0, 0, 0, 0.22),
@@ -30,7 +34,11 @@
     var(--glass-linear-2)
   );
   --bottom-noise-layer: var(--glass-noise-url);
-  --bottom-action-bg: var(--color-button-alt-bg);
+  --bottom-action-bg: color-mix(
+    in srgb,
+    var(--color-button-alt-bg) var(--glass-mix-button-alt),
+    transparent
+  );
   --bottom-action-text: var(--color-button-alt-text);
   --bottom-action-padding: 7px;
   --bottom-action-icon: 24px;

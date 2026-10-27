@@ -202,8 +202,7 @@ h1 {
   background-color: var(--top-btn-bg-active);
 }
 
-.cart-drawer-button,
-.coffee-menu-button {
+.cart-drawer-button {
   display: flex;
   align-items: center;
   justify-content: center;

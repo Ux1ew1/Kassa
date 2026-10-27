@@ -318,11 +318,7 @@ function Kassa() {
             onClick={handleToggleCartDrawer}
             aria-label="Корзина"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-              <path d="M3 3h2l2.4 11.4a2 2 0 0 0 2 1.6H18a2 2 0 0 0 2-1.6L21 7H6" />
-              <circle cx="10" cy="20" r="1" />
-              <circle cx="18" cy="20" r="1" />
-            </svg>
+            К
           </button>
           <ChecksList
             checks={checks}
@@ -337,10 +333,7 @@ function Kassa() {
             onClick={handleOpenCoffeeMenu}
             aria-label="Открыть кофейное меню"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-              <path d="M5 9h12v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9Z" />
-              <path d="M17 10h1a3 3 0 1 1 0 6h-1M3 22h18M8 3v3M12 2v4M16 3v3" />
-            </svg>
+            ☕
           </button>
         </div>
 
