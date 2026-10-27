@@ -1,3 +1,5 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle · copy: verbatim · posture: Committed · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, preserve familiar cashier navigation */
 .admin-menu {
   display: flex;
   flex-direction: column;
@@ -10,7 +12,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 16px 14px;
+  padding: 16px 16px;
   width: 100%;
   position: relative;
   overflow: hidden;
@@ -36,7 +38,7 @@
 .admin-item__info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .admin-item__name {
@@ -53,9 +55,9 @@
 .admin-item__category {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: fit-content;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 13px;
   color: var(--color-text-primary);
   background-color: color-mix(in srgb, var(--color-panel) 72%, transparent);
@@ -80,7 +82,7 @@
   justify-content: center;
   width: auto;
   min-width: 96px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   font-size: 14px;
   min-height: 40px;
   background-color: transparent;
@@ -100,15 +102,15 @@
 }
 
 .admin-item__button--danger {
-  color: #b91c1c;
-  border-color: rgba(185, 28, 28, 0.35);
+  color: var(--color-surface-detail-7);
+  border-color: var(--color-surface-detail-8);
   background-color: transparent;
 }
 
 .admin-item__button--danger:hover {
-  background-color: rgba(185, 28, 28, 0.1);
-  border-color: rgba(185, 28, 28, 0.55);
-  color: #991b1b;
+  background-color: var(--color-surface-detail-9);
+  border-color: var(--color-surface-detail-10);
+  color: var(--color-surface-detail-11);
 }
 
 .admin-item__button:focus-visible {

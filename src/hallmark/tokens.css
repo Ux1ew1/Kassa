@@ -1,0 +1,78 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · redesign: restyle · copy: verbatim · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, keep the familiar cashier shell */
+:root {
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --text-display-s: 1.44rem; --text-display: 1.728rem; --text-section: 1.2rem; --text-title: 1rem; --text-lead: 1rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(52% 0.19 27); --color-success: oklch(50% 0.12 150);
+  --container: 480px; --gutter: 0px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+  --color-paper: var(--color-app-bg); --color-paper-2: var(--color-panel); --color-paper-3: var(--color-card);
+  --color-ink: var(--color-text-primary); --color-ink-2: var(--color-text-secondary); --color-muted: var(--color-text-muted);
+  --color-rule: var(--color-divider);
+  --color-accent: var(--color-button-bg); --color-accent-ink: var(--color-button-text); --color-focus: var(--color-text-primary);
+  --font-display: var(--font-body); --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; --font-outlier: var(--font-body);
+  --radius-card: 12px; --radius-control: 10px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: none;
+  --tracking-display: -0.02em;
+}
+
+:root {
+  --color-menu-glass: color-mix(in srgb, var(--color-panel) 60%, transparent);
+  --color-drawer-glass: color-mix(in srgb, var(--color-app-bg) 90%, transparent);
+  --color-surface-detail-1: rgba(255, 255, 255, 0.55);
+  --color-surface-detail-2: rgba(255, 255, 255, 0);
+  --color-surface-detail-3: rgba(179, 207, 229, 0.45);
+  --color-surface-detail-4: rgba(179, 207, 229, 0);
+  --color-surface-detail-5: rgba(74, 127, 167, 0.25);
+  --color-surface-detail-6: rgba(74, 127, 167, 0);
+  --color-surface-detail-7: #b91c1c;
+  --color-surface-detail-8: rgba(185, 28, 28, 0.35);
+  --color-surface-detail-9: rgba(185, 28, 28, 0.1);
+  --color-surface-detail-10: rgba(185, 28, 28, 0.55);
+  --color-surface-detail-11: #991b1b;
+  --color-surface-detail-12: #111;
+  --color-surface-detail-13: rgba(185, 28, 28, 0.08);
+  --color-surface-detail-14: #d97706;
+  --color-surface-detail-15: rgba(217, 119, 6, 0.08);
+  --color-surface-detail-16: rgba(22, 163, 74, 0.1);
+  --color-surface-detail-17: #15803d;
+  --color-surface-detail-18: rgba(217, 119, 6, 0.1);
+  --color-surface-detail-19: #b45309;
+  --color-surface-detail-20: rgba(0, 0, 0, 0.18);
+  --color-surface-detail-21: rgba(0, 0, 0, 0.22);
+  --color-surface-detail-22: rgba(255, 255, 255, 0.1);
+  --color-surface-detail-23: rgba(0, 0, 0, 0.4);
+  --color-surface-detail-24: rgba(255, 255, 255, 0.34);
+  --color-surface-detail-25: rgba(0, 0, 0, 0.2);
+  --color-surface-detail-26: rgba(255, 255, 255, 0.2);
+  --color-surface-detail-27: #f4f8ff;
+  --color-surface-detail-28: rgba(244, 248, 255, 0.82);
+  --color-surface-detail-29: rgba(255, 255, 255, 0.32);
+  --color-surface-detail-30: rgba(255, 255, 255, 0.46);
+  --color-surface-detail-31: #ff6363;
+  --color-surface-detail-32: rgba(244, 248, 255, 0.7);
+  --color-surface-detail-33: var(--color-text-primary);
+  --color-surface-detail-34: #3f6d90;
+  --color-surface-detail-35: rgba(255, 255, 255, 0.28);
+  --color-surface-detail-36: #355c79;
+  --color-surface-detail-37: #101010;
+  --color-surface-detail-38: #d7d7d7;
+  --color-surface-detail-39: #2d4d65;
+  --color-surface-detail-40: rgba(255, 255, 255, 0.18);
+  --color-surface-detail-41: rgba(255, 255, 255, 0.06);
+  --color-surface-detail-42: rgba(255, 255, 255, 0.22);
+  --color-surface-detail-43: rgba(0, 0, 0, 0.1);
+  --color-surface-detail-44: #c3d8eb;
+  --color-surface-detail-45: rgba(255, 255, 255, 0.16);
+  --color-surface-detail-46: #2b2b2b;
+  --color-surface-detail-47: rgba(255, 255, 255, 0.24);
+  --color-surface-detail-48: rgba(10, 25, 49, 0.26);
+  --color-surface-detail-49: rgba(10, 25, 49, 0.3);
+  --color-surface-detail-50: #252525;
+  --color-surface-detail-51: #303030;
+  --color-surface-detail-52: #3a3a3a;
+  --color-surface-detail-53: #454545;
+  --color-surface-detail-54: rgba(255, 255, 255, 0.14);
+}

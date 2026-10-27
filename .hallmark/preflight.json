@@ -1,0 +1,26 @@
+{
+  "scanned": "2026-10-27",
+  "findings": {
+    "fonts": "src/index.css:16 system font stack",
+    "palette": "src/theme.css:1 existing blue light and neutral dark themes",
+    "framework": "package.json:18 React 18 and Vite",
+    "screens": [
+      "/ src/pages/Kassa.jsx",
+      "/admin src/pages/Admin.jsx"
+    ]
+  },
+  "preserve": [
+    "palette",
+    "transparency",
+    "content",
+    "routes",
+    "handlers",
+    "layout"
+  ],
+  "introduce": [
+    "spacing rhythm",
+    "menu grid alignment",
+    "keyboard focus",
+    "shared design tokens"
+  ]
+}

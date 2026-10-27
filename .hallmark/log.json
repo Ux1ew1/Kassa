@@ -1,0 +1,35 @@
+[
+ {
+  "date": "2026-10-27",
+  "mode": "redesign",
+  "depth": "restyle",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "axes": "light/grotesk-sans/cool",
+  "hero": "none: app screen",
+  "nav": "kept check strip",
+  "footer": "kept payment ribbon",
+  "imagery": "existing product UI",
+  "photos": [],
+  "entry": "src/hallmark/restyle.css",
+  "fingerprint": "blue-glass-cashier-restyle",
+  "sections": [
+   "cashier",
+   "admin"
+  ],
+  "signature": "glass menu and check ribbon",
+  "waived": [
+   "28b: live camera preview",
+   "39b: touch menu cards"
+  ],
+  "prompt": "Preserve Kassa palette, transparency, content and layout; refine existing design",
+  "checks": {
+   "floor": 0,
+   "reflex": 0,
+   "warn": 8,
+   "waived": 2,
+   "finishReview": "subagent: 2 resolved"
+  }
+ }
+]

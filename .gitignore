@@ -20,6 +20,7 @@ graphify-out/
 .hallmark/before/
 .hallmark/after/
 .hallmark/screenshots/
+.hallmark/shots/
 
 # Editor directories and files
 .vscode/*
