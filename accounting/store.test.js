@@ -82,7 +82,8 @@ test('first sale starts a shift; midnight does not split it; next sale opens a n
   setTime('2026-10-29T21:05:00Z');
   await accounting.sell(sale('after-midnight'));
   assert.equal((await accounting.state()).current.id, first.id);
-  assert.match(filename(first, 'xlsx'), /^Смена_2026-10-29_23-59-00_/);
+  assert.equal(filename(first, 'xlsx'), '29.10.2026.xlsx');
+  assert.equal(filename(first, 'csv'), '29.10.2026.csv');
   await accounting.close(first.id);
   await assert.rejects(accounting.close(first.id), { status: 409 });
   await accounting.sell(sale('new-shift'));
@@ -152,9 +153,14 @@ test('XLSX and CSV preserve Russian text, escaping, numeric values and totals', 
   assert.ok(text.includes('"Общая выручка";"10.25"'));
   const book = new ExcelJS.Workbook(); await book.xlsx.load(await xlsx(report));
   const sheet = book.getWorksheet('Смена');
-  assert.equal(sheet.getCell('B9').value, '=Чай; "сладкий"\nновый');
-  assert.equal(sheet.getCell('C9').value, 10.25); assert.equal(sheet.getCell('I9').value, 10.25);
-  assert.equal(sheet.getCell('D9').value, 2); assert.equal(sheet.getCell('H9').value, 1);
+  const firstRow = sheet.getSheetValues().findIndex(row => row?.[1] === 'Меню') + 1;
+  assert.equal(sheet.getCell(`B${firstRow}`).value, '=Чай; "сладкий"\nновый');
+  assert.equal(sheet.getCell(`C${firstRow}`).value, 10.25); assert.equal(sheet.getCell(`I${firstRow}`).value, 10.25);
+  assert.equal(sheet.getCell(`D${firstRow}`).value, 2); assert.equal(sheet.getCell(`H${firstRow}`).value, 1);
+  assert.ok(!text.includes('Часовой пояс')); assert.ok(!text.includes('Открыта'));
+  assert.ok(!text.includes('Конец смены'));
+  assert.ok(!JSON.stringify(sheet.getSheetValues()).includes('Часовой пояс'));
+  assert.ok(!JSON.stringify(book.getWorksheet('Изменения количества').getSheetValues()).includes('Часовой пояс'));
   assert.equal(book.worksheets.length, 2);
 });
 
@@ -182,8 +188,10 @@ test('report composition persists and filters preview, archive, CSV and XLSX wit
   assert.equal(report.movements.length, 0);
   assert.ok(!csv(report).includes('Пирог')); assert.ok(!csv(report).includes('"Чай"'));
   const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(await xlsx(report));
-  assert.equal(workbook.getWorksheet('Смена').getCell('B9').value, 'Американо');
-  assert.equal(workbook.getWorksheet('Смена').getCell('B10').value, null);
+  const sheet = workbook.getWorksheet('Смена');
+  const firstRow = sheet.getSheetValues().findIndex(row => row?.[1] === 'Меню') + 1;
+  assert.equal(sheet.getCell(`B${firstRow}`).value, 'Американо');
+  assert.equal(sheet.getCell(`B${firstRow + 1}`).value, null);
   await restarted.settings({ products: 'all' });
   assert.equal((await restarted.report(id)).rows.length, 3);
   assert.equal((await restarted.report(id)).movements.length, 1);

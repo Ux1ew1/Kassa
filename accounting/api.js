@@ -35,7 +35,7 @@ export function accountingApi(accounting, sendJson) {
         const buffer = format === 'csv' ? Buffer.from(csv(report), 'utf8') : await xlsx(report);
         res.writeHead(200, {
           'Content-Type': format === 'csv' ? 'text/csv; charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="shift.${format}"; filename*=UTF-8''${encodeURIComponent(filename(report, format))}`,
+          'Content-Disposition': `attachment; filename="${filename(report, format)}"; filename*=UTF-8''${encodeURIComponent(filename(report, format))}`,
         });
         return res.end(buffer);
       }

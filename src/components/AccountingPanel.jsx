@@ -4,7 +4,7 @@ import { configureAccounting, recordMovement, closeShift, clearReports, fetchRep
 import ItemModal from './ItemModal';
 import './AccountingPanel.css';
 
-const date = (value, timeZone) => value ? new Date(value).toLocaleString('ru-RU', { timeZone }) : 'Открыта';
+const date = (value, timeZone) => value ? new Date(value).toLocaleString('ru-RU', { timeZone }) : '—';
 const display = value => value == null ? '—' : value;
 const money = value => `${Number(value).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} руб.`;
 
@@ -86,7 +86,7 @@ function MovementForm({ inventory, busy, onSave }) {
 
 function ReportTable({ report }) {
   return <>
-    <dl className="accounting-totals"><div><dt>Начало</dt><dd>{date(report.startedAt, report.timeZone)}</dd></div><div><dt>Конец</dt><dd>{date(report.closedAt, report.timeZone)}</dd></div><div><dt>Часовой пояс</dt><dd>{report.timeZone}</dd></div><div><dt>Чеков</dt><dd>{report.receiptCount}</dd></div><div><dt>Выручка</dt><dd>{money(report.revenue)}</dd></div></dl>
+    <dl className="accounting-totals"><div><dt>Начало</dt><dd>{date(report.startedAt, report.timeZone)}</dd></div>{report.closedAt && <div><dt>Конец</dt><dd>{date(report.closedAt, report.timeZone)}</dd></div>}<div><dt>Чеков</dt><dd>{report.receiptCount}</dd></div><div><dt>Выручка</dt><dd>{money(report.revenue)}</dd></div></dl>
     <p>Прочерк — количественный учёт выключен или остаток указан в итоговой строке. Итоги по товару не прибавляются повторно к строкам продаж по ценам.</p>
     <p>На узком экране прокрутите таблицу вправо, чтобы увидеть остатки и выручку.</p>
     <div className="accounting-scroll" tabIndex={0} aria-label="Таблица отчёта"><table className="accounting-report-table"><thead><tr>{['Меню', 'Название', 'Цена продажи', 'Было на начало', 'Поступило', 'Корректировка', 'Продано', 'Осталось', 'Выручка'].map(title => <th key={title}>{title}</th>)}</tr></thead><tbody>

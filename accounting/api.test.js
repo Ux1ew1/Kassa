@@ -22,7 +22,10 @@ test('real server routes share stock, reject unconfirmed erasure and export both
   const response = await fetch(`${base}/api/accounting/reports/${id}?format=xlsx`);
   assert.equal(response.status, 200); assert.ok(response.headers.get('content-disposition').includes('filename*=UTF-8'));
   const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(await response.arrayBuffer());
-  assert.equal(workbook.getWorksheet('Смена').getCell('I9').value, 100);
+  const sheet = workbook.getWorksheet('Смена');
+  const firstRow = sheet.getSheetValues().findIndex(row => row?.[1] === 'Меню') + 1;
+  assert.equal(sheet.getCell(`I${firstRow}`).value, 100);
+  assert.match(response.headers.get('content-disposition'), /filename="\d{2}\.\d{2}\.\d{4}\.xlsx"/);
   const csv = await fetch(`${base}/api/accounting/reports/${id}?format=csv`);
   const buffer = new Uint8Array(await csv.arrayBuffer());
   assert.deepEqual([...buffer.slice(0, 3)], [239, 187, 191]);
