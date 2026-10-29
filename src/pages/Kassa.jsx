@@ -350,7 +350,7 @@ function Kassa() {
 
         <SearchBar value={searchQuery} onSearch={handleSearch} />
         {(accountingError || saleError) && <div className="cashier-notice" role="alert">{saleError || `Учёт недоступен: ${accountingError}. Завершение чека требует связи с сервером.`}</div>}
-        {activeCheck?.pendingSale && <div className="cashier-notice" role="status">{completing ? 'Сохраняем продажу…' : 'Результат продажи не подтверждён. Повторите завершение этого чека; до ответа сервера его состав защищён от изменений.'}</div>}
+        {activeCheck?.pendingSale && !completing && <div className="cashier-notice" role="status">Результат продажи не подтверждён. Повторите завершение этого чека; до ответа сервера его состав защищён от изменений.</div>}
         <div className="categories">
           {categories.map((category) => (
             <button
