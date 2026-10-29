@@ -1,0 +1,30 @@
+.accounting-panel { margin-block: 24px; padding-block: 16px; border-block: 1px solid var(--color-divider); color: var(--color-text-primary); }
+.accounting-panel h2 { font-size: 22px; margin: 20px 0 12px; }
+.accounting-panel h3 { font-size: 18px; margin-block: 12px; }
+.accounting-panel p { font-size: 14px; line-height: 1.5; margin-block: 12px; }
+.accounting-panel details { margin-block: 12px; }
+.accounting-panel summary { cursor: pointer; padding-block: 12px; }
+.accounting-form fieldset { display: grid; gap: 12px; padding: 12px 0; border: 0; min-width: 0; }
+.accounting-panel label { display: grid; gap: 8px; font-size: 14px; }
+.accounting-panel .accounting-check { display: flex; align-items: center; }
+.accounting-panel .accounting-check input { width: 20px; min-height: 20px; }
+.accounting-panel input, .accounting-panel select { box-sizing: border-box; max-width: 100%; width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--color-border); border-radius: 8px; padding: 8px; color: var(--color-text-primary); background: var(--color-input-bg); font: inherit; }
+.accounting-panel table input { min-width: 100px; }
+.accounting-panel button, .accounting-dialog button { width: auto; height: auto; min-height: 44px; padding: 8px 12px; font-size: 14px; }
+.accounting-panel button:disabled, .accounting-dialog button:disabled { opacity: .55; cursor: not-allowed; }
+.accounting-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-block: 12px; }
+.accounting-scroll { max-width: 100%; overflow-x: auto; margin-block: 12px; }
+.accounting-panel table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+.accounting-panel th, .accounting-panel td { text-align: left; border-bottom: 1px solid var(--color-divider); padding: 12px 8px; vertical-align: top; }
+.accounting-panel th { font-weight: 600; }
+.accounting-report-table { min-width: 1050px; }
+.accounting-summary { font-weight: 700; background: var(--color-chip-bg); }
+.accounting-totals { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 16px; font-variant-numeric: tabular-nums; }
+.accounting-totals dt { font-size: 13px; color: var(--color-text-secondary); }
+.accounting-totals dd { margin: 4px 0 0; }
+.accounting-message { padding: 12px; background: var(--color-chip-bg); border-radius: 8px; }
+.accounting-dialog-backdrop { position: fixed; inset: 0; z-index: 100; background: var(--color-overlay-strong); display: grid; place-items: center; padding: 16px; }
+.accounting-dialog { width: min(480px, 100%); max-height: 90dvh; overflow-y: auto; box-sizing: border-box; background: var(--color-input-bg); color: var(--color-text-primary); padding: 24px; border-radius: 16px; }
+.accounting-dialog h2 { font-size: 22px; margin-bottom: 12px; }
+.accounting-dialog p { line-height: 1.5; }
+.accounting-panel :is(button,input,select,summary,.accounting-scroll):focus-visible, .accounting-dialog button:focus-visible { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }

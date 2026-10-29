@@ -4,6 +4,7 @@ import { useAdminMenu } from "../hooks/useAdminMenu";
 import AdminMenuList from "../components/AdminMenuList";
 import AiImportModal from "../components/AiImportModal";
 import ItemModal from "../components/ItemModal";
+import AccountingPanel from "../components/AccountingPanel";
 import { searchMenu } from "../utils/search";
 import "./Admin.css";
 
@@ -182,6 +183,7 @@ function Admin() {
           </div>
         </section>
 
+        <AccountingPanel selectedMenuId={selectedMenuId} />
         <div className="admin-controls">
           <div className="admin-search">
             <input

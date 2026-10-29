@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 config.local.json
+data/accounting.json
+data/accounting.json.*.tmp
 .env
 .env.*
 !.env.example

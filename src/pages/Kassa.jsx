@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
+import { useAccounting } from "../hooks/useAccounting";
 import SearchBar from "../components/SearchBar";
 import Menu from "../components/Menu";
 import Cart from "../components/Cart";
@@ -56,7 +57,15 @@ const categoryLabel = (slug) => {
  * @returns {JSX.Element} Kassa page layout.
  */
 function Kassa() {
-  const { menuItems, activeOrder, loading } = useMenu();
+  const { menuItems: catalogItems, activeMenuId, activeOrder, loading } = useMenu();
+  const { state: accounting, error: accountingError } = useAccounting();
+  const menuItems = useMemo(() => {
+    const inventory = accounting?.menus.find(menu => menu.id === String(activeMenuId));
+    return catalogItems.map(item => {
+      const stock = inventory?.items.find(stock => stock.id === String(item.id));
+      return { ...item, quantity: stock?.quantity ?? null, stopped: stock?.stopped ?? false };
+    });
+  }, [catalogItems, accounting, activeMenuId]);
   const {
     checks,
     activeCheckId,
@@ -68,7 +77,9 @@ function Kassa() {
     createNewCheck,
     completeCheck,
     toggleItemsFulfilled,
-  } = useChecks();
+    completing,
+    saleError,
+  } = useChecks({ activeMenuId, menuItems });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
@@ -338,6 +349,8 @@ function Kassa() {
         </div>
 
         <SearchBar value={searchQuery} onSearch={handleSearch} />
+        {(accountingError || saleError) && <div className="cashier-notice" role="alert">{saleError || `Учёт недоступен: ${accountingError}. Завершение чека требует связи с сервером.`}</div>}
+        {activeCheck?.pendingSale && <div className="cashier-notice" role="status">{completing ? 'Сохраняем продажу…' : 'Результат продажи не подтверждён. Повторите завершение этого чека; до ответа сервера его состав защищён от изменений.'}</div>}
         <div className="categories">
           {categories.map((category) => (
             <button
@@ -375,6 +388,7 @@ function Kassa() {
           activeCheck={activeCheck}
           onComplete={completeCheck}
           onAmount={handleAmount}
+          completing={completing}
         />
 
         <Cart

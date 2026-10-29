@@ -44,10 +44,11 @@ function Menu({
   const itemCounts = useMemo(() => {
     const counts = new Map();
     cartItems.forEach((cartItem) => {
+      if (cartItem.menuId && String(cartItem.menuId) !== String(menuItems[0]?.menuId)) return;
       counts.set(cartItem.id, (counts.get(cartItem.id) || 0) + 1);
     });
     return counts;
-  }, [cartItems]);
+  }, [cartItems, menuItems]);
 
   const filteredItems = useMemo(() => {
     const itemsById = new Map(menuItems.map((item) => [item.id, item]));

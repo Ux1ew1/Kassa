@@ -14,9 +14,11 @@ function groupCartItems(items = []) {
   const map = new Map()
 
   items.forEach((item, index) => {
-    if (!map.has(item.id)) {
+    const identity = JSON.stringify([item.menuId || '', item.id, item.name, item.price]);
+    if (!map.has(identity)) {
       const group = {
         id: item.id,
+        key: identity,
         name: item.name,
         price: item.price,
         quantity: 0,
@@ -24,11 +26,11 @@ function groupCartItems(items = []) {
         indices: [],
         fulfilledCount: 0,
       }
-      map.set(item.id, group)
+      map.set(identity, group)
       groups.push(group)
     }
 
-    const group = map.get(item.id)
+    const group = map.get(identity)
     group.quantity += 1
     group.totalPrice += item.price
     group.indices.push(index)
@@ -66,7 +68,7 @@ function Cart({ items, onRemove, onToggleFulfilled }) {
 
         return (
           <div
-            key={item.id}
+            key={item.key}
             className={`cart__item${isFulfilled ? ' cart__item--fulfilled' : ''}`}
             role="button"
             tabIndex={0}

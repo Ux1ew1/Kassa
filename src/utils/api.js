@@ -17,7 +17,10 @@ async function requestJson(url, options = {}) {
   const payload = await safeJson(response);
 
   if (!response.ok) {
-    throw new Error(payload?.message || "Не удалось выполнить запрос");
+    const error = new Error(payload?.message || "Не удалось выполнить запрос");
+    error.status = response.status;
+    error.details = payload;
+    throw error;
   }
 
   return payload;
@@ -51,6 +54,31 @@ function normalizeActiveMenuPayload(payload) {
 export async function fetchMenu() {
   const payload = await requestJson(`${API_BASE}/menu`);
   return normalizeActiveMenuPayload(payload);
+}
+
+export const fetchAccounting = () => requestJson('/api/accounting');
+export const fetchReport = id => requestJson(`/api/accounting/reports/${encodeURIComponent(id)}`);
+const accountingRequest = (route, method, payload) => requestJson(`/api/accounting${route}`, {
+  method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+});
+export const configureAccounting = (menuId, payload) => accountingRequest(`/menus/${encodeURIComponent(menuId)}`, 'PUT', payload);
+export const recordMovement = payload => accountingRequest('/movements', 'POST', payload);
+export const submitSale = payload => accountingRequest('/sales', 'POST', payload);
+export const closeShift = shiftId => accountingRequest('/close', 'POST', { shiftId });
+export const clearReports = () => accountingRequest('/clear', 'POST', { confirm: 'clear-all-reports' });
+
+export async function downloadReport(id, format) {
+  const response = await fetch(`/api/accounting/reports/${encodeURIComponent(id)}?format=${format}`);
+  if (!response.ok) throw new Error((await safeJson(response))?.message || 'Не удалось скачать отчёт');
+  const disposition = response.headers.get('Content-Disposition') || '';
+  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = encoded ? decodeURIComponent(encoded) : `Смена.${format}`;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export async function saveMenu(items, activeOrder) {

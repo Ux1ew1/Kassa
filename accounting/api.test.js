@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { testServer } from './test-server.js';
+import ExcelJS from 'exceljs';
+
+test('real server routes share stock, reject unconfirmed erasure and export both formats', { timeout: 25000 }, async t => {
+  const { base, api, menu } = await testServer(t);
+  assert.equal((await api('/menus/main', 'PUT', { enabled: true, mode: 'stop', quantities: { 1: 1, 2: 2 } })).status, 200);
+  const receipt = id => ({ id: `api_receipt_${id.padEnd(16, '0')}`, items: [{ menuId: 'main', itemId: 1, name: 'Американо', price: 100, quantity: 1 }] });
+  const results = await Promise.all([api('/sales', 'POST', receipt('one')), api('/sales', 'POST', receipt('two'))]);
+  assert.deepEqual(results.map(result => result.status).sort(), [200, 409]);
+  const accepted = results[0].status === 200 ? receipt('one') : receipt('two');
+  assert.equal((await api('/sales', 'POST', accepted)).body.duplicate, true);
+  let state = (await api()).body;
+  assert.equal(state.current.receiptCount, 1); assert.equal(state.menus[0].items[0].quantity, 0);
+  const savedMenu = await fetch(`${base}/api/menu`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: menu.menus[0].items, activeOrder: [1, 2] }) });
+  assert.equal(savedMenu.status, 200); assert.equal((await api()).body.menus[0].items[0].quantity, 0);
+  assert.equal((await api('/clear', 'POST', {})).status, 400);
+  assert.equal((await api()).body.current.receiptCount, 1);
+  const id = state.current.id;
+  assert.equal((await api('/close', 'POST', { shiftId: id })).status, 200);
+  const response = await fetch(`${base}/api/accounting/reports/${id}?format=xlsx`);
+  assert.equal(response.status, 200); assert.ok(response.headers.get('content-disposition').includes('filename*=UTF-8'));
+  const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(await response.arrayBuffer());
+  assert.equal(workbook.getWorksheet('Смена').getCell('I9').value, 100);
+  const csv = await fetch(`${base}/api/accounting/reports/${id}?format=csv`);
+  const buffer = new Uint8Array(await csv.arrayBuffer());
+  assert.deepEqual([...buffer.slice(0, 3)], [239, 187, 191]);
+  assert.equal((await api('/clear', 'POST', { confirm: 'clear-all-reports' })).status, 200);
+  state = (await api()).body;
+  assert.equal(state.current, null); assert.equal(state.archive.length, 0); assert.equal(state.menus[0].items[0].quantity, 0);
+  assert.equal((await api('/sales', 'POST', accepted)).body.duplicate, true);
+  assert.equal((await api()).body.current, null);
+});

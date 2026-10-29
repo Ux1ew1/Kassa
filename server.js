@@ -8,6 +8,8 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import qrcode from "qrcode-terminal";
+import { createAccounting } from "./accounting/store.js";
+import { accountingApi } from "./accounting/api.js";
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT) || 3000;
@@ -41,7 +43,7 @@ const DEFAULT_INTERFACE_HINTS = [
 
 const __filename = fileURLToPath(import.meta.url);
 const baseDir = path.dirname(__filename);
-const dataDir = path.join(baseDir, "data");
+const dataDir = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(baseDir, "data");
 const menuFile = path.join(dataDir, "menu.json");
 const configFile = path.join(baseDir, "config.local.json");
 const distDir = path.join(baseDir, "dist");
@@ -291,7 +293,6 @@ const readMenuStore = async () => {
     activeMenuId: "main",
   });
   const normalized = normalizeMenuStore(raw);
-  await writeJsonFile(menuFile, normalized);
   return normalized;
 };
 
@@ -759,10 +760,6 @@ const handleImportPhoto = async (req, res) => {
       }
 
       const mergedItems = [...targetMenu.items];
-      const numericIds = mergedItems
-        .map((item) => Number(item.id))
-        .filter((id) => Number.isFinite(id));
-      let nextId = numericIds.length ? Math.max(...numericIds) + 1 : 1;
       const skippedItems = [];
       const addedItems = [];
 
@@ -777,8 +774,7 @@ const handleImportPhoto = async (req, res) => {
           return;
         }
 
-        const nextItem = { ...item, id: nextId };
-        nextId += 1;
+        const nextItem = { ...item, id: createId('item') };
         mergedItems.push(nextItem);
         addedItems.push(nextItem);
       });
@@ -850,7 +846,7 @@ const dirExists = async (dirPath) => {
 const serveStatic = async (req, res) => {
   try {
     const urlPath = decodeURIComponent(req.url.split("?")[0]);
-    const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, "");
+    const safePath = path.posix.normalize(urlPath.replaceAll('\\', '/'));
     let staticDir = null;
     let indexPath = null;
 
@@ -904,9 +900,13 @@ const serveStatic = async (req, res) => {
   }
 };
 
+const accounting = createAccounting({ file: path.join(dataDir, 'accounting.json'), catalog: readMenuStore });
+const handleAccounting = accountingApi(accounting, sendJson);
+let apiQueue = Promise.resolve();
 const routeApi = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
+  if (pathname === '/api/accounting' || pathname.startsWith('/api/accounting/')) return handleAccounting(req, res, url);
 
   if (req.method === "GET" && (pathname === "/api/menu" || pathname === "/api/menus")) {
     return handleGetMenu(res);
@@ -954,7 +954,9 @@ const requestHandler = async (req, res) => {
     }
 
     if (req.url.startsWith("/api/")) {
-      return routeApi(req, res);
+      const response = apiQueue.then(() => routeApi(req, res));
+      apiQueue = response.catch(() => {});
+      return await response;
     }
 
     await serveStatic(req, res);

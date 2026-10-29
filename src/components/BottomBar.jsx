@@ -6,7 +6,7 @@ import "./BottomBar.css";
  */
 import "./BottomBar.css";
 
-function BottomBar({ activeCheck, onComplete, onAmount }) {
+function BottomBar({ activeCheck, onComplete, onAmount, completing = false }) {
   const barRef = useRef(null);
   const sentinelRef = useRef(null);
   const [isStuck, setIsStuck] = useState(false);
@@ -35,6 +35,8 @@ function BottomBar({ activeCheck, onComplete, onAmount }) {
         <button
           className="done-button"
           onClick={onComplete}
+          disabled={completing}
+          aria-busy={completing}
         aria-label="Завершить чек"
       >
         ✓

@@ -108,10 +108,8 @@ export function useAdminMenu() {
   };
 
   const addItem = async (itemData) => {
-    const numericIds = menu
-      .map((item) => Number(item.id))
-      .filter((id) => Number.isFinite(id));
-    const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
+    // Never reuse a deleted product's identity: stock and archived sales retain it.
+    const newId = globalThis.crypto?.randomUUID?.() || `item_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const newItem = { id: newId, ...itemData };
 
     if (!validateMenuItem(newItem)) {

@@ -8,6 +8,10 @@
   color: var(--color-text-primary);
 }
 
+.cashier-notice { margin: 8px; padding: 12px; border: 1px solid var(--color-danger); border-radius: 8px; color: var(--color-text-primary); background: var(--color-input-bg); font-size: 14px; }
+.item[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.item-stock { font-size: 13px; color: var(--color-text-secondary); }
+
 .container--lite {
   --glass-blur: 0px;
   --glass-saturate: 100%;

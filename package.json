@@ -9,9 +9,11 @@
     "preview": "vite preview",
     "start": "node server.js",
     "server": "node server.js",
-    "termux": "bash start-termux.sh"
+    "termux": "bash start-termux.sh",
+    "test": "node --test accounting/*.test.js src/utils/search.test.js"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "qrcode-terminal": "^0.12.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

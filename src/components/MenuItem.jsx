@@ -13,6 +13,7 @@ import "./MenuItem.css";
  */
 function MenuItem({ item, quantity = 0, onAdd }) {
   const handleClick = () => {
+    if (item.stopped) return;
     onAdd(item);
     if (navigator.vibrate) {
       navigator.vibrate(15);
@@ -23,7 +24,8 @@ function MenuItem({ item, quantity = 0, onAdd }) {
     <div
       className="item"
       role="button"
-      tabIndex={0}
+      tabIndex={item.stopped ? -1 : 0}
+      aria-disabled={item.stopped || undefined}
       onClick={handleClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -33,6 +35,7 @@ function MenuItem({ item, quantity = 0, onAdd }) {
       }}
     >
       <span className="item-name">{item.name}</span>
+      {item.quantity != null && <span className="item-stock">{item.stopped ? 'Стоп-лист' : `Осталось: ${item.quantity}`}</span>}
       <div className="item-footer">
         <span className="item-price">{item.price} руб.</span>
         {quantity > 0 && <span className="item-quantity">x{quantity}</span>}
