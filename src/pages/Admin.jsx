@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAdminMenu } from "../hooks/useAdminMenu";
 import AdminMenuList from "../components/AdminMenuList";
-import AiImportModal from "../components/AiImportModal";
 import ItemModal from "../components/ItemModal";
-import AccountingPanel from "../components/AccountingPanel";
+import ManagementHeader from "../components/ManagementHeader";
 import { searchMenu } from "../utils/search";
 import "./Admin.css";
 
@@ -23,14 +21,11 @@ function Admin() {
     addMenu,
     removeSelectedMenu,
     renameSelectedMenu,
-    importPhotoAsMenu,
-    createMenuFromImportPreview,
     selectMenu,
   } = useAdminMenu();
   const [searchQuery, setSearchQuery] = useState("");
   const [menuName, setMenuName] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
   const [editingItem, setEditingItem] = useState(null);
 
@@ -115,14 +110,7 @@ function Admin() {
 
   return (
     <div className="admin-container">
-      <header className="admin-header">
-        <h1 className="admin-header__title">Админ-панель</h1>
-        <div className="admin-header__actions">
-          <Link to="/" className="admin-link">
-            К кассе
-          </Link>
-        </div>
-      </header>
+      <ManagementHeader title="Админ-панель" />
 
       <main>
         <section className="admin-menu-switcher" aria-label="Рабочие меню">
@@ -173,17 +161,9 @@ function Admin() {
             >
               Удалить меню
             </button>
-            <button
-              type="button"
-              className="admin-action-button admin-action-button--accent"
-              onClick={() => setImportModalOpen(true)}
-            >
-              Меню через ИИ
-            </button>
           </div>
         </section>
 
-        <AccountingPanel selectedMenuId={selectedMenuId} />
         <div className="admin-controls">
           <div className="admin-search">
             <input
@@ -234,14 +214,6 @@ function Admin() {
         }}
       />
 
-      <AiImportModal
-        isOpen={importModalOpen}
-        menus={menus}
-        selectedMenuId={selectedMenuId}
-        onClose={() => setImportModalOpen(false)}
-        onRecognize={importPhotoAsMenu}
-        onCreate={createMenuFromImportPreview}
-      />
     </div>
   );
 }

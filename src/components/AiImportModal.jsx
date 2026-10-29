@@ -116,11 +116,12 @@ const compressImageSource = async (source) => {
   return bestInRange || best;
 };
 
-function AiImportModal({ isOpen, menus = [], selectedMenuId, onClose, onRecognize, onCreate }) {
+function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onClose, onRecognize, onCreate }) {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  useEffect(() => () => { streamRef.current?.getTracks().forEach(track => track.stop()); }, []);
   const [imageData, setImageData] = useState("");
   const [imageMeta, setImageMeta] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -297,11 +298,11 @@ function AiImportModal({ isOpen, menus = [], selectedMenuId, onClose, onRecogniz
   const similarCount = previewItems.filter((item) => item.match?.type === "similar").length;
 
   return (
-    <div className="ai-modal" onClick={onClose}>
+    <div className={`ai-modal${inline ? ' ai-modal--inline' : ''}`} onClick={inline ? undefined : onClose}>
       <div
         className="ai-modal__content"
-        role="dialog"
-        aria-modal="true"
+        role={inline ? undefined : 'dialog'}
+        aria-modal={inline ? undefined : true}
         aria-labelledby="ai-import-title"
         onClick={(event) => event.stopPropagation()}
       >

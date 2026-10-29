@@ -10,6 +10,9 @@
   animation: ai-overlay-in 180ms ease-out;
 }
 
+.ai-modal.ai-modal--inline { position: static; display: block; padding: 0; background: none; backdrop-filter: none; animation: none; }
+.ai-modal--inline .ai-modal__content { width: 100%; max-height: none; overflow: visible; padding: 16px; box-shadow: none; animation: none; }
+
 .ai-modal__content {
   width: min(680px, 100%);
   max-height: min(900px, 94vh);

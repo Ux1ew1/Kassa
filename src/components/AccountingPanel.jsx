@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAccounting } from '../hooks/useAccounting';
-import { configureAccounting, recordMovement, closeShift, clearReports, fetchReport, downloadReport } from '../utils/api';
+import { configureAccounting, recordMovement, closeShift, clearReports, fetchReport, downloadReport, saveReportSettings, addPreparedProduct } from '../utils/api';
+import ItemModal from './ItemModal';
 import './AccountingPanel.css';
 
 const date = (value, timeZone) => value ? new Date(value).toLocaleString('ru-RU', { timeZone }) : 'Открыта';
@@ -97,8 +98,10 @@ function ReportTable({ report }) {
   </>;
 }
 
-export default function AccountingPanel({ selectedMenuId }) {
+export default function AccountingPanel() {
   const { state, error, reload } = useAccounting();
+  const [selectedMenuId, setSelectedMenuId] = useState('');
+  const [productId, setProductId] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [action, setAction] = useState(null);
@@ -107,7 +110,7 @@ export default function AccountingPanel({ selectedMenuId }) {
   const [reportError, setReportError] = useState('');
   const [reportLoading, setReportLoading] = useState(false);
   const activeOperation = useRef(false);
-  const inventory = state?.menus.find(menu => menu.id === String(selectedMenuId));
+  const inventory = state?.menus.find(menu => menu.id === String(selectedMenuId)) || state?.menus[0];
   const report = selectedReport ? archivedReport : state?.current;
   useEffect(() => {
     let alive = true;
@@ -117,7 +120,10 @@ export default function AccountingPanel({ selectedMenuId }) {
     fetchReport(selectedReport).then(report => { if (alive) setArchivedReport(report); })
       .catch(error => { if (alive) setReportError(error.message); }).finally(() => { if (alive) setReportLoading(false); });
     return () => { alive = false; };
-  }, [selectedReport]);
+  }, [selectedReport, state?.reportSettings?.products]);
+  useEffect(() => {
+    if (state && selectedReport && !state.archive.some(shift => shift.id === selectedReport)) setSelectedReport('');
+  }, [state, selectedReport]);
   const perform = async (operation, success) => {
     if (activeOperation.current) return false;
     activeOperation.current = true; setBusy(true); setMessage('');
@@ -129,14 +135,17 @@ export default function AccountingPanel({ selectedMenuId }) {
     finally { activeOperation.current = false; setBusy(false); }
   };
   return <section className="accounting-panel" aria-label="Учёт товаров и смены">
-    <h2>Учёт товаров</h2>
+    <h2>Подготовка товаров до продажи</h2>
     {error && <p role="alert">{error}</p>}
     {!state && !error && <p role="status">Загружаем учёт…</p>}
     {message && <p role="status" className="accounting-message">{message}</p>}
     {inventory && <>
-      <h3>{inventory.name}</h3>
-      <details><summary>Настройки количественного учёта — {inventory.enabled ? 'включён' : 'выключен'}</summary>
-        <InventorySettings key={`${inventory.id}:${inventory.enabled}:${inventory.mode}:${!!state.current}`} inventory={inventory} shiftOpen={!!state.current} busy={busy} onSave={payload => perform(() => configureAccounting(inventory.id, payload), 'Настройки учёта сохранены.')} />
+      <label>Меню для подготовки товаров<select value={inventory.id} disabled={busy || !!productId} onChange={event => setSelectedMenuId(event.target.value)}>{state.menus.map(menu => <option key={menu.id} value={menu.id}>{menu.name}</option>)}</select></label>
+      <p>Здесь можно добавить товары, задать начальное количество и провести поступление до первой продажи. Выбор меню на этой странице не переключает меню сотрудников.</p>
+      <button type="button" disabled={busy} onClick={() => { setMessage(''); setProductId(globalThis.crypto?.randomUUID?.() || `product_${Date.now()}_${Math.random().toString(36).slice(2)}`); }}>Добавить товар до продажи</button>
+      {!inventory.enabled && <p>Чтобы указать количество, сначала включите количественный учёт и сохраните начальные остатки. Новые товары затем можно добавлять сразу с количеством.</p>}
+      <details open={!state.current}><summary>Начальные остатки и настройки учёта — {inventory.enabled ? 'включён' : 'выключен'}</summary>
+        <InventorySettings key={`${inventory.id}:${inventory.enabled}:${inventory.mode}:${!!state.current}:${inventory.items.map(item => `${item.id}=${item.quantity}`).join(',')}`} inventory={inventory} shiftOpen={!!state.current} busy={busy} onSave={payload => perform(() => configureAccounting(inventory.id, payload), 'Настройки учёта сохранены.')} />
       </details>
       {inventory.enabled && <>
         <div className="accounting-scroll"><table><thead><tr><th>Товар</th><th>Остаток</th><th>Состояние</th></tr></thead><tbody>{inventory.items.map(item => <tr key={item.id}><td>{item.name}</td><td>{item.quantity}</td><td>{item.stopped ? 'Стоп-лист' : 'В продаже'}</td></tr>)}</tbody></table></div>
@@ -145,6 +154,10 @@ export default function AccountingPanel({ selectedMenuId }) {
     </>}
     <h2>Смены и отчёты</h2>
     <p>Общие для всех сотрудников. Хранятся на устройстве, где запущена касса, до ручной очистки.</p>
+    <label>Состав отчёта<select aria-label="Состав отчёта" value={state?.reportSettings?.products || 'all'} disabled={busy || !state} onChange={event => perform(() => saveReportSettings({ products: event.target.value }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
+      <option value="all">Все товары из меню</option><option value="sold">Только проданные товары</option>
+    </select></label>
+    <p>Настройка общая для кассы и действует на просмотр, XLSX и CSV, включая архивные смены. История продаж и изменений количества сохраняется полностью.</p>
     <div className="accounting-actions">
       <button type="button" disabled={busy || !state?.current} onClick={() => setAction({ type: 'close', shiftId: state.current.id })}>Закрыть смену</button>
       <button type="button" disabled={busy || !state || (!state.current && !state.archive.length)} onClick={() => setAction({ type: 'clear' })}>Очистить отчёты</button>
@@ -159,6 +172,10 @@ export default function AccountingPanel({ selectedMenuId }) {
       <div className="accounting-actions">{['xlsx', 'csv'].map(format => <button key={format} type="button" disabled={busy} onClick={() => perform(() => downloadReport(report.id, format), 'Отчёт подготовлен для скачивания.')}>Скачать {format.toUpperCase()}</button>)}</div>
       <ReportTable report={report} />
     </>}
+    {productId && inventory && <ItemModal isOpen mode="add" withQuantity={inventory.enabled} saving={busy} saveError={message.startsWith('Ошибка:') ? message : ''} onClose={() => !busy && setProductId('')} onSave={async data => {
+      const ok = await perform(() => addPreparedProduct(inventory.id, { ...data, id: productId, initialQuantity: data.initialQuantity ?? 0 }), 'Товар добавлен в меню. Начальное количество сохранено; продажа не создавалась.');
+      if (ok) setProductId('');
+    }} />}
     {action && <Confirmation action={action} busy={busy} onCancel={() => setAction(null)} onConfirm={async () => {
       const ok = await perform(() => action.type === 'clear' ? clearReports() : closeShift(action.shiftId), action.type === 'clear' ? 'Все отчёты удалены. Остатки сохранены.' : 'Смена закрыта. Следующая продажа начнёт новую.');
       if (ok) { setAction(null); setSelectedReport(''); setArchivedReport(null); }

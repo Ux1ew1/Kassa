@@ -35,14 +35,16 @@ const normalizeCategory = (value) => {
  * @param {Function} props.onClose - Close handler.
  * @returns {JSX.Element|null} Modal or null.
  */
-function ItemModal({ isOpen, mode, item, onSave, onClose }) {
+function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, saving = false, saveError = '' }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("остальное");
   const [show, setShow] = useState(true);
+  const [initialQuantity, setInitialQuantity] = useState('0');
 
   useEffect(() => {
     if (isOpen) {
+      setInitialQuantity('0');
       if (mode === "edit" && item) {
         setName(item.name || "");
         setPrice(item.price?.toString() || "");
@@ -66,6 +68,10 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
     e.preventDefault();
     const priceNum = parseFloat(price);
     const normalizedCategory = normalizeCategory(category);
+    if (saving) return;
+    if (withQuantity && (!Number.isSafeInteger(Number(initialQuantity)) || Number(initialQuantity) < 0 || initialQuantity.trim() === '')) {
+      alert('Введите целое неотрицательное количество'); return;
+    }
 
     if (!name.trim() || isNaN(priceNum) || priceNum < 0) {
       alert("Введите корректные данные");
@@ -76,6 +82,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
       price: priceNum,
       show,
       category: normalizedCategory,
+      ...(withQuantity ? { initialQuantity: Number(initialQuantity) } : {}),
     });
   };
 
@@ -85,6 +92,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
     <div className="modal" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h3>{mode === "edit" ? "Редактирование позиции" : "Новая позиция"}</h3>
+        {saveError && <p role="alert">{saveError}</p>}
         <form className="modal-form" onSubmit={handleSubmit}>
           <label className="modal-field">
             <span className="modal-label">Название</span>
@@ -135,14 +143,16 @@ function ItemModal({ isOpen, mode, item, onSave, onClose }) {
             />
             Активна
           </label>
+          {withQuantity && <label className="modal-field"><span className="modal-label">Количество до продажи</span><input type="number" className="modal-input" required min="0" max="1000000000" step="1" value={initialQuantity} disabled={saving} onChange={event => setInitialQuantity(event.target.value)} /></label>}
           <div className="modal-actions">
-            <button type="submit" className="modal-button">
-              Сохранить
+            <button type="submit" className="modal-button" disabled={saving}>
+              {saving ? 'Сохраняем…' : 'Сохранить'}
             </button>
             <button
               type="button"
               className="modal-button modal-button--secondary"
               onClick={onClose}
+              disabled={saving}
             >
               Отмена
             </button>

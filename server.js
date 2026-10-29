@@ -902,11 +902,45 @@ const serveStatic = async (req, res) => {
 
 const accounting = createAccounting({ file: path.join(dataDir, 'accounting.json'), catalog: readMenuStore });
 const handleAccounting = accountingApi(accounting, sendJson);
+const handlePreparedProduct = async (req, res, menuId) => {
+  try {
+    const payload = await parseRequestBody(req);
+    if (!payload || typeof payload.id !== 'string' || !/^[a-zA-Z0-9_-]{16,100}$/.test(payload.id)
+      || typeof payload.name !== 'string' || !payload.name.trim() || payload.name.length > 500
+      || typeof payload.price !== 'number' || !Number.isFinite(payload.price) || payload.price < 0 || payload.price > 1e9
+      || !Number.isSafeInteger(payload.initialQuantity) || payload.initialQuantity < 0 || payload.initialQuantity > 1e9) {
+      return sendJson(res, 400, { message: 'Введите название, цену и целое неотрицательное количество товара' });
+    }
+    const store = await readMenuStore();
+    const menu = findMenu(store, menuId);
+    if (!menu) return sendJson(res, 404, { message: 'Меню не найдено' });
+    const inventory = (await accounting.state()).menus.find(menu => menu.id === menuId);
+    if (payload.initialQuantity > 0 && !inventory?.enabled) return sendJson(res, 409, { message: 'Сначала включите количественный учёт для этого меню, затем сохраните товар с остатком.' });
+    const existing = menu.items.find(item => String(item.id) === payload.id);
+    const item = normalizeMenuItems([{ id: payload.id, name: payload.name, price: payload.price, category: payload.category, show: payload.show,
+      preparedQuantity: payload.initialQuantity }])[0];
+    if (existing && (existing.name !== item.name || existing.price !== item.price || existing.preparedQuantity !== item.preparedQuantity)) {
+      return sendJson(res, 409, { message: 'Товар с этим идентификатором уже сохранён с другими данными. Обновите список.' });
+    }
+    if (!existing) {
+      const nextMenu = { ...menu, items: [...menu.items, item], activeOrder: [...menu.activeOrder, ...(item.show ? [item.id] : [])] };
+      await writeMenuStore({ ...store, menus: store.menus.map(current => current.id === menuId ? nextMenu : current) });
+    }
+    if (payload.initialQuantity > 0) {
+      await accounting.move({ id: `prepare_${payload.id}`, menuId, itemId: item.id, type: 'receipt', quantity: payload.initialQuantity, reason: 'Начальный остаток новой позиции' });
+    }
+    return sendJson(res, 200, { item: existing || item, menuId });
+  } catch (error) {
+    return sendJson(res, error.status || 503, { message: error.message || 'Не удалось сохранить товар. Повторите сохранение.' });
+  }
+};
 let apiQueue = Promise.resolve();
 const routeApi = async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const pathname = url.pathname;
   if (pathname === '/api/accounting' || pathname.startsWith('/api/accounting/')) return handleAccounting(req, res, url);
+  const preparedMatch = pathname.match(/^\/api\/menus\/([^/]+)\/items$/);
+  if (preparedMatch && req.method === 'POST') return handlePreparedProduct(req, res, decodeURIComponent(preparedMatch[1]));
 
   if (req.method === "GET" && (pathname === "/api/menu" || pathname === "/api/menus")) {
     return handleGetMenu(res);

@@ -18,6 +18,7 @@ export function accountingApi(accounting, sendJson) {
     try {
       res.setHeader('Cache-Control', 'no-store');
       if (req.method === 'GET' && route === '') return sendJson(res, 200, await accounting.state());
+      if (req.method === 'PUT' && route === '/settings') return sendJson(res, 200, await accounting.settings(await body()));
       if (req.method === 'PUT' && route.startsWith('/menus/')) return sendJson(res, 200, await accounting.configure(decodeURIComponent(route.slice(7)), await body()));
       if (req.method === 'POST' && route === '/movements') return sendJson(res, 200, await accounting.move(await body()));
       if (req.method === 'POST' && route === '/sales') return sendJson(res, 200, await accounting.sell(await body()));

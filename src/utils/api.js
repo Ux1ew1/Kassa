@@ -57,6 +57,10 @@ export async function fetchMenu() {
 }
 
 export const fetchAccounting = () => requestJson('/api/accounting');
+export const saveReportSettings = payload => accountingRequest('/settings', 'PUT', payload);
+export const addPreparedProduct = (menuId, payload) => requestJson(`/api/menus/${encodeURIComponent(menuId)}/items`, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+});
 export const fetchReport = id => requestJson(`/api/accounting/reports/${encodeURIComponent(id)}`);
 const accountingRequest = (route, method, payload) => requestJson(`/api/accounting${route}`, {
   method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),

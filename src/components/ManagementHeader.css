@@ -1,0 +1,5 @@
+.management-header { display: grid; gap: 16px; margin-bottom: 24px; }
+.management-header nav { display: flex; flex-wrap: wrap; gap: 8px; }
+.management-header .admin-link { width: auto; min-height: 44px; padding: 8px 12px; }
+.management-header .admin-link.active { background: var(--color-button-alt-bg); color: var(--color-button-alt-text); }
+.management-header a:focus-visible { outline: 2px solid var(--color-text-primary); outline-offset: 2px; }

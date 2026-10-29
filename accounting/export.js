@@ -11,7 +11,7 @@ const stamp = (value, zone) => value ? new Date(value).toLocaleString('ru-RU', {
 const metadata = report => [
   ['Начало смены', stamp(report.startedAt, report.timeZone)], ['Конец смены', stamp(report.closedAt, report.timeZone)],
   ['Часовой пояс', report.timeZone], ['Завершённых чеков', report.receiptCount], ['Общая выручка', report.revenue],
-  ['Примечание', 'Строки «итог по товару» не прибавляются повторно к продажам по ценам. Прочерк — учёт выключен или количество показано в итоговой строке.'],
+  ['Примечание', `Состав: ${report.products === 'sold' ? 'только проданные товары' : 'всё меню'}. Строки «итог по товару» не прибавляются повторно к продажам по ценам. Прочерк — учёт выключен или количество показано в итоговой строке.`],
 ];
 const safeText = value => /^[=+\-@\t\r\n]/.test(value) ? `'${value}` : value;
 export function csv(report) {

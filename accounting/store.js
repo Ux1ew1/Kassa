@@ -13,7 +13,7 @@ const cents = value => {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1_000_000_000) fail('Некорректная цена');
   return Math.round(value * 100);
 };
-const empty = () => ({ version: 1, revision: 0, inventories: {}, current: null, archive: [], processed: {} });
+const empty = () => ({ version: 1, revision: 0, reportSettings: { products: 'all' }, inventories: {}, current: null, archive: [], processed: {} });
 
 export function createAccounting({ file, catalog, now = () => new Date(), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone }) {
   let tail = Promise.resolve();
@@ -79,8 +79,9 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
     return shift;
   }
   const closing = product => product.tracked ? product.opening + product.received + product.adjustment - product.sold : null;
-  function report(shift) {
+  function report(shift, settings = { products: 'all' }) {
     const rows = [];
+    const soldProducts = Object.values(shift.products).filter(product => product.sold > 0);
     for (const product of Object.values(shift.products)) {
       const base = { menu: product.menu, name: product.name, price: product.price, opening: product.opening,
         received: product.tracked ? product.received : null, adjustment: product.tracked ? product.adjustment : null,
@@ -95,10 +96,15 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
       }
     }
     return { id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt, timeZone: shift.timeZone,
-      receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100, rows, movements: shift.movements };
+      receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100,
+      products: settings.products, rows: settings.products === 'sold' ? rows.filter(row => row.sold > 0) : rows,
+      movements: settings.products === 'sold' ? shift.movements.filter(move => soldProducts.some(product =>
+        move.menuId != null && move.itemId != null
+          ? String(move.menuId) === product.menuId && String(move.itemId) === product.itemId
+          : move.menu === product.menu && (move.name === product.name || product.prices.some(price => price.name === move.name)))) : shift.movements };
   }
   function view(state, menus) {
-    return { revision: state.revision, current: state.current ? report(state.current) : null,
+    return { revision: state.revision, reportSettings: state.reportSettings || { products: 'all' }, current: state.current ? report(state.current, state.reportSettings) : null,
       archive: state.archive.map(shift => ({ id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt,
         timeZone: shift.timeZone, receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100 })),
       menus: menus.map(menu => {
@@ -111,9 +117,14 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
   }
   return {
     state: () => run((state, menus) => view(state, menus)),
+    settings: payload => run(state => {
+      if (!['all', 'sold'].includes(payload?.products)) fail('Выберите состав отчёта: всё меню или только проданное');
+      state.reportSettings = { products: payload.products };
+      return state.reportSettings;
+    }, true),
     report: id => run(state => {
       const shift = state.current?.id === id ? state.current : state.archive.find(shift => shift.id === id);
-      return shift ? report(shift) : fail('Отчёт не найден', 404);
+      return shift ? report(shift, state.reportSettings) : fail('Отчёт не найден', 404);
     }),
     configure: (menuId, payload) => run((state, menus) => {
       if (state.current) fail('Настройки учёта можно менять только между сменами', 409);
@@ -132,6 +143,16 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
       return { ok: true };
     }, true),
     move: payload => run((state, menus) => {
+      let movementKey, movementHash;
+      if (payload.id != null) {
+        if (typeof payload.id !== 'string' || !/^[a-zA-Z0-9_-]{16,120}$/.test(payload.id)) fail('Некорректный идентификатор поступления');
+        movementKey = `movement_${payload.id}`;
+        movementHash = createHash('sha256').update(JSON.stringify([payload.menuId, String(payload.itemId), payload.type, payload.quantity, payload.reason])).digest('hex');
+        if (Object.hasOwn(state.processed, movementKey)) {
+          if (state.processed[movementKey].hash !== movementHash) fail('Это поступление уже проведено с другими значениями', 409);
+          return { ok: true, duplicate: true };
+        }
+      }
       const { menu, item } = findItem(menus, payload.menuId, payload.itemId);
       const inventory = config(state, menu.id);
       if (!inventory.enabled) fail('Для этого меню количественный учёт выключен');
@@ -144,10 +165,11 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
       if (state.current) {
         const product = ensureProduct(state, menu, item);
         product[payload.type === 'receipt' ? 'received' : 'adjustment'] += payload.quantity;
-        state.current.movements.push({ menu: menu.name, name: item.name, type: payload.type, quantity: payload.quantity,
+        state.current.movements.push({ menuId: String(menu.id), itemId: String(item.id), menu: menu.name, name: item.name, type: payload.type, quantity: payload.quantity,
           reason: payload.reason.trim(), at: now().toISOString() });
       }
       inventory.stocks[id] = next;
+      if (movementKey) state.processed[movementKey] = { hash: movementHash };
       return { ok: true };
     }, true),
     sell: payload => run((state, menus) => {
@@ -206,7 +228,7 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
     close: id => run(state => {
       if (!state.current || state.current.id !== id) fail('Смена уже закрыта или изменилась. Обновите страницу.', 409);
       state.current.closedAt = now().toISOString();
-      const result = report(state.current);
+      const result = report(state.current, state.reportSettings);
       state.archive.unshift(state.current); state.current = null;
       return result;
     }, true),

@@ -164,3 +164,28 @@ test('damaged accounting file is rejected instead of resetting stock or reports'
   await assert.rejects(accounting.sell(sale('damage')), { status: 503 });
   assert.equal(await fs.readFile(file, 'utf8'), '{damaged');
 });
+
+test('report composition persists and filters preview, archive, CSV and XLSX without erasing source rows', async t => {
+  const { accounting, options } = await fixture(t);
+  await configure(accounting);
+  await accounting.sell(sale('filter'));
+  await accounting.move({ menuId: 'a', itemId: 2, type: 'receipt', quantity: 2, reason: 'Поставка непроданного чая' });
+  const id = (await accounting.state()).current.id;
+  assert.equal((await accounting.report(id)).rows.length, 3);
+  await accounting.settings({ products: 'sold' });
+  assert.equal((await accounting.state()).current.rows.length, 1);
+  await accounting.close(id);
+  const restarted = createAccounting(options);
+  assert.equal((await restarted.state()).reportSettings.products, 'sold');
+  const report = await restarted.report(id);
+  assert.equal(report.rows.length, 1); assert.equal(report.rows[0].sold, 1);
+  assert.equal(report.movements.length, 0);
+  assert.ok(!csv(report).includes('Пирог')); assert.ok(!csv(report).includes('"Чай"'));
+  const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(await xlsx(report));
+  assert.equal(workbook.getWorksheet('Смена').getCell('B9').value, 'Американо');
+  assert.equal(workbook.getWorksheet('Смена').getCell('B10').value, null);
+  await restarted.settings({ products: 'all' });
+  assert.equal((await restarted.report(id)).rows.length, 3);
+  assert.equal((await restarted.report(id)).movements.length, 1);
+  await assert.rejects(restarted.settings({ products: 'invalid' }), { status: 400 });
+});

@@ -32,3 +32,21 @@ test('real server routes share stock, reject unconfirmed erasure and export both
   assert.equal((await api('/sales', 'POST', accepted)).body.duplicate, true);
   assert.equal((await api()).body.current, null);
 });
+
+test('product preparation before the first sale adds stock once, preserves active menu and creates no shift', { timeout: 25000 }, async t => {
+  const { base, api } = await testServer(t);
+  await api('/menus/main', 'PUT', { enabled: true, mode: 'stop', quantities: { 1: 2, 2: 3 } });
+  const product = { id: 'prepared_product_0001', name: 'Сок до продажи', price: 70, category: 'напитки', show: true, initialQuantity: 9 };
+  const prepare = payload => fetch(`${base}/api/menus/main/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  assert.equal((await prepare(product)).status, 200);
+  assert.equal((await prepare(product)).status, 200);
+  const state = (await api()).body;
+  assert.equal(state.current, null); assert.equal(state.archive.length, 0);
+  assert.equal(state.menus[0].items.filter(item => item.id === product.id).length, 1);
+  assert.equal(state.menus[0].items.find(item => item.id === product.id).quantity, 9);
+  const menu = await (await fetch(`${base}/api/menu`)).json();
+  assert.equal(menu.activeMenuId, 'main'); assert.equal(menu.items.find(item => item.id === product.id).name, product.name);
+  assert.equal((await prepare({ ...product, initialQuantity: 20 })).status, 409);
+  await api('/sales', 'POST', { id: 'prepared_sale_000000', items: [{ menuId: 'main', itemId: product.id, name: product.name, price: 70, quantity: 1 }] });
+  assert.equal((await api()).body.current.rows.find(row => row.name === product.name).opening, 9);
+});
