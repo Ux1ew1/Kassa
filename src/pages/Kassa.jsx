@@ -348,6 +348,7 @@ function Kassa() {
           </button>
         </div>
 
+        <div className="cashier-workspace">
         <SearchBar value={searchQuery} onSearch={handleSearch} />
         {(accountingError || saleError) && <div className="cashier-notice" role="alert">{saleError || `Учёт недоступен: ${accountingError}. Завершение чека требует связи с сервером.`}</div>}
         {activeCheck?.pendingSale && !completing && <div className="cashier-notice" role="status">Результат продажи не подтверждён. Повторите завершение этого чека; до ответа сервера его состав защищён от изменений.</div>}
@@ -384,6 +385,7 @@ function Kassa() {
           />
         )}
 
+        </div>
         <BottomBar
           activeCheck={activeCheck}
           onComplete={completeCheck}
@@ -391,11 +393,14 @@ function Kassa() {
           completing={completing}
         />
 
+        <aside className="cashier-cart" aria-label="Текущий чек">
+        <h2 className="cashier-cart__title">Чек №{activeCheckId}</h2>
         <Cart
           items={activeCheck?.items || []}
           onRemove={removeItemFromCheck}
           onToggleFulfilled={toggleItemsFulfilled}
         />
+        </aside>
         <div
           className={`cart-drawer${
             isCartDrawerOpen ? " cart-drawer--open" : ""
