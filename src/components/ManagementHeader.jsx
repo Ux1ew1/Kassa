@@ -9,6 +9,7 @@ export default function ManagementHeader({ title }) {
       <NavLink to="/admin" end className="admin-link">Админ-панель</NavLink>
       <NavLink to="/ai-menu" className="admin-link">ИИ меню</NavLink>
       <NavLink to="/reports" className="admin-link">Отчёты</NavLink>
+      <NavLink to="/supplies" className="admin-link">Расходники</NavLink>
     </nav>
   </header>;
 }

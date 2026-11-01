@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
+import { createSupply, moveSupply, openSuppliesShift, suppliesReport, suppliesView } from './supplies.js';
 
 export class AccountingError extends Error {
   constructor(message, status = 400, details = {}) { super(message); this.status = status; this.details = details; }
@@ -20,7 +21,8 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
   async function load() {
     try {
       const state = JSON.parse(await fs.readFile(file, 'utf8'));
-      if (state.version !== 1 || !state.inventories || !state.processed || !Array.isArray(state.archive)) throw new Error('Invalid accounting data');
+      if (state.version !== 1 || !state.inventories || !state.processed || !Array.isArray(state.archive)
+        || (state.supplies != null && !Array.isArray(state.supplies))) throw new Error('Invalid accounting data');
       return state;
     } catch (error) {
       if (error.code === 'ENOENT') return empty();
@@ -76,6 +78,7 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
     const shift = { id: randomUUID(), startedAt: now().toISOString(), closedAt: null, timeZone,
       receiptCount: 0, revenueCents: 0, products: {}, movements: [], sales: [] };
     for (const menu of menus) for (const item of menu.items) shift.products[key(menu.id, item.id)] = stockRow(state, menu, item);
+    openSuppliesShift(state, shift);
     return shift;
   }
   const closing = product => product.tracked ? product.opening + product.received + product.adjustment - product.sold : null;
@@ -96,7 +99,7 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
       }
     }
     return { id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt, timeZone: shift.timeZone,
-      receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100,
+      receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100, ...suppliesReport(shift),
       products: settings.products, rows: settings.products === 'sold' ? rows.filter(row => row.sold > 0) : rows,
       movements: settings.products === 'sold' ? shift.movements.filter(move => soldProducts.some(product =>
         move.menuId != null && move.itemId != null
@@ -104,7 +107,7 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
           : move.menu === product.menu && (move.name === product.name || product.prices.some(price => price.name === move.name)))) : shift.movements };
   }
   function view(state, menus) {
-    return { revision: state.revision, reportSettings: state.reportSettings || { products: 'all' }, current: state.current ? report(state.current, state.reportSettings) : null,
+    return { revision: state.revision, ...suppliesView(state), reportSettings: state.reportSettings || { products: 'all' }, current: state.current ? report(state.current, state.reportSettings) : null,
       archive: state.archive.map(shift => ({ id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt,
         timeZone: shift.timeZone, receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100 })),
       menus: menus.map(menu => {
@@ -117,6 +120,8 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
   }
   return {
     state: () => run((state, menus) => view(state, menus)),
+    createSupply: payload => run(state => createSupply(state, payload, now), true),
+    moveSupply: payload => run(state => moveSupply(state, payload, now), true),
     settings: payload => run(state => {
       if (!['all', 'sold'].includes(payload?.products)) fail('Выберите состав отчёта: всё меню или только проданное');
       state.reportSettings = { products: payload.products };
@@ -234,6 +239,7 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
     }, true),
     clear: () => run(state => {
       state.current = null; state.archive = [];
+      state.pendingSupplies = { rows: {}, movements: [] };
       // Opaque receipt hashes survive erasure so a lost response cannot debit stock twice.
       return { ok: true };
     }, true),

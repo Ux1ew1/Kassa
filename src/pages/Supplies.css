@@ -1,0 +1,6 @@
+.supplies-page { margin-top: 0; border-top: 0; }
+.supplies-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; min-width: 0; }
+.supplies-page fieldset > button { justify-self: start; }
+.supplies-stock-table { min-width: 500px; }
+.supplies-log-table { min-width: 780px; }
+.supplies-page td { font-variant-numeric: tabular-nums; }

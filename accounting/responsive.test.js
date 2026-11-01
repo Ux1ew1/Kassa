@@ -18,9 +18,9 @@ test('all screens reflow across phone, tablet, desktop and landscape viewports',
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   const sizes = [[280, 653], [320, 568], [375, 812], [430, 932], [768, 1024], [568, 320], [667, 375], [844, 390], [932, 430], [1024, 768], [1440, 900], [1920, 1080]];
   await fs.mkdir('.hallmark/screenshots', { recursive: true });
-  for (const route of ['/', '/admin', '/ai-menu', '/reports']) {
+  for (const route of ['/', '/admin', '/ai-menu', '/reports', '/supplies']) {
     await page.goto(base + route, { waitUntil: 'networkidle0' });
-    await page.waitForSelector(route === '/' ? '.menu .item' : route === '/reports' ? '.accounting-check' : route === '/ai-menu' ? '.ai-modal--inline' : '.admin-menu');
+    await page.waitForSelector(route === '/' ? '.menu .item' : route === '/reports' ? '.accounting-check' : route === '/ai-menu' ? '.ai-modal--inline' : route === '/supplies' ? '[name="supply-name"]' : '.admin-menu');
     for (const [width, height] of sizes) {
       await page.setViewport({ width, height });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));

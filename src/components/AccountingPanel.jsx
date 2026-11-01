@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAccounting } from '../hooks/useAccounting';
 import { configureAccounting, recordMovement, closeShift, clearReports, fetchReport, downloadReport, saveReportSettings, addPreparedProduct } from '../utils/api';
 import ItemModal from './ItemModal';
+import SuppliesReport from './SuppliesReport';
 import './AccountingPanel.css';
 
 const date = (value, timeZone) => value ? new Date(value).toLocaleString('ru-RU', { timeZone }) : '—';
@@ -28,7 +29,7 @@ function Confirmation({ action, busy, onCancel, onConfirm }) {
     <section ref={ref} className="accounting-dialog" role="dialog" aria-modal="true" aria-labelledby="accounting-confirm-title" onClick={event => event.stopPropagation()}>
       <h2 id="accounting-confirm-title">{action.type === 'clear' ? 'Очистить все отчёты?' : 'Закрыть смену?'}</h2>
       <p>{action.type === 'clear'
-        ? 'Будут необратимо удалены все отчёты и история текущей смены для всех сотрудников. Остатки товаров сохранятся. Следующая продажа начнёт новую смену.'
+        ? 'Будут необратимо удалены все отчёты, история текущей смены и операции расходников для всех сотрудников. Остатки товаров и расходников сохранятся. Следующая продажа начнёт новую смену.'
         : 'Отчёт смены будет зафиксирован для всех сотрудников. Незавершённые чеки в него не входят. Следующая продажа начнёт новую смену, остатки сохранятся.'}</p>
       <div className="accounting-actions">
         <button type="button" disabled={busy} onClick={onCancel}>Отмена</button>
@@ -160,7 +161,7 @@ export default function AccountingPanel() {
     <p>Настройка общая для кассы и действует на просмотр, XLSX и CSV, включая архивные смены. История продаж и изменений количества сохраняется полностью.</p>
     <div className="accounting-actions">
       <button type="button" disabled={busy || !state?.current} onClick={() => setAction({ type: 'close', shiftId: state.current.id })}>Закрыть смену</button>
-      <button type="button" disabled={busy || !state || (!state.current && !state.archive.length)} onClick={() => setAction({ type: 'clear' })}>Очистить отчёты</button>
+      <button type="button" disabled={busy || !state || (!state.current && !state.archive.length && !state.pendingSupplyMovements)} onClick={() => setAction({ type: 'clear' })}>Очистить отчёты</button>
     </div>
     {!state?.current && <p>Открытой смены нет. Первая завершённая продажа начнёт новую.</p>}
     <label className="accounting-report-select">Отчёт<select value={selectedReport} onChange={event => setSelectedReport(event.target.value)}>
@@ -171,6 +172,7 @@ export default function AccountingPanel() {
     {report && <>
       <div className="accounting-actions">{['xlsx', 'csv'].map(format => <button key={format} type="button" disabled={busy} onClick={() => perform(() => downloadReport(report.id, format), 'Отчёт подготовлен для скачивания.')}>Скачать {format.toUpperCase()}</button>)}</div>
       <ReportTable report={report} />
+      <SuppliesReport report={report} />
     </>}
     {productId && inventory && <ItemModal isOpen mode="add" withQuantity={inventory.enabled} saving={busy} saveError={message.startsWith('Ошибка:') ? message : ''} onClose={() => !busy && setProductId('')} onSave={async data => {
       const ok = await perform(() => addPreparedProduct(inventory.id, { ...data, id: productId, initialQuantity: data.initialQuantity ?? 0 }), 'Товар добавлен в меню. Начальное количество сохранено; продажа не создавалась.');

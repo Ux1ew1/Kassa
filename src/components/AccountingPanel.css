@@ -18,6 +18,7 @@
 .accounting-panel th, .accounting-panel td { text-align: left; border-bottom: 1px solid var(--color-divider); padding: 12px 8px; vertical-align: top; }
 .accounting-panel th { font-weight: 600; }
 .accounting-report-table { min-width: 1050px; }
+.supplies-report-table { min-width: 800px; }
 .accounting-summary { font-weight: 700; background: var(--color-chip-bg); }
 .accounting-totals { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 16px; font-variant-numeric: tabular-nums; }
 .accounting-totals dt { font-size: 13px; color: var(--color-text-secondary); }

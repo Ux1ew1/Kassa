@@ -70,6 +70,8 @@ export const recordMovement = payload => accountingRequest('/movements', 'POST',
 export const submitSale = payload => accountingRequest('/sales', 'POST', payload);
 export const closeShift = shiftId => accountingRequest('/close', 'POST', { shiftId });
 export const clearReports = () => accountingRequest('/clear', 'POST', { confirm: 'clear-all-reports' });
+export const createSupply = payload => accountingRequest('/supplies', 'POST', payload);
+export const moveSupply = payload => accountingRequest('/supply-movements', 'POST', payload);
 
 export async function downloadReport(id, format) {
   const response = await fetch(`/api/accounting/reports/${encodeURIComponent(id)}?format=${format}`);
