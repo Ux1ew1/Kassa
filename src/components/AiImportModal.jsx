@@ -304,6 +304,7 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
         role={inline ? undefined : 'dialog'}
         aria-modal={inline ? undefined : true}
         aria-labelledby="ai-import-title"
+        aria-busy={isBusy}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="ai-modal__header">
@@ -312,10 +313,11 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
             <h3 id="ai-import-title">Меню через ИИ</h3>
             <p>ИИ распознает позиции, а вы проверите итог перед сохранением.</p>
           </div>
-          <button type="button" className="ai-modal__close" onClick={onClose} aria-label="Закрыть">
+          {!inline && <button type="button" className="ai-modal__close" onClick={onClose} disabled={isBusy} aria-label="Закрыть">
             ×
-          </button>
+          </button>}
         </div>
+        <ol className="ai-steps" aria-label="Этапы импорта"><li className={!preview ? 'is-current' : 'is-complete'} aria-current={!preview ? 'step' : undefined}>1. Фото меню</li><li className={preview ? 'is-current' : ''} aria-current={preview ? 'step' : undefined}>2. Проверка позиций</li><li>3. Сохранение</li></ol>
 
         <div className="ai-modal__mode" aria-label="Способ импорта">
           <button
@@ -323,6 +325,7 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
             className={`ai-modal__mode-button${mode === "create" ? " is-active" : ""}`}
             onClick={() => changeImportTarget("create")}
             disabled={isBusy}
+            aria-pressed={mode === 'create'}
           >
             <strong>Новое меню</strong>
             <span>Создать отдельное</span>
@@ -332,6 +335,7 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
             className={`ai-modal__mode-button${mode === "append" ? " is-active" : ""}`}
             onClick={() => changeImportTarget("append", targetMenuId || menus[0]?.id || "")}
             disabled={isBusy || menus.length === 0}
+            aria-pressed={mode === 'append'}
           >
             <strong>Дополнить</strong>
             <span>Без дубликатов</span>
@@ -441,7 +445,8 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
           </div>
         )}
 
-        {error && <div className="ai-modal__error">{error}</div>}
+        {isBusy && <p className="management-notice" role="status">{status === 'recognizing' ? 'Распознаём меню. Это может занять некоторое время.' : status === 'creating' ? 'Сохраняем выбранные позиции…' : 'Подготавливаем фотографию…'}</p>}
+        {error && <div className="ai-modal__error" role="alert">{error}</div>}
 
         {preview && (
           <div className="ai-modal__preview">
@@ -462,6 +467,7 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
               </div>
             )}
             <div className="ai-modal__items">
+              <div className="ai-selection-actions"><button type="button" className="ai-modal__button ai-modal__button--secondary" disabled={isBusy} onClick={() => setSelectedItems(Object.fromEntries(previewItems.map((item, index) => [item.importKey || `import-${index + 1}`, !item.match?.type])))}>Выбрать новые</button><button type="button" className="ai-modal__button ai-modal__button--secondary" disabled={isBusy} onClick={() => setSelectedItems({})}>Снять выбор</button></div>
               {previewItems.map((item, index) => {
                 const itemKey = item.importKey || `import-${index + 1}`;
                 const isDuplicate = item.match?.type === "duplicate";
@@ -499,7 +505,7 @@ function AiImportModal({ isOpen, inline = false, menus = [], selectedMenuId, onC
               type="button"
               className="ai-modal__submit"
               onClick={handleCreate}
-              disabled={status === "creating" || selectedCount === 0}
+              disabled={isBusy || selectedCount === 0}
             >
               {status === "creating"
                 ? "Сохраняем..."

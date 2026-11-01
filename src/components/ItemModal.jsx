@@ -1,7 +1,7 @@
 ﻿/**
  * Modal for creating or editing a menu item.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./ItemModal.css";
 
 /**
@@ -41,6 +41,26 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
   const [category, setCategory] = useState("напитки");
   const [show, setShow] = useState(true);
   const [initialQuantity, setInitialQuantity] = useState('0');
+  const dialogRef = useRef(null);
+  const callbacks = useRef({ onClose, saving });
+  callbacks.current = { onClose, saving };
+  useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.querySelector('input')?.focus();
+    const keyboard = event => {
+      if (event.key === 'Escape' && !callbacks.current.saving) callbacks.current.onClose();
+      if (event.key !== 'Tab') return;
+      const controls = [...dialogRef.current.querySelectorAll('input:not(:disabled),select:not(:disabled),button:not(:disabled)')];
+      if (!controls.length) { event.preventDefault(); return; }
+      if (event.shiftKey && document.activeElement === controls[0]) { event.preventDefault(); controls.at(-1).focus(); }
+      else if (!event.shiftKey && document.activeElement === controls.at(-1)) { event.preventDefault(); controls[0].focus(); }
+    };
+    document.addEventListener('keydown', keyboard);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', keyboard); if (previous?.isConnected) previous.focus(); };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -89,11 +109,12 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
   if (!isOpen) return null;
 
   return (
-    <div className="modal" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3>{mode === "edit" ? "Редактирование позиции" : "Новая позиция"}</h3>
+    <div className="modal" onClick={() => !saving && onClose()}>
+      <div ref={dialogRef} className="modal-content" role="dialog" aria-modal="true" aria-labelledby="item-modal-title" aria-busy={saving} onClick={(e) => e.stopPropagation()}>
+        <h3 id="item-modal-title">{mode === "edit" ? "Редактирование позиции" : "Новая позиция"}</h3>
         {saveError && <p role="alert">{saveError}</p>}
         <form className="modal-form" onSubmit={handleSubmit}>
+          <fieldset className="management-workspace modal-fields" disabled={saving}>
           <label className="modal-field">
             <span className="modal-label">Название</span>
           <input
@@ -103,7 +124,6 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            autoFocus
           />
           </label>
           <label className="modal-field">
@@ -144,6 +164,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
             Активна
           </label>
           {withQuantity && <label className="modal-field"><span className="modal-label">Количество до продажи</span><input type="number" className="modal-input" required min="0" max="1000000000" step="1" value={initialQuantity} disabled={saving} onChange={event => setInitialQuantity(event.target.value)} /></label>}
+          </fieldset>
           <div className="modal-actions">
             <button type="submit" className="modal-button" disabled={saving}>
               {saving ? 'Сохраняем…' : 'Сохранить'}

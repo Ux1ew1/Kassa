@@ -3,6 +3,8 @@ import { useAdminMenu } from "../hooks/useAdminMenu";
 import AdminMenuList from "../components/AdminMenuList";
 import ItemModal from "../components/ItemModal";
 import ManagementHeader from "../components/ManagementHeader";
+import ConfirmDialog from "../components/ConfirmDialog";
+import '../components/AccountingPanel.css';
 import { searchMenu } from "../utils/search";
 import "./Admin.css";
 
@@ -14,6 +16,7 @@ function Admin() {
     selectedMenu,
     menu,
     loading,
+    error,
     addItem,
     updateItem,
     deleteItem,
@@ -28,6 +31,9 @@ function Admin() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add");
   const [editingItem, setEditingItem] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [confirmation, setConfirmation] = useState(null);
 
   useEffect(() => {
     setMenuName(selectedMenu?.name || "");
@@ -36,18 +42,22 @@ function Admin() {
   const filteredMenu = searchMenu(menu, searchQuery);
 
   const handleAdd = () => {
+    setMessage('');
     setModalMode("add");
     setEditingItem(null);
     setModalOpen(true);
   };
 
   const handleEdit = (item) => {
+    setMessage('');
     setModalMode("edit");
     setEditingItem(item);
     setModalOpen(true);
   };
 
   const handleSave = async (itemData) => {
+    if (busy) return;
+    setBusy(true); setMessage('');
     try {
       if (modalMode === "add") {
         await addItem(itemData);
@@ -56,56 +66,51 @@ function Admin() {
       }
       setModalOpen(false);
       setEditingItem(null);
+      setMessage('Позиция сохранена.');
     } catch (error) {
-      alert(error.message || "Не удалось сохранить позицию");
-    }
+      setMessage(`Ошибка: ${error.message || 'Не удалось сохранить позицию'}`);
+    } finally { setBusy(false); }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Удалить позицию?")) {
-      try {
-        await deleteItem(id);
-      } catch (error) {
-        alert(error.message || "Не удалось удалить позицию");
-      }
-    }
+    setMessage('');
+    const item = menu.find(item => item.id === id);
+    setConfirmation({ title: 'Удалить позицию?', text: `«${item?.name || 'Товар'}» будет удалён из меню. Сохранённые отчёты останутся без изменений.`, run: () => deleteItem(id) });
   };
 
   const handleToggle = async (id) => {
+    setBusy(true); setMessage('');
     try {
       await toggleItem(id);
     } catch (error) {
-      alert(error.message || "Не удалось обновить позицию");
-    }
+      setMessage(`Ошибка: ${error.message || 'Не удалось обновить позицию'}`);
+    } finally { setBusy(false); }
   };
 
   const handleCreateMenu = async () => {
+    setBusy(true); setMessage('');
     try {
       await addMenu();
       setSearchQuery("");
     } catch (error) {
-      alert(error.message || "Не удалось создать меню");
-    }
+      setMessage(`Ошибка: ${error.message || 'Не удалось создать меню'}`);
+    } finally { setBusy(false); }
   };
 
   const handleDeleteMenu = async () => {
     if (!selectedMenuId) return;
-    if (confirm("Удалить выбранное меню?")) {
-      try {
-        await removeSelectedMenu();
-        setSearchQuery("");
-      } catch (error) {
-        alert(error.message || "Не удалось удалить меню");
-      }
-    }
+    setMessage('');
+    setConfirmation({ title: 'Удалить меню?', text: `Меню «${selectedMenu?.name}» и его товары будут удалены. Сохранённые отчёты останутся без изменений.`, run: async () => { await removeSelectedMenu(); setSearchQuery(''); } });
   };
 
   const handleRenameMenu = async () => {
+    setBusy(true); setMessage('');
     try {
       await renameSelectedMenu(menuName);
+      setMessage('Название меню сохранено.');
     } catch (error) {
-      alert(error.message || "Не удалось переименовать меню");
-    }
+      setMessage(`Ошибка: ${error.message || 'Не удалось переименовать меню'}`);
+    } finally { setBusy(false); }
   };
 
   return (
@@ -113,6 +118,9 @@ function Admin() {
       <ManagementHeader title="Админ-панель" />
 
       <main>
+        {error && <p role="alert" className="management-notice">{error}</p>}
+        {message && !modalOpen && <p role={message.startsWith('Ошибка:') ? 'alert' : 'status'} className="management-notice">{message}</p>}
+        <fieldset className="management-workspace" disabled={busy || loading}>
         <section className="admin-menu-switcher" aria-label="Рабочие меню">
           <div className="admin-menu-switcher__grid">
             <label className="admin-field" htmlFor="menu-select">
@@ -133,6 +141,8 @@ function Admin() {
               </select>
             </label>
 
+          </div>
+          <details className="admin-menu-settings"><summary>Название и управление меню</summary>
             <label className="admin-field" htmlFor="menu-name">
               <span className="admin-field__label">Название меню</span>
               <input
@@ -144,8 +154,6 @@ function Admin() {
                 placeholder="Название меню"
               />
             </label>
-          </div>
-
           <div className="admin-menu-switcher__actions">
             <button type="button" className="admin-action-button" onClick={handleRenameMenu}>
               Переименовать
@@ -162,14 +170,17 @@ function Admin() {
               Удалить меню
             </button>
           </div>
+          </details>
         </section>
 
+        <div className="management-section-heading"><div><h2>Позиции меню</h2><p>{searchQuery ? `Найдено: ${filteredMenu.length} из ${menu.length}` : `Всего: ${menu.length} · В продаже: ${menu.filter(item => item.show).length}`}</p></div></div>
         <div className="admin-controls">
           <div className="admin-search">
             <input
               type="text"
               className="admin-input admin-search-input"
               placeholder="Поиск по названию..."
+              aria-label="Поиск товаров в меню"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -196,23 +207,35 @@ function Admin() {
         ) : (
           <AdminMenuList
             items={filteredMenu}
+            emptyMessage={searchQuery ? 'Ничего не найдено. Попробуйте другое название или очистите поиск.' : undefined}
             onToggle={handleToggle}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
         )}
+        </fieldset>
       </main>
 
       <ItemModal
         isOpen={modalOpen}
         mode={modalMode}
         item={editingItem}
+        saving={busy}
+        saveError={message.startsWith('Ошибка:') ? message : ''}
         onSave={handleSave}
         onClose={() => {
+          if (busy) return;
           setModalOpen(false);
           setEditingItem(null);
         }}
       />
+      {confirmation && <ConfirmDialog title={confirmation.title} confirmText="Удалить" busy={busy} error={message.startsWith('Ошибка:') ? message : ''} onCancel={() => setConfirmation(null)} onConfirm={async () => {
+        if (busy) return;
+        setBusy(true); setMessage('');
+        try { await confirmation.run(); setConfirmation(null); setMessage('Удалено.'); }
+        catch (error) { setMessage(`Ошибка: ${error.message}`); }
+        finally { setBusy(false); }
+      }}>{confirmation.text}</ConfirmDialog>}
 
     </div>
   );

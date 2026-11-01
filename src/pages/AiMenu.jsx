@@ -10,7 +10,7 @@ export default function AiMenu() {
   return <div className="admin-container">
     <ManagementHeader title="ИИ меню" />
     {error && <p role="alert">{error}</p>}
-    {loading ? <p role="status">Загружаем меню…</p> : <AiImportModal inline isOpen menus={menus} selectedMenuId={selectedMenuId}
-      onClose={() => navigate('/admin')} onRecognize={importPhotoAsMenu} onCreate={createMenuFromImportPreview} />}
+    <main>{loading ? <p role="status">Загружаем меню…</p> : <AiImportModal inline isOpen menus={menus} selectedMenuId={selectedMenuId}
+      onClose={() => navigate('/admin')} onRecognize={importPhotoAsMenu} onCreate={createMenuFromImportPreview} />}</main>
   </div>;
 }

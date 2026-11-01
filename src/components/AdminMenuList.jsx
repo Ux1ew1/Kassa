@@ -27,12 +27,12 @@ const normalizeCategory = (value) => {
  * @param {Function} props.onDelete - Delete handler.
  * @returns {JSX.Element} Admin menu list.
  */
-function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
+function AdminMenuList({ items, onToggle, onEdit, onDelete, emptyMessage }) {
   if (items.length === 0) {
     return (
       <div className="admin-menu">
         <div className="admin-placeholder">
-          Меню пока пустое. Добавьте первую позицию.
+          {emptyMessage || 'Меню пока пустое. Добавьте первую позицию.'}
         </div>
       </div>
     );
@@ -59,6 +59,7 @@ function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
             <button
               className="admin-item__button"
               onClick={() => onToggle(item.id)}
+              aria-label={`${item.show ? 'Скрыть' : 'Показать'}: ${item.name}`}
               type="button"
             >
               {item.show ? "Скрыть" : "Показать"}
@@ -66,6 +67,7 @@ function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
             <button
               className="admin-item__button"
               onClick={() => onEdit(item)}
+              aria-label={`Изменить: ${item.name}`}
               type="button"
             >
               Изменить
@@ -73,6 +75,7 @@ function AdminMenuList({ items, onToggle, onEdit, onDelete }) {
             <button
               className="admin-item__button admin-item__button--danger"
               onClick={() => onDelete(item.id)}
+              aria-label={`Удалить: ${item.name}`}
               type="button"
             >
               Удалить

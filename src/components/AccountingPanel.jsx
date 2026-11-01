@@ -3,40 +3,20 @@ import { useAccounting } from '../hooks/useAccounting';
 import { configureAccounting, recordMovement, closeShift, clearReports, fetchReport, downloadReport, saveReportSettings, addPreparedProduct } from '../utils/api';
 import ItemModal from './ItemModal';
 import SuppliesReport from './SuppliesReport';
+import ConfirmDialog from './ConfirmDialog';
 import './AccountingPanel.css';
 
 const date = (value, timeZone) => value ? new Date(value).toLocaleString('ru-RU', { timeZone }) : '—';
 const display = value => value == null ? '—' : value;
 const money = value => `${Number(value).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} руб.`;
 
-function Confirmation({ action, busy, onCancel, onConfirm }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const previous = document.activeElement;
-    ref.current?.querySelector('button')?.focus();
-    const keyboard = event => {
-      if (event.key === 'Escape' && !busy) onCancel();
-      if (event.key !== 'Tab') return;
-      const controls = [...ref.current.querySelectorAll('button:not(:disabled)')];
-      if (!controls.length) { event.preventDefault(); return; }
-      if (event.shiftKey && document.activeElement === controls[0]) { event.preventDefault(); controls.at(-1).focus(); }
-      if (!event.shiftKey && document.activeElement === controls.at(-1)) { event.preventDefault(); controls[0].focus(); }
-    };
-    document.addEventListener('keydown', keyboard);
-    return () => { document.removeEventListener('keydown', keyboard); previous?.focus(); };
-  }, [busy, onCancel]);
-  return <div className="accounting-dialog-backdrop" onClick={() => !busy && onCancel()}>
-    <section ref={ref} className="accounting-dialog" role="dialog" aria-modal="true" aria-labelledby="accounting-confirm-title" onClick={event => event.stopPropagation()}>
-      <h2 id="accounting-confirm-title">{action.type === 'clear' ? 'Очистить все отчёты?' : 'Закрыть смену?'}</h2>
-      <p>{action.type === 'clear'
-        ? 'Будут необратимо удалены все отчёты, история текущей смены и операции расходников для всех сотрудников. Остатки товаров и расходников сохранятся. Следующая продажа начнёт новую смену.'
-        : 'Отчёт смены будет зафиксирован для всех сотрудников. Незавершённые чеки в него не входят. Следующая продажа начнёт новую смену, остатки сохранятся.'}</p>
-      <div className="accounting-actions">
-        <button type="button" disabled={busy} onClick={onCancel}>Отмена</button>
-        <button type="button" disabled={busy} onClick={onConfirm}>{busy ? 'Сохраняем…' : action.type === 'clear' ? 'Удалить все отчёты' : 'Закрыть смену'}</button>
-      </div>
-    </section>
-  </div>;
+function Confirmation({ action, busy, error, onCancel, onConfirm }) {
+  const clear = action.type === 'clear';
+  return <ConfirmDialog title={clear ? 'Очистить все отчёты?' : 'Закрыть смену?'} confirmText={clear ? 'Удалить все отчёты' : 'Закрыть смену'} danger={clear} busy={busy} error={error} onCancel={onCancel} onConfirm={onConfirm}>
+    {clear
+      ? 'Будут необратимо удалены все отчёты, история текущей смены и операции расходников для всех сотрудников. Остатки товаров и расходников сохранятся. Следующая продажа начнёт новую смену.'
+      : 'Отчёт смены будет зафиксирован для всех сотрудников. Незавершённые чеки в него не входят. Следующая продажа начнёт новую смену, остатки сохранятся.'}
+  </ConfirmDialog>;
 }
 
 function InventorySettings({ inventory, shiftOpen, busy, onSave }) {
@@ -88,8 +68,8 @@ function MovementForm({ inventory, busy, onSave }) {
 function ReportTable({ report }) {
   return <>
     <dl className="accounting-totals"><div><dt>Начало</dt><dd>{date(report.startedAt, report.timeZone)}</dd></div>{report.closedAt && <div><dt>Конец</dt><dd>{date(report.closedAt, report.timeZone)}</dd></div>}<div><dt>Чеков</dt><dd>{report.receiptCount}</dd></div><div><dt>Выручка</dt><dd>{money(report.revenue)}</dd></div></dl>
-    <p>Прочерк — количественный учёт выключен или остаток указан в итоговой строке. Итоги по товару не прибавляются повторно к строкам продаж по ценам.</p>
-    <p>На узком экране прокрутите таблицу вправо, чтобы увидеть остатки и выручку.</p>
+    <details className="report-help"><summary>Как читать отчёт</summary><p>Прочерк — количественный учёт выключен или остаток указан в итоговой строке. Итоги по товару не прибавляются повторно к строкам продаж по ценам.</p></details>
+    <p className="report-scroll-hint">Прокрутите таблицу вправо, чтобы увидеть остатки и выручку →</p>
     <div className="accounting-scroll" tabIndex={0} aria-label="Таблица отчёта"><table className="accounting-report-table"><thead><tr>{['Меню', 'Название', 'Цена продажи', 'Было на начало', 'Поступило', 'Корректировка', 'Продано', 'Осталось', 'Выручка'].map(title => <th key={title}>{title}</th>)}</tr></thead><tbody>
       {report.rows.map((row, index) => <tr key={index} className={row.kind === 'summary' ? 'accounting-summary' : ''}>
         <td>{row.menu}</td><td>{row.name}</td><td>{row.price == null ? '—' : money(row.price)}</td><td>{display(row.opening)}</td><td>{display(row.received)}</td><td>{display(row.adjustment)}</td><td>{row.sold}</td><td>{display(row.remaining)}</td><td>{money(row.revenue)}</td>
@@ -136,10 +116,33 @@ export default function AccountingPanel() {
     finally { activeOperation.current = false; setBusy(false); }
   };
   return <section className="accounting-panel" aria-label="Учёт товаров и смены">
-    <h2>Подготовка товаров до продажи</h2>
     {error && <p role="alert">{error}</p>}
     {!state && !error && <p role="status">Загружаем учёт…</p>}
     {message && <p role="status" className="accounting-message">{message}</p>}
+    <section className="management-card" id="shift-reports" aria-label="Смены и отчёты">
+    <h2>Смены и отчёты</h2>
+    <p>Общие для всех сотрудников. Хранятся на устройстве, где запущена касса, до ручной очистки.</p>
+    <label>Состав отчёта<select aria-label="Состав отчёта" value={state?.reportSettings?.products || 'all'} disabled={busy || !state} onChange={event => perform(() => saveReportSettings({ products: event.target.value }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
+      <option value="all">Все товары из меню</option><option value="sold">Только проданные товары</option>
+    </select></label>
+    <p>Применяется к таблице и скачиваемым файлам всех смен. История сохраняется полностью.</p>
+    <div className="accounting-actions">
+      <button type="button" className="management-primary" disabled={busy || !state?.current} onClick={() => { setMessage(''); setAction({ type: 'close', shiftId: state.current.id }); }}>Закрыть смену</button>
+    </div>
+    {!state?.current && <p>Открытой смены нет. Первая завершённая продажа начнёт новую.</p>}
+    <label className="accounting-report-select">Отчёт<select value={selectedReport} onChange={event => setSelectedReport(event.target.value)}>
+      <option value="">Текущая смена</option>{state?.archive.map(shift => <option key={shift.id} value={shift.id}>{date(shift.startedAt, shift.timeZone)} — {shift.receiptCount} чеков</option>)}
+    </select></label>
+    {reportError && <p role="alert">{reportError}</p>}
+    {reportLoading && <p role="status">Загружаем отчёт…</p>}
+    {report && <>
+      <div className="accounting-actions">{['xlsx', 'csv'].map(format => <button key={format} type="button" disabled={busy} onClick={() => perform(() => downloadReport(report.id, format), 'Отчёт подготовлен для скачивания.')}>Скачать {format.toUpperCase()}</button>)}</div>
+      <ReportTable report={report} />
+      <SuppliesReport report={report} />
+    </>}
+    </section>
+    <section className="management-card" id="product-preparation" aria-label="Подготовка товаров">
+    <h2>Подготовка товаров до продажи</h2>
     {inventory && <>
       <label>Меню для подготовки товаров<select value={inventory.id} disabled={busy || !!productId} onChange={event => setSelectedMenuId(event.target.value)}>{state.menus.map(menu => <option key={menu.id} value={menu.id}>{menu.name}</option>)}</select></label>
       <p>Здесь можно добавить товары, задать начальное количество и провести поступление до первой продажи. Выбор меню на этой странице не переключает меню сотрудников.</p>
@@ -153,32 +156,15 @@ export default function AccountingPanel() {
         <details><summary>Поступление или корректировка</summary><MovementForm key={inventory.id} inventory={inventory} busy={busy} onSave={payload => perform(() => recordMovement(payload), 'Количество обновлено.')} /></details>
       </>}
     </>}
-    <h2>Смены и отчёты</h2>
-    <p>Общие для всех сотрудников. Хранятся на устройстве, где запущена касса, до ручной очистки.</p>
-    <label>Состав отчёта<select aria-label="Состав отчёта" value={state?.reportSettings?.products || 'all'} disabled={busy || !state} onChange={event => perform(() => saveReportSettings({ products: event.target.value }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
-      <option value="all">Все товары из меню</option><option value="sold">Только проданные товары</option>
-    </select></label>
-    <p>Настройка общая для кассы и действует на просмотр, XLSX и CSV, включая архивные смены. История продаж и изменений количества сохраняется полностью.</p>
-    <div className="accounting-actions">
-      <button type="button" disabled={busy || !state?.current} onClick={() => setAction({ type: 'close', shiftId: state.current.id })}>Закрыть смену</button>
-      <button type="button" disabled={busy || !state || (!state.current && !state.archive.length && !state.pendingSupplyMovements)} onClick={() => setAction({ type: 'clear' })}>Очистить отчёты</button>
-    </div>
-    {!state?.current && <p>Открытой смены нет. Первая завершённая продажа начнёт новую.</p>}
-    <label className="accounting-report-select">Отчёт<select value={selectedReport} onChange={event => setSelectedReport(event.target.value)}>
-      <option value="">Текущая смена</option>{state?.archive.map(shift => <option key={shift.id} value={shift.id}>{date(shift.startedAt, shift.timeZone)} — {shift.receiptCount} чеков</option>)}
-    </select></label>
-    {reportError && <p role="alert">{reportError}</p>}
-    {reportLoading && <p role="status">Загружаем отчёт…</p>}
-    {report && <>
-      <div className="accounting-actions">{['xlsx', 'csv'].map(format => <button key={format} type="button" disabled={busy} onClick={() => perform(() => downloadReport(report.id, format), 'Отчёт подготовлен для скачивания.')}>Скачать {format.toUpperCase()}</button>)}</div>
-      <ReportTable report={report} />
-      <SuppliesReport report={report} />
-    </>}
+    </section>
+    <details className="management-danger-zone"><summary>Удаление истории</summary><p>Очистка удаляет историю для всех сотрудников. Текущие остатки сохраняются.</p>
+      <button type="button" className="management-danger" disabled={busy || !state || (!state.current && !state.archive.length && !state.pendingSupplyMovements)} onClick={() => { setMessage(''); setAction({ type: 'clear' }); }}>Очистить отчёты</button>
+    </details>
     {productId && inventory && <ItemModal isOpen mode="add" withQuantity={inventory.enabled} saving={busy} saveError={message.startsWith('Ошибка:') ? message : ''} onClose={() => !busy && setProductId('')} onSave={async data => {
       const ok = await perform(() => addPreparedProduct(inventory.id, { ...data, id: productId, initialQuantity: data.initialQuantity ?? 0 }), 'Товар добавлен в меню. Начальное количество сохранено; продажа не создавалась.');
       if (ok) setProductId('');
     }} />}
-    {action && <Confirmation action={action} busy={busy} onCancel={() => setAction(null)} onConfirm={async () => {
+    {action && <Confirmation action={action} busy={busy} error={message.startsWith('Ошибка:') ? message : ''} onCancel={() => setAction(null)} onConfirm={async () => {
       const ok = await perform(() => action.type === 'clear' ? clearReports() : closeShift(action.shiftId), action.type === 'clear' ? 'Все отчёты удалены. Остатки сохранены.' : 'Смена закрыта. Следующая продажа начнёт новую.');
       if (ok) { setAction(null); setSelectedReport(''); setArchivedReport(null); }
     }} />}
