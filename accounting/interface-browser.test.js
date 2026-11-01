@@ -25,7 +25,9 @@ test('management controls are usable in both themes, dialogs trap focus and dele
         await page.goto(`${base}/${route}`, { waitUntil: 'networkidle0' });
         assert.equal(await page.$eval('html', element => element.dataset.theme), theme);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${route} ${theme} ${width}: overflow`);
-        assert.equal(await page.$$eval('.admin-container *', elements => elements.some(element => getComputedStyle(element).backdropFilter !== 'none')), false);
+        assert.ok(await page.$eval('.management-header nav', element => getComputedStyle(element).backdropFilter.includes('blur')));
+        assert.equal(await page.$$eval('.admin-container input,.admin-container select', elements => elements.some(element => getComputedStyle(element).backdropFilter !== 'none')), false);
+        await page.evaluate(() => Promise.all(document.getAnimations().filter(animation => animation.effect.getTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))));
         await page.screenshot({ path: `.hallmark/screenshots/polish-${route}-${theme}-${width}.png`, fullPage: true });
       }
     }

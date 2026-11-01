@@ -8,7 +8,6 @@ import { syncInitialTheme } from './hooks/useTheme'
 import './index.css'
 import './responsive.css'
 import './management-ui.css'
-import './cashier-polish.css'
 
 syncInitialTheme()
 

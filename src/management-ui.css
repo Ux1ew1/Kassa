@@ -1,10 +1,11 @@
-/* Management surfaces are opaque: no backdrop layers behind forms or long tables. */
+/* Shared glass surfaces; individual controls do not create nested blur layers. */
 .admin-container {
   --management-surface: var(--color-input-bg);
+  --management-glass: color-mix(in srgb, var(--color-panel) 72%, transparent);
   --management-muted: color-mix(in srgb, var(--color-text-primary) 76%, var(--color-app-bg));
   --management-danger: #a92222;
   max-width: 1200px;
-  background: var(--color-app-bg);
+  background: transparent;
   padding-block: clamp(20px, 3vw, 36px) 48px;
   line-height: 1.5;
 }
@@ -12,9 +13,9 @@
 .admin-container :is(button, a, input, select, summary) { touch-action: manipulation; }
 .admin-container :is(button, input, select) { font-family: inherit; }
 .admin-container :is(input, select) { font-size: 16px; accent-color: var(--color-button-bg); }
-.admin-container button { cursor: pointer; box-shadow: none; transition: background-color 120ms ease, border-color 120ms ease; }
+.admin-container button { cursor: pointer; box-shadow: 0 3px 8px var(--color-shadow), var(--glass-inset-soft); transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease; }
 .admin-container button:disabled { cursor: not-allowed; opacity: .55; transform: none; }
-.admin-container :is(button, a):hover { transform: none; }
+.admin-container :is(button, a):active { transform: scale(.98); }
 .admin-container :is(button,input,select,a,summary,.accounting-scroll):focus-visible { outline: 2px solid var(--color-border); outline-offset: 3px; }
 .management-workspace { border: 0; min-width: 0; padding: 0; margin: 0; }
 .management-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
@@ -53,7 +54,7 @@
 .admin-search-input { padding-right: 50px; }
 .admin-menu { gap: 10px; }
 .admin-item { padding: 18px; background: var(--management-surface); border-radius: 12px; transition: border-color 120ms ease; }
-.admin-item:hover { transform: none; }
+.admin-item:hover { transform: translateY(-2px); }
 .admin-item--inactive { opacity: 1; background: var(--color-app-bg); border-style: dashed; }
 .admin-item__info { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px 16px; flex: 1 1 280px; }
 .admin-item__name { font-size: 17px; }
@@ -124,10 +125,35 @@
 .ai-selection-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .admin-container .ai-modal__mode-button { color: var(--management-muted); min-height: 64px; }
 .admin-container .ai-modal__mode-button.is-active { box-shadow: none; transform: none; border-color: var(--color-border); color: var(--color-text-primary); }
-.admin-container :is(.ai-modal__item,.ai-modal__preview,.ai-modal__field) { animation: none; }
+.admin-container .ai-modal__item { animation: management-reveal 220ms ease both; }
+.admin-container :is(.ai-modal__preview,.ai-modal__field) { animation: management-reveal 240ms ease both; }
 .admin-container .ai-modal__source { padding-block: 20px; }
 .admin-container .ai-modal__button { min-height: 44px; }
 .admin-container .ai-modal__submit { min-height: 48px; }
+.management-header nav,
+.management-card,
+.admin-menu-switcher,
+.admin-container .ai-modal--inline .ai-modal__content,
+.admin-container .modal-content,
+.admin-container .accounting-dialog {
+  background: var(--management-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 22px var(--color-shadow), var(--glass-inset-strong);
+}
+.management-header { animation: management-reveal 260ms ease both; }
+.management-card, .admin-menu-switcher, .admin-container .ai-modal__content { animation: management-reveal 300ms ease both; }
+.admin-container :is(.modal-content,.accounting-dialog) { animation: management-dialog-in 220ms ease both; }
+.admin-item { background: color-mix(in srgb, var(--color-panel) 65%, transparent); box-shadow: 0 3px 10px var(--color-shadow), var(--glass-inset-soft); transition: transform 180ms ease, border-color 180ms ease; animation: management-reveal 240ms ease both; }
+.admin-item--inactive { background: color-mix(in srgb, var(--color-app-bg) 72%, transparent); }
+.supplies-page > details.management-card { background: var(--management-glass); }
+.admin-container .ai-modal__mode-button.is-active { box-shadow: 0 3px 10px var(--color-shadow); }
+.management-back { background: color-mix(in srgb, var(--color-panel) 65%, transparent); transition: background-color 180ms ease, transform 180ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .admin-container button:not(:disabled):hover, .management-back:hover { transform: translateY(-1px); }
+}
+@keyframes management-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes management-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (max-width: 600px) {
   .management-heading { flex-wrap: wrap; gap: 12px; }
   .management-back { min-height: 44px; padding: 6px 10px; }
