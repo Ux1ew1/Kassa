@@ -38,7 +38,7 @@ const normalizeCategory = (value) => {
 function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, saving = false, saveError = '' }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("остальное");
+  const [category, setCategory] = useState("напитки");
   const [show, setShow] = useState(true);
   const [initialQuantity, setInitialQuantity] = useState('0');
 
@@ -53,7 +53,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
       } else {
         setName("");
         setPrice("");
-        setCategory("остальное");
+        setCategory("напитки");
         setShow(true);
       }
     }
@@ -129,7 +129,7 @@ function ItemModal({ isOpen, mode, item, onSave, onClose, withQuantity = false, 
             onChange={(e) => setCategory(e.target.value)}
           >
             {CATEGORY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
+              <option key={option} value={normalizeCategory(option)}>
                 {option}
               </option>
             ))}
