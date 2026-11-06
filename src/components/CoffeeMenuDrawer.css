@@ -78,8 +78,8 @@
 .coffee-menu-close {
   width: 36px;
   height: 36px;
-  border: none;
-  border-radius: 50%;
+  border: 1px solid var(--color-divider);
+  border-radius: 8px;
   background: color-mix(in srgb, var(--color-card-strong) 70%, transparent);
   color: var(--color-button-text);
   font-size: 20px;
