@@ -85,7 +85,9 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
   function report(shift, settings = { products: 'all' }) {
     const rows = [];
     const soldProducts = Object.values(shift.products).filter(product => product.sold > 0);
-    for (const product of Object.values(shift.products)) {
+    const menuOnly = settings.products === 'menu';
+    const products = Object.values(shift.products).filter(product => !menuOnly || product.menuId === settings.menuId);
+    for (const product of products) {
       const base = { menu: product.menu, name: product.name, price: product.price, opening: product.opening,
         received: product.tracked ? product.received : null, adjustment: product.tracked ? product.adjustment : null,
         sold: product.sold, remaining: closing(product), revenue: product.revenueCents / 100, kind: 'product' };
@@ -99,15 +101,29 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
       }
     }
     return { id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt, timeZone: shift.timeZone,
-      receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100, ...suppliesReport(shift),
+      receiptCount: menuOnly ? shift.sales.filter(sale => sale.items.some(item => item.menuId === settings.menuId)).length : shift.receiptCount,
+      revenue: (menuOnly ? products.reduce((sum, product) => sum + product.revenueCents, 0) : shift.revenueCents) / 100, ...suppliesReport(shift),
+      ...(menuOnly ? { menuId: settings.menuId } : {}),
       products: settings.products, rows: settings.products === 'sold' ? rows.filter(row => row.sold > 0) : rows,
       movements: settings.products === 'sold' ? shift.movements.filter(move => soldProducts.some(product =>
         move.menuId != null && move.itemId != null
           ? String(move.menuId) === product.menuId && String(move.itemId) === product.itemId
-          : move.menu === product.menu && (move.name === product.name || product.prices.some(price => price.name === move.name)))) : shift.movements };
+          : move.menu === product.menu && (move.name === product.name || product.prices.some(price => price.name === move.name))))
+        : menuOnly ? shift.movements.filter(move => move.menuId != null ? String(move.menuId) === settings.menuId
+          : products.some(product => move.menu === product.menu && (move.name === product.name || product.prices.some(price => price.name === move.name))))
+          : shift.movements };
+  }
+  function reportMenus(state, menus) {
+    const available = new Map(menus.map(menu => [String(menu.id), { id: String(menu.id), name: menu.name }]));
+    for (const shift of [state.current, ...state.archive].filter(Boolean)) {
+      for (const product of Object.values(shift.products)) {
+        if (!available.has(product.menuId)) available.set(product.menuId, { id: product.menuId, name: product.menu });
+      }
+    }
+    return [...available.values()];
   }
   function view(state, menus) {
-    return { revision: state.revision, ...suppliesView(state), reportSettings: state.reportSettings || { products: 'all' }, current: state.current ? report(state.current, state.reportSettings) : null,
+    return { revision: state.revision, ...suppliesView(state), reportMenus: reportMenus(state, menus), reportSettings: state.reportSettings || { products: 'all' }, current: state.current ? report(state.current, state.reportSettings) : null,
       archive: state.archive.map(shift => ({ id: shift.id, startedAt: shift.startedAt, closedAt: shift.closedAt,
         timeZone: shift.timeZone, receiptCount: shift.receiptCount, revenue: shift.revenueCents / 100 })),
       menus: menus.map(menu => {
@@ -122,9 +138,10 @@ export function createAccounting({ file, catalog, now = () => new Date(), timeZo
     state: () => run((state, menus) => view(state, menus)),
     createSupply: payload => run(state => createSupply(state, payload, now), true),
     moveSupply: payload => run(state => moveSupply(state, payload, now), true),
-    settings: payload => run(state => {
-      if (!['all', 'sold'].includes(payload?.products)) fail('Выберите состав отчёта: всё меню или только проданное');
-      state.reportSettings = { products: payload.products };
+    settings: payload => run((state, menus) => {
+      if (!['all', 'sold', 'menu'].includes(payload?.products)) fail('Выберите состав отчёта');
+      if (payload.products === 'menu' && (typeof payload.menuId !== 'string' || !reportMenus(state, menus).some(menu => menu.id === payload.menuId))) fail('Выберите меню для отчёта');
+      state.reportSettings = { products: payload.products, ...(payload.products === 'menu' ? { menuId: payload.menuId } : {}) };
       return state.reportSettings;
     }, true),
     report: id => run(state => {

@@ -123,6 +123,13 @@ test('management pages, report options and initial inventory work without making
   assert.equal(await page.$$eval('.accounting-report-table tbody tr', rows => rows.length), 1);
   await page.select('select[aria-label="Состав отчёта"]', 'all');
   await page.waitForFunction(() => document.querySelectorAll('.accounting-report-table tbody tr').length === 2);
+  await page.select('select[aria-label="Состав отчёта"]', 'menu');
+  await page.waitForSelector('select[aria-label="Меню для отчёта"]');
+  assert.equal(await page.$eval('select[aria-label="Меню для отчёта"]', select => select.value), 'main');
+  await page.reload({ waitUntil: 'networkidle0' });
+  assert.equal(await page.$eval('select[aria-label="Состав отчёта"]', select => select.value), 'menu');
+  assert.equal(await page.$eval('select[aria-label="Меню для отчёта"]', select => select.value), 'main');
+  assert.equal(await page.$$eval('.accounting-report-table tbody tr', rows => rows.length), 2);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   const order = await page.evaluate(() => {
     const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);

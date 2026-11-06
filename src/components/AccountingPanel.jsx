@@ -93,6 +93,7 @@ export default function AccountingPanel() {
   const [reportLoading, setReportLoading] = useState(false);
   const activeOperation = useRef(false);
   const inventory = state?.menus.find(menu => menu.id === String(selectedMenuId)) || state?.menus[0];
+  const reportMenus = state?.reportMenus || state?.menus || [];
   const report = selectedReport ? archivedReport : state?.current;
   useEffect(() => {
     let alive = true;
@@ -102,7 +103,7 @@ export default function AccountingPanel() {
     fetchReport(selectedReport).then(report => { if (alive) setArchivedReport(report); })
       .catch(error => { if (alive) setReportError(error.message); }).finally(() => { if (alive) setReportLoading(false); });
     return () => { alive = false; };
-  }, [selectedReport, state?.reportSettings?.products]);
+  }, [selectedReport, state?.reportSettings?.products, state?.reportSettings?.menuId]);
   useEffect(() => {
     if (state && selectedReport && !state.archive.some(shift => shift.id === selectedReport)) setSelectedReport('');
   }, [state, selectedReport]);
@@ -123,9 +124,12 @@ export default function AccountingPanel() {
     <section className="management-card" id="shift-reports" aria-label="Смены и отчёты">
     <h2>Смены и отчёты</h2>
     {report && <ReportTotals report={report} />}
-    <label>Состав отчёта<select aria-label="Состав отчёта" value={state?.reportSettings?.products || 'all'} disabled={busy || !state} onChange={event => perform(() => saveReportSettings({ products: event.target.value }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
-      <option value="all">Все товары из меню</option><option value="sold">Только проданные товары</option>
+    <label>Состав отчёта<select aria-label="Состав отчёта" value={state?.reportSettings?.products || 'all'} disabled={busy || !state} onChange={event => perform(() => saveReportSettings({ products: event.target.value, ...(event.target.value === 'menu' ? { menuId: reportMenus.some(menu => menu.id === inventory?.id) ? inventory.id : reportMenus[0]?.id } : {}) }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
+      <option value="all">Все товары из меню</option><option value="sold">Только проданные товары</option><option value="menu" disabled={!reportMenus.length}>Только товары из выбранного меню</option>
     </select></label>
+    {state?.reportSettings?.products === 'menu' && <label className="accounting-menu-filter">Меню для отчёта<select aria-label="Меню для отчёта" value={state.reportSettings.menuId} disabled={busy} onChange={event => perform(() => saveReportSettings({ products: 'menu', menuId: event.target.value }), 'Настройка отчёта сохранена. Она применяется к таблице и скачиваемым файлам.')}>
+      {reportMenus.map(menu => <option key={menu.id} value={menu.id}>{menu.name}</option>)}
+    </select></label>}
     {!state?.current && <p>Открытой смены нет. Первая завершённая продажа начнёт новую.</p>}
     {reportError && <p role="alert">{reportError}</p>}
     {reportLoading && <p role="status">Загружаем отчёт…</p>}
