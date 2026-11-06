@@ -88,7 +88,7 @@ test('browser checkout, lost-response retry, two devices and report confirmation
   assert.deepEqual(errors, []);
 });
 
-test('management pages, report options and preparation form work without making a sale', {
+test('management pages, report options and initial inventory work without making a sale', {
   timeout: 45000, skip: !process.env.KASSA_PUPPETEER || !process.env.KASSA_BROWSER,
 }, async t => {
   const puppeteer = createRequire(import.meta.url)(process.env.KASSA_PUPPETEER);
@@ -113,17 +113,7 @@ test('management pages, report options and preparation form work without making 
   await clickText('Сохранить настройки учёта');
   await page.waitForFunction(() => document.querySelector('.accounting-message')?.textContent.includes('Настройки учёта сохранены'));
   assert.equal((await api()).body.current, null);
-  await clickText('Добавить товар до продажи');
-  await page.waitForSelector('.modal');
-  await page.type('.modal input[placeholder="Название"]', 'Сок');
-  await page.type('.modal input[placeholder="Цена"]', '70');
-  await page.$eval('.modal input[max="1000000000"]', input => { input.focus(); input.select(); });
-  await page.keyboard.type('9');
-  await page.click('.modal button[type="submit"]');
-  await page.waitForFunction(() => !document.querySelector('.modal'));
-  const prepared = (await api()).body;
-  assert.equal(prepared.current, null);
-  assert.equal(prepared.menus[0].items.find(item => item.name === 'Сок').quantity, 9);
+  assert.equal(await page.$$eval('button', buttons => buttons.some(button => button.textContent.trim() === 'Добавить товар до продажи')), false);
   await page.select('select[aria-label="Состав отчёта"]', 'sold');
   await page.waitForFunction(() => document.querySelector('.accounting-message')?.textContent.includes('Настройка отчёта сохранена'));
   await api('/sales', 'POST', { id: 'browser_settings_001', items: [{ menuId: 'main', itemId: 1, name: 'Американо', price: 100, quantity: 1 }] });
@@ -132,8 +122,20 @@ test('management pages, report options and preparation form work without making 
   assert.equal(await page.$eval('select[aria-label="Состав отчёта"]', select => select.value), 'sold');
   assert.equal(await page.$$eval('.accounting-report-table tbody tr', rows => rows.length), 1);
   await page.select('select[aria-label="Состав отчёта"]', 'all');
-  await page.waitForFunction(() => document.querySelectorAll('.accounting-report-table tbody tr').length === 3);
+  await page.waitForFunction(() => document.querySelectorAll('.accounting-report-table tbody tr').length === 2);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  const order = await page.evaluate(() => {
+    const before = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const totals = document.querySelector('.accounting-totals');
+    const composition = document.querySelector('select[aria-label="Состав отчёта"]');
+    const table = document.querySelector('.accounting-report-table');
+    const selector = document.querySelector('.accounting-report-select');
+    const downloads = [...document.querySelectorAll('button')].filter(button => button.textContent.startsWith('Скачать'));
+    const close = [...document.querySelectorAll('button')].find(button => button.textContent === 'Закрыть смену');
+    return before(totals, composition) && before(table, selector) && downloads.every(button => before(table, button)) && close === [...document.querySelectorAll('.accounting-panel button')].at(-1);
+  });
+  assert.equal(order, true);
+  assert.equal(await page.$('.report-help'), null);
   await page.screenshot({ path: '.hallmark/screenshots/reports-preparation.png', fullPage: true });
   assert.deepEqual(errors, []);
 });
