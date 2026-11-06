@@ -41,6 +41,7 @@ function SearchBar({ value = "", onSearch }) {
     >
       <input
         type="text"
+        autoCapitalize="sentences"
         className={`search-input${hasValue ? " search-input--active" : ""}`}
         placeholder="Поиск товаров..."
         value={value}

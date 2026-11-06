@@ -180,6 +180,7 @@ function Admin() {
               type="text"
               className="admin-input admin-search-input"
               placeholder="Поиск по названию..."
+              autoCapitalize="sentences"
               aria-label="Поиск товаров в меню"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
