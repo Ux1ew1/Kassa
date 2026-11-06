@@ -3,6 +3,7 @@
  */
 import "./SecretMenu.css";
 import { useTheme } from "../hooks/useTheme";
+import GlassDialog from './GlassDialog';
 
 /**
  * Renders the secret settings panel.
@@ -30,25 +31,7 @@ function SecretMenu({
   }
 
   return (
-    <div className="secret-menu-overlay" onClick={onClose}>
-      <div
-        className="secret-menu-panel"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="secret-menu-header">
-          <div>
-            <div className="secret-menu-title">Секретное меню</div>
-            <div className="secret-menu-caption">Настройки для бариста</div>
-          </div>
-          <button
-            type="button"
-            className="secret-menu-close"
-            onClick={onClose}
-            aria-label="Закрыть"
-          >
-            ✕
-          </button>
-        </div>
+    <GlassDialog title="Секретное меню" caption="Настройки для бариста" className="secret-menu-overlay" panelClassName="secret-menu-panel" onClose={onClose}>
 
         <div className="secret-menu-section">
           <div className="secret-menu-section-title">Вид отображения кофе</div>
@@ -101,8 +84,7 @@ function SecretMenu({
             Перейти в админ-панель
           </a>
         </div>
-      </div>
-    </div>
+    </GlassDialog>
   );
 }
 

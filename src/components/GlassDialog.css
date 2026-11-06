@@ -1,0 +1,54 @@
+.glass-dialog {
+  --dialog-top: max(16px, env(safe-area-inset-top));
+  --dialog-bottom: max(16px, env(safe-area-inset-bottom));
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--dialog-top) max(12px, env(safe-area-inset-right)) var(--dialog-bottom) max(12px, env(safe-area-inset-left));
+  background: var(--color-overlay-soft);
+}
+.glass-dialog.glass-dialog--raised {
+  --dialog-bottom: max(clamp(48px, 14dvh, 120px), env(safe-area-inset-bottom));
+  padding-top: var(--dialog-top);
+  padding-bottom: var(--dialog-bottom);
+}
+.glass-dialog .glass-dialog__panel {
+  position: relative; width: min(420px, 100%); min-width: 0; max-width: 100%;
+  max-height: calc(100dvh - var(--dialog-top) - var(--dialog-bottom));
+  overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 20px; padding: 24px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 28%, rgba(255,255,255,.4));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--color-panel) 58%, transparent);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: 0 16px 40px var(--color-shadow), var(--glass-inset-strong);
+  animation: glass-dialog-in 200ms ease both;
+}
+.glass-dialog__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.glass-dialog__header h2 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; }
+.glass-dialog__header p { margin: 4px 0 0; color: var(--color-text-secondary); font-size: 13px; }
+.glass-dialog .glass-dialog__close {
+  display: grid; place-items: center; flex: 0 0 44px;
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0;
+  border-radius: 8px; border: 1px solid var(--color-divider);
+  background: color-mix(in srgb, var(--color-input-bg) 35%, transparent);
+  color: var(--color-text-primary);
+  box-shadow: 0 3px 8px var(--color-shadow), var(--glass-inset-soft);
+  font-size: 28px; font-weight: 400; line-height: 1;
+  transition: background-color 180ms ease, transform 150ms ease;
+}
+.glass-dialog__close:hover { background: color-mix(in srgb, var(--color-input-bg) 60%, transparent); }
+.glass-dialog__close:active { transform: scale(.95); }
+.glass-dialog :is(button,input,a):focus-visible { outline: 2px solid var(--color-border); outline-offset: 3px; }
+.container--lite .glass-dialog .glass-dialog__panel { background: var(--color-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Animate the position only: animating opacity here isolates the backdrop in Chromium. */
+@keyframes glass-dialog-in { from { transform: translateY(8px) scale(.98); } to { transform: none; } }
+@media (max-height: 500px) {
+  .glass-dialog.glass-dialog--raised { --dialog-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .glass-dialog .glass-dialog__panel { padding: 16px; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-dialog .glass-dialog__panel { animation: none; }
+  .glass-dialog * { transition: none !important; }
+}
