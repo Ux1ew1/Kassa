@@ -88,7 +88,6 @@ function SecretMenu({
             <input type="checkbox" checked={searchPrediction} onChange={onToggleSearchPrediction} aria-label="Предугадывание в поиске" />
             <span className="secret-menu-toggle-ui" aria-hidden="true" />
           </label>
-          <p className="secret-menu-note">Исправление опечаток и раскладки. Настройка сохраняется на этом устройстве.</p>
         </div>
 
         <div className="secret-menu-actions">
