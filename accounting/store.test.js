@@ -150,9 +150,11 @@ test('XLSX and CSV preserve Russian text, escaping, numeric values and totals', 
   const text = csv(report);
   assert.ok(text.startsWith('\uFEFF'));
   assert.ok(text.includes('"\'=Чай; ""сладкий""\nновый"'));
-  assert.ok(text.includes('"Общая выручка";"10.25"'));
+  assert.ok(!text.includes('"Общая выручка"'));
+  assert.ok(!text.includes('"Примечание"'));
   const book = new ExcelJS.Workbook(); await book.xlsx.load(await xlsx(report));
   const sheet = book.getWorksheet('Смена');
+  assert.ok(!sheet.getSheetValues().some(row => ['Общая выручка', 'Примечание'].includes(row?.[1])));
   const firstRow = sheet.getSheetValues().findIndex(row => row?.[1] === 'Меню') + 1;
   assert.equal(sheet.getCell(`B${firstRow}`).value, '=Чай; "сладкий"\nновый');
   assert.equal(sheet.getCell(`C${firstRow}`).value, 10.25); assert.equal(sheet.getCell(`I${firstRow}`).value, 10.25);

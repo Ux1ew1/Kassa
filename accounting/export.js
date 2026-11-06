@@ -12,8 +12,7 @@ const stamp = (value, zone) => value ? new Date(value).toLocaleString('ru-RU', {
 const metadata = report => [
   ['Начало смены', stamp(report.startedAt, report.timeZone)],
   ...(report.closedAt ? [['Конец смены', stamp(report.closedAt, report.timeZone)]] : []),
-  ['Завершённых чеков', report.receiptCount], ['Общая выручка', report.revenue],
-  ['Примечание', `Состав: ${report.products === 'sold' ? 'только проданные товары' : 'всё меню'}. Строки «итог по товару» не прибавляются повторно к продажам по ценам. Прочерк — учёт выключен или количество показано в итоговой строке.`],
+  ['Завершённых чеков', report.receiptCount],
 ];
 const safeText = value => /^[=+\-@\t\r\n]/.test(value) ? `'${value}` : value;
 export function csv(report) {
@@ -21,7 +20,7 @@ export function csv(report) {
     const text = value == null ? '—' : typeof value === 'number' ? String(value) : safeText(String(value));
     return `"${text.replaceAll('"', '""')}"`;
   };
-  const rows = [...metadata(report), [], headers, ...report.rows.map(values), [], ['Общая выручка', report.revenue], [],
+  const rows = [...metadata(report), [], headers, ...report.rows.map(values), [],
     ['Изменения количества'], ['Дата', 'Меню', 'Товар', 'Операция', 'Количество', 'Причина'],
     ...report.movements.map(move => [stamp(move.at, report.timeZone), move.menu, move.name, move.type === 'receipt' ? 'Поступление' : 'Корректировка', move.quantity, move.reason]),
     ...(report.supplies?.length ? [[], ['Расходники'], supplyHeaders, ...report.supplies.map(supplyValues), [],
@@ -43,15 +42,11 @@ export async function xlsx(report) {
     if (row.kind === 'summary') added.font = { bold: true };
     for (const column of [3, 9]) added.getCell(column).numFmt = '#,##0.00';
   }
-  sheet.addRow([]); sheet.addRow(['Общая выручка', report.revenue]).font = { bold: true };
   sheet.columns.forEach((column, index) => { column.width = [24, 45, 18, 18, 16, 18, 14, 14, 20][index] || 18; });
   headerRow.font = { bold: true, color: { argb: 'FFF6FAFD' } };
   headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A3D63' } };
   sheet.views = [{ state: 'frozen', ySplit: start }];
   sheet.autoFilter = { from: { row: start, column: 1 }, to: { row: start + report.rows.length, column: 9 } };
-  const noteRow = metadataRows.length;
-  sheet.mergeCells(`B${noteRow}:I${noteRow}`);
-  sheet.getRow(noteRow).alignment = { wrapText: true }; sheet.getRow(noteRow).height = 45;
   const changes = book.addWorksheet('Изменения количества');
   changes.addRow(['Дата', 'Меню', 'Товар', 'Операция', 'Количество', 'Причина']).font = { bold: true };
   report.movements.forEach(move => changes.addRow([stamp(move.at, report.timeZone), move.menu, move.name, move.type === 'receipt' ? 'Поступление' : 'Корректировка', move.quantity, move.reason]));
