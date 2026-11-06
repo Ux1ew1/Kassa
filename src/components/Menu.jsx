@@ -39,6 +39,7 @@ function Menu({
   activeCategory = "",
   cartItems = [],
   onAddItem,
+  predictiveSearch = true,
 }) {
   // Подсчитываем количество каждого товара в активном чеке
   const itemCounts = useMemo(() => {
@@ -79,8 +80,8 @@ function Menu({
         !activeCategory || itemCategory === activeCategory;
       return matchesCategory;
     });
-    return searchMenu(categoryItems, searchQuery);
-  }, [menuItems, activeOrder, searchQuery, activeCategory]);
+    return searchMenu(categoryItems, searchQuery, { predictive: predictiveSearch });
+  }, [menuItems, activeOrder, searchQuery, activeCategory, predictiveSearch]);
 
   if (filteredItems.length === 0) {
     return (

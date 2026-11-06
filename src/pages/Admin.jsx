@@ -6,6 +6,7 @@ import ManagementHeader from "../components/ManagementHeader";
 import ConfirmDialog from "../components/ConfirmDialog";
 import '../components/AccountingPanel.css';
 import { searchMenu } from "../utils/search";
+import { useSearchPrediction } from '../hooks/useSearchPrediction';
 import "./Admin.css";
 
 function Admin() {
@@ -39,7 +40,8 @@ function Admin() {
     setMenuName(selectedMenu?.name || "");
   }, [selectedMenu?.name]);
 
-  const filteredMenu = searchMenu(menu, searchQuery);
+  const [searchPrediction] = useSearchPrediction();
+  const filteredMenu = searchMenu(menu, searchQuery, { predictive: searchPrediction });
 
   const handleAdd = () => {
     setMessage('');

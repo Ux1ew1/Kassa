@@ -32,3 +32,13 @@ test("keeps empty search and tied results in menu order", () => {
   assert.deepEqual(names("латте"), ["Латте", "Латте 300 мл"]);
   assert.deepEqual(searchMenu([], "амнри"), []);
 });
+
+test('prediction can be disabled without losing ordinary case-insensitive search', () => {
+  const literal = query => searchMenu(items, query, { predictive: false }).map(item => item.name);
+  assert.deepEqual(literal('амнри'), []);
+  assert.deepEqual(literal('fvthbrfyj'), []);
+  assert.deepEqual(literal('  АМЕРИ  '), ['Американо']);
+  assert.deepEqual(literal('латте 300'), ['Латте 300 мл']);
+  assert.deepEqual(literal('раф соленая'), ['Раф солёная карамель']);
+  assert.equal(searchMenu(items, '', { predictive: false }), items);
+});

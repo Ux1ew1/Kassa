@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMenu } from "../hooks/useMenu";
 import { useChecks } from "../hooks/useChecks";
 import { useAccounting } from "../hooks/useAccounting";
+import { useSearchPrediction } from '../hooks/useSearchPrediction';
 import SearchBar from "../components/SearchBar";
 import Menu from "../components/Menu";
 import Cart from "../components/Cart";
@@ -82,6 +83,7 @@ function Kassa() {
   } = useChecks({ activeMenuId, menuItems });
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchPrediction, setSearchPrediction] = useSearchPrediction();
   const [isCoffeeMenuOpen, setCoffeeMenuOpen] = useState(false);
   const [isSecretMenuOpen, setSecretMenuOpen] = useState(false);
   const [isCartDrawerOpen, setCartDrawerOpen] = useState(false);
@@ -375,6 +377,7 @@ function Kassa() {
           </div>
         ) : (
           <Menu
+            predictiveSearch={searchPrediction}
             menuItems={menuItems}
             activeOrder={activeOrder}
             searchQuery={searchQuery}
@@ -437,6 +440,8 @@ function Kassa() {
           onToggleFulfilled={toggleItemsFulfilled}
         />
         <SecretMenu
+          searchPrediction={searchPrediction}
+          onToggleSearchPrediction={() => setSearchPrediction(!searchPrediction)}
           open={isSecretMenuOpen}
           onClose={handleToggleSecretMenu}
           gesturesEnabled={gesturesEnabled}

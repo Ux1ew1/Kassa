@@ -22,10 +22,11 @@ function distance(a, b) {
   return rows[a.length][b.length];
 }
 
-function tokenScore(query, word) {
+function tokenScore(query, word, predictive) {
   if (word === query) return 0;
   if (word.startsWith(query)) return 1;
   if (word.includes(query)) return 2;
+  if (!predictive) return Infinity;
   // Short fragments and numbers must match literally to avoid noisy results.
   if (query.length < 3 || /\d/.test(query)) return Infinity;
   const limit = query.length >= 6 ? 2 : 1;
@@ -38,7 +39,7 @@ function tokenScore(query, word) {
 }
 
 /** Search names with typo tolerance; keep the existing order for equal scores. */
-export function searchMenu(items, value) {
+export function searchMenu(items, value, { predictive = true } = {}) {
   const raw = String(value ?? "").toLowerCase();
   const query = normalize(raw);
   if (!query) return items;
@@ -46,7 +47,7 @@ export function searchMenu(items, value) {
     const index = EN_KEYS.indexOf(char);
     return index < 0 ? char : RU_KEYS[index];
   }).join(""));
-  const variants = [...new Set([query, corrected])].filter(Boolean);
+  const variants = [...new Set(predictive ? [query, corrected] : [query])].filter(Boolean);
   return items.map((item, index) => {
     const name = normalize(item.name);
     const words = name.split(" ");
@@ -59,7 +60,7 @@ export function searchMenu(items, value) {
       }
       const tokens = variant.split(" ");
       const total = tokens.reduce((sum, token) => sum +
-        Math.min(...words.map((word) => tokenScore(token, word))), 0);
+        Math.min(...words.map((word) => tokenScore(token, word, predictive))), 0);
       score = Math.min(score, 2 + total + penalty);
     }
     return { item, index, score };

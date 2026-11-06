@@ -23,6 +23,8 @@ function SecretMenu({
   onToggleGestures,
   lowPerformanceMode,
   onToggleLowPerformanceMode,
+  searchPrediction,
+  onToggleSearchPrediction,
 }) {
   const { theme, toggleTheme } = useTheme();
 
@@ -77,6 +79,16 @@ function SecretMenu({
             />
             <span className="secret-menu-toggle-ui" aria-hidden="true" />
           </label>
+        </div>
+
+        <div className="secret-menu-section">
+          <div className="secret-menu-section-title">Поиск</div>
+          <label className="secret-menu-toggle">
+            <span>Предугадывание в поиске</span>
+            <input type="checkbox" checked={searchPrediction} onChange={onToggleSearchPrediction} aria-label="Предугадывание в поиске" />
+            <span className="secret-menu-toggle-ui" aria-hidden="true" />
+          </label>
+          <p className="secret-menu-note">Исправление опечаток и раскладки. Настройка сохраняется на этом устройстве.</p>
         </div>
 
         <div className="secret-menu-actions">
